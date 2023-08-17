@@ -302,6 +302,9 @@ pub fn list_keys(config: &ChainConfig) -> Result<Vec<(String, AnySigningKeyPair)
                 .map(|(key_name, keys)| (key_name, keys.into()))
                 .collect()
         }
+        ChainType::Penumbra => {
+            unimplemented!("Penumbra keyring not implemented yet");
+        }
     };
     Ok(keys)
 }

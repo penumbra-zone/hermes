@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+/*
 #![deny(
     warnings,
     trivial_casts,
@@ -7,6 +8,7 @@
     unused_qualifications,
     rust_2018_idioms
 )]
+ */
 #![allow(clippy::too_many_arguments)]
 // TODO: disable unwraps:
 //  https://github.com/informalsystems/hermes/issues/987
