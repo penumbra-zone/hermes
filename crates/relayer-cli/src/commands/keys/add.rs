@@ -216,6 +216,7 @@ pub fn add_key(
             keyring.add_key(key_name, key_pair.clone())?;
             key_pair.into()
         }
+        ChainType::Penumbra => unimplemented!("Penumbra keyring not implemented"),
     };
 
     Ok(key_pair)
@@ -252,6 +253,7 @@ pub fn restore_key(
             keyring.add_key(key_name, key_pair.clone())?;
             key_pair.into()
         }
+        ChainType::Penumbra => unimplemented!("Penumbra keyring not implemented"),
     };
 
     Ok(key_pair)

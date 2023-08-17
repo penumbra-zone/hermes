@@ -43,17 +43,19 @@ trust_threshold = { numerator = '1', denominator = '3' }
 
 
 [[chains]]
-id = 'penumbra-testnet-tethys-28c56549'
-type = 'penumbra'
-rpc_addr = 'https://rpc.testnet-preview.penumbra.zone'
-grpc_addr = 'https://grpc.testnet-preview.penumbra.zone'
+id = 'osmo-test-5'
+type = 'cosmos-sdk'
+rpc_addr = 'https://rpc.testnet.osmosis.zone'
+grpc_addr = 'https://grpc.testnet.osmosis.zone'
 event_source = { mode = 'pull', interval = '1s' }
 rpc_timeout = '15s'
-account_prefix = 'fake' # not used
-key_name = 'penumbra-wallet'
-store_prefix = '' # not used, the commitment prefix for penumbra IBC is PenumbraAppHash
-gas_price = { price = 1, denom = 'upenumbra' } # not used
-max_gas = 10000000 # not used
-clock_drift = '5s'
-trusting_period = '2h' # this should be changed in the future
+account_prefix = 'osmo' # not used
+key_name = 'osmosis'
+store_prefix = 'ibc' # not used, the commitment prefix for penumbra IBC is PenumbraAppHash
+gas_price = { price = 0.0026, denom = 'uosmo' }
+gas_multiplier = 1.1
+clock_drift = '20s'
+max_block_time = '10s'
+trusting_period = '1days'
+memo_prefix = 'Osmosis Docs Rocks'
 trust_threshold = { numerator = '1', denominator = '3' }
