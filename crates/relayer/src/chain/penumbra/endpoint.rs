@@ -991,7 +991,38 @@ impl ChainEndpoint for PenumbraChain {
         request: crate::chain::requests::QueryUnreceivedAcksRequest,
     ) -> Result<Vec<ibc_relayer_types::core::ics04_channel::packet::Sequence>, crate::error::Error>
     {
-        todo!()
+        crate::time!(
+            "query_unreceived_acknowledgements",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_unreceived_acknowledgements");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let mut response = self
+            .block_on(client.unreceived_acks(request))
+            .map_err(|e| Error::grpc_status(e, "query_unreceived_acknowledgements".to_owned()))?
+            .into_inner();
+
+        response.sequences.sort_unstable();
+        Ok(response
+            .sequences
+            .into_iter()
+            .map(|seq| seq.into())
+            .collect())
     }
 
     fn query_next_sequence_receive(
