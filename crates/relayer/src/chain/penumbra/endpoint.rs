@@ -1,8 +1,10 @@
 use std::{str::FromStr, sync::Arc};
 
+use crate::chain::cosmos::query::QueryResponse;
 use crate::chain::endpoint::{ChainEndpoint, HealthCheck};
 
-use crate::client_state::IdentifiedAnyClientState;
+use crate::chain::requests::{IncludeProof, QueryHeight};
+use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::config::ChainConfig;
 use crate::error::Error;
 use crate::keyring::Secp256k1KeyPair;
@@ -11,16 +13,21 @@ use crate::light_client::LightClient;
 use crate::util::pretty::PrettyIdentifiedClientState;
 use futures::Future;
 use http::Uri;
+use ibc_proto::protobuf::Protobuf;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
+use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::ClientId;
+use ibc_relayer_types::core::ics24_host::path::ClientStatePath;
+use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
+use tendermint::block::Height;
 use tendermint::node::info::TxIndexStatus;
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
 use tendermint_rpc::client::CompatMode;
 use tendermint_rpc::endpoint::status;
-use tendermint_rpc::{Client, HttpClient};
+use tendermint_rpc::{Client, HttpClient, Url};
 use tokio::runtime::Runtime as TokioRuntime;
 use tracing::{error, info, instrument, trace, warn};
 
@@ -33,6 +40,52 @@ fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
         .split('-')
         .last()
         .and_then(|e| e.parse::<u64>().ok())
+}
+
+/// Perform a generic `abci_query`, and return the corresponding deserialized response data.
+pub async fn abci_query(
+    rpc_client: &HttpClient,
+    rpc_address: &Url,
+    path: String,
+    data: String,
+    height: Height,
+    prove: bool,
+) -> Result<QueryResponse, Error> {
+    let height = if height.value() == 0 {
+        None
+    } else {
+        Some(height)
+    };
+
+    // Use the Tendermint-rs RPC client to do the query.
+    let response = rpc_client
+        .abci_query(Some(path), data.into_bytes(), height, prove)
+        .await
+        .map_err(|e| Error::rpc(rpc_address.clone(), e))?;
+
+    if !response.code.is_ok() {
+        // Fail with response log.
+        return Err(Error::abci_query(response));
+    }
+
+    if prove && response.proof.is_none() {
+        // Fail due to empty proof
+        return Err(Error::empty_response_proof());
+    }
+
+    let proof = response
+        .proof
+        .map(|p| convert_tm_to_ics_merkle_proof(&p))
+        .transpose()
+        .map_err(Error::ics23)?;
+
+    let response = QueryResponse {
+        value: response.value,
+        height: response.height,
+        proof,
+    };
+
+    Ok(response)
 }
 
 pub struct PenumbraChain {
@@ -291,7 +344,28 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_client_state",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_client_state");
+
+        let res = self.query(
+            ClientStatePath(request.client_id.clone()),
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
+        let client_state = AnyClientState::decode_vec(&res.value).map_err(Error::decode)?;
+
+        match include_proof {
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                Ok((client_state, Some(proof)))
+            }
+            IncludeProof::No => Ok((client_state, None)),
+        }
     }
 
     fn query_consensus_state(
@@ -618,6 +692,37 @@ impl PenumbraChain {
         }
 
         Ok(status)
+    }
+
+    fn query(
+        &self,
+        data: impl Into<Path>,
+        height_query: QueryHeight,
+        prove: bool,
+    ) -> Result<QueryResponse, Error> {
+        crate::time!("query",
+        {
+            "src_chain": self.config().id.to_string(),
+        });
+
+        let data = data.into();
+        if !data.is_provable() & prove {
+            return Err(Error::private_store());
+        }
+
+        let response = self.block_on(abci_query(
+            &self.rpc_client,
+            &self.config.rpc_addr,
+            IBC_QUERY_PATH.to_string(),
+            data.to_string(),
+            height_query.into(),
+            prove,
+        ))?;
+
+        // TODO - Verify response proof, if requested.
+        if prove {}
+
+        Ok(response)
     }
 
     /// Performs a health check on a Penumbra chain.
