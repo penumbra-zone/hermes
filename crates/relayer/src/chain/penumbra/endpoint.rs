@@ -21,7 +21,7 @@ use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::core::ics03_connection::connection::IdentifiedConnectionEnd;
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
-use ibc_relayer_types::core::ics24_host::identifier::ClientId;
+use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{ClientConsensusStatePath, ClientStatePath};
 use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
 use tendermint::block::Height;
@@ -510,7 +510,44 @@ impl ChainEndpoint for PenumbraChain {
         Vec<ibc_relayer_types::core::ics24_host::identifier::ConnectionId>,
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_client_connections",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_client_connections");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::connection::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let response = match self.block_on(client.client_connections(request)) {
+            Ok(res) => res.into_inner(),
+            Err(e) if e.code() == tonic::Code::NotFound => return Ok(vec![]),
+            Err(e) => return Err(Error::grpc_status(e, "query_client_connections".to_owned())),
+        };
+
+        let ids = response
+            .connection_paths
+            .iter()
+            .filter_map(|id| {
+                ConnectionId::from_str(id)
+                    .map_err(|e| warn!("connection with ID {} failed parsing. Error: {}", id, e))
+                    .ok()
+            })
+            .collect();
+
+        Ok(ids)
     }
 
     fn query_connection(
