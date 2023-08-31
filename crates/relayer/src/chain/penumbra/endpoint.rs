@@ -2,16 +2,19 @@ use std::{str::FromStr, sync::Arc};
 
 use crate::chain::endpoint::{ChainEndpoint, HealthCheck};
 
+use crate::client_state::IdentifiedAnyClientState;
 use crate::config::ChainConfig;
 use crate::error::Error;
 use crate::keyring::Secp256k1KeyPair;
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::light_client::LightClient;
+use crate::util::pretty::PrettyIdentifiedClientState;
 use futures::Future;
 use http::Uri;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
+use ibc_relayer_types::core::ics24_host::identifier::ClientId;
 use tendermint::node::info::TxIndexStatus;
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
@@ -20,6 +23,17 @@ use tendermint_rpc::endpoint::status;
 use tendermint_rpc::{Client, HttpClient};
 use tokio::runtime::Runtime as TokioRuntime;
 use tracing::{error, info, instrument, trace, warn};
+
+/// Returns the suffix counter for a CosmosSDK client id.
+/// Returns `None` if the client identifier is malformed
+/// and the suffix could not be parsed.
+fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
+    client_id
+        .as_str()
+        .split('-')
+        .last()
+        .and_then(|e| e.parse::<u64>().ok())
+}
 
 pub struct PenumbraChain {
     config: ChainConfig,
@@ -218,7 +232,52 @@ impl ChainEndpoint for PenumbraChain {
         &self,
         request: crate::chain::requests::QueryClientStatesRequest,
     ) -> Result<Vec<crate::client_state::IdentifiedAnyClientState>, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "query_clients",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_clients");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::client::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+        let response = self
+            .block_on(client.client_states(request))
+            .map_err(|e| Error::grpc_status(e, "query_clients".to_owned()))?
+            .into_inner();
+
+        // Deserialize into domain type
+        let mut clients: Vec<IdentifiedAnyClientState> = response
+            .client_states
+            .into_iter()
+            .filter_map(|cs| {
+                IdentifiedAnyClientState::try_from(cs.clone())
+                    .map_err(|e| {
+                        warn!(
+                            "failed to parse client state {}. Error: {}",
+                            PrettyIdentifiedClientState(&cs),
+                            e
+                        )
+                    })
+                    .ok()
+            })
+            .collect();
+
+        // Sort by client identifier counter
+        clients.sort_by_cached_key(|c| client_id_suffix(&c.client_id).unwrap_or(0));
+
+        Ok(clients)
     }
 
     fn query_client_state(
