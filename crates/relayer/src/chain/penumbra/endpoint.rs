@@ -1,3 +1,4 @@
+use bytes::{Buf, Bytes};
 use std::{str::FromStr, sync::Arc};
 
 use crate::chain::cosmos::query::status::query_status;
@@ -29,7 +30,7 @@ use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_
 use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{
     AcksPath, ChannelEndsPath, ClientConsensusStatePath, ClientStatePath, CommitmentsPath,
-    ReceiptsPath,
+    ReceiptsPath, SeqRecvsPath,
 };
 use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
 use ibc_relayer_types::Height as ICSHeight;
@@ -1036,7 +1037,56 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_next_sequence_receive",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_next_sequence_receive");
+
+        match include_proof {
+            IncludeProof::Yes => {
+                let res = self.query(
+                    SeqRecvsPath(request.port_id, request.channel_id),
+                    request.height,
+                    true,
+                )?;
+
+                // Note: We expect the return to be a u64 encoded in big-endian. Refer to ibc-go:
+                // https://github.com/cosmos/ibc-go/blob/25767f6bdb5bab2c2a116b41d92d753c93e18121/modules/core/04-channel/client/utils/utils.go#L191
+                if res.value.len() != 8 {
+                    return Err(Error::query("next_sequence_receive".into()));
+                }
+                let seq: Sequence = Bytes::from(res.value).get_u64().into();
+
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+
+                Ok((seq, Some(proof)))
+            }
+            IncludeProof::No => {
+                let mut client = self
+                    .block_on(
+                        ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                            self.grpc_addr.clone(),
+                        ),
+                    )
+                    .map_err(Error::grpc_transport)?;
+
+                client = client.max_decoding_message_size(
+                    self.config().max_grpc_decoding_size.get_bytes() as usize,
+                );
+
+                let request = tonic::Request::new(request.into());
+
+                let response = self
+                    .block_on(client.next_sequence_receive(request))
+                    .map_err(|e| Error::grpc_status(e, "query_next_sequence_receive".to_owned()))?
+                    .into_inner();
+
+                Ok((Sequence::from(response.next_sequence_receive), None))
+            }
+        }
     }
 
     fn query_txs(
