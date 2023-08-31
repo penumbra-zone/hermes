@@ -26,7 +26,7 @@ use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChan
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{
-    ChannelEndsPath, ClientConsensusStatePath, ClientStatePath,
+    ChannelEndsPath, ClientConsensusStatePath, ClientStatePath, CommitmentsPath,
 };
 use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
 use tendermint::block::Height;
@@ -756,7 +756,24 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        let res = self.query(
+            CommitmentsPath {
+                port_id: request.port_id,
+                channel_id: request.channel_id,
+                sequence: request.sequence,
+            },
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
+
+        match include_proof {
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+
+                Ok((res.value, Some(proof)))
+            }
+            IncludeProof::No => Ok((res.value, None)),
+        }
     }
 
     fn query_packet_commitments(
