@@ -23,6 +23,7 @@ use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::core::ics03_connection::connection::IdentifiedConnectionEnd;
 use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd};
+use ibc_relayer_types::core::ics04_channel::packet::Sequence;
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{
@@ -786,7 +787,45 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_packet_commitments",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_packet_commitments");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .block_on(client.packet_commitments(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_commitments".to_owned()))?
+            .into_inner();
+
+        let mut commitment_sequences: Vec<Sequence> = response
+            .commitments
+            .into_iter()
+            .map(|v| v.sequence.into())
+            .collect();
+        commitment_sequences.sort_unstable();
+
+        let height = response
+            .height
+            .and_then(|raw_height| raw_height.try_into().ok())
+            .ok_or_else(|| Error::grpc_response_param("height".to_string()))?;
+
+        Ok((commitment_sequences, height))
     }
 
     fn query_packet_receipt(
