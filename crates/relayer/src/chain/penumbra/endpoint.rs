@@ -11,7 +11,9 @@ use crate::error::Error;
 use crate::keyring::Secp256k1KeyPair;
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::light_client::LightClient;
-use crate::util::pretty::{PrettyIdentifiedClientState, PrettyIdentifiedConnection};
+use crate::util::pretty::{
+    PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
+};
 use futures::Future;
 use http::Uri;
 use ibc_proto::protobuf::Protobuf;
@@ -20,6 +22,7 @@ use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusStat
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::core::ics03_connection::connection::IdentifiedConnectionEnd;
+use ibc_relayer_types::core::ics04_channel::channel::IdentifiedChannelEnd;
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{ClientConsensusStatePath, ClientStatePath};
@@ -571,7 +574,48 @@ impl ChainEndpoint for PenumbraChain {
         Vec<ibc_relayer_types::core::ics04_channel::channel::IdentifiedChannelEnd>,
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_connection_channels",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_connection_channels");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .block_on(client.connection_channels(request))
+            .map_err(|e| Error::grpc_status(e, "query_connection_channels".to_owned()))?
+            .into_inner();
+
+        let channels = response
+            .channels
+            .into_iter()
+            .filter_map(|ch| {
+                IdentifiedChannelEnd::try_from(ch.clone())
+                    .map_err(|e| {
+                        warn!(
+                            "channel with ID {} failed parsing. Error: {}",
+                            PrettyIdentifiedChannel(&ch),
+                            e
+                        )
+                    })
+                    .ok()
+            })
+            .collect();
+        Ok(channels)
     }
 
     fn query_channels(
