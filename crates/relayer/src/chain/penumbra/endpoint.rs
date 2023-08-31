@@ -6,6 +6,7 @@ use crate::config::ChainConfig;
 use crate::error::Error;
 use crate::keyring::Secp256k1KeyPair;
 use crate::light_client::tendermint::LightClient as TmLightClient;
+use crate::light_client::LightClient;
 use futures::Future;
 use http::Uri;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
@@ -144,7 +145,18 @@ impl ChainEndpoint for PenumbraChain {
         target: ibc_relayer_types::Height,
         client_state: &crate::client_state::AnyClientState,
     ) -> Result<Self::LightBlock, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "verify_header",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        let now = self.chain_status()?.sync_info.latest_block_time;
+
+        self.light_client
+            .verify(trusted, target, client_state, now)
+            .map(|v| v.target)
     }
 
     fn check_misbehaviour(
