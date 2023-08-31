@@ -1,5 +1,6 @@
 use std::{str::FromStr, sync::Arc};
 
+use crate::chain::cosmos::query::status::query_status;
 use crate::chain::cosmos::query::QueryResponse;
 use crate::chain::endpoint::{ChainEndpoint, HealthCheck};
 
@@ -31,6 +32,7 @@ use ibc_relayer_types::core::ics24_host::path::{
     ReceiptsPath,
 };
 use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
+use ibc_relayer_types::Height as ICSHeight;
 use tendermint::block::Height;
 use tendermint::node::info::TxIndexStatus;
 use tendermint::time::Time as TmTime;
@@ -940,7 +942,48 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        crate::telemetry!(query, self.id(), "query_packet_acknowledgements");
+        crate::time!(
+            "query_packet_acknowledgements",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        if request.packet_commitment_sequences.is_empty() {
+            return Ok((Vec::new(), self.query_chain_latest_height()?));
+        }
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .block_on(client.packet_acknowledgements(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_acknowledgements".to_owned()))?
+            .into_inner();
+
+        let acks_sequences = response
+            .acknowledgements
+            .into_iter()
+            .map(|v| v.sequence.into())
+            .collect();
+
+        let height = response
+            .height
+            .and_then(|raw_height| raw_height.try_into().ok())
+            .ok_or_else(|| Error::grpc_response_param("height".to_string()))?;
+
+        Ok((acks_sequences, height))
     }
 
     fn query_unreceived_acknowledgements(
@@ -1042,6 +1085,24 @@ impl PenumbraChain {
     /// Run a future to completion on the Tokio runtime.
     fn block_on<F: Future>(&self, f: F) -> F::Output {
         self.rt.block_on(f)
+    }
+    /// Query the chain's latest height
+    pub fn query_chain_latest_height(&self) -> Result<ICSHeight, Error> {
+        crate::time!(
+            "query_latest_height",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_latest_height");
+
+        let status = self.rt.block_on(query_status(
+            self.id(),
+            &self.rpc_client,
+            &self.config.rpc_addr,
+        ))?;
+
+        Ok(status.height)
     }
 
     /// Query the chain status via an RPC query.
