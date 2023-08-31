@@ -625,7 +625,49 @@ impl ChainEndpoint for PenumbraChain {
         Vec<ibc_relayer_types::core::ics04_channel::channel::IdentifiedChannelEnd>,
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_channels",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_channels");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .block_on(client.channels(request))
+            .map_err(|e| Error::grpc_status(e, "query_channels".to_owned()))?
+            .into_inner();
+
+        let channels = response
+            .channels
+            .into_iter()
+            .filter_map(|ch| {
+                IdentifiedChannelEnd::try_from(ch.clone())
+                    .map_err(|e| {
+                        warn!(
+                            "channel with ID {} failed parsing. Error: {}",
+                            PrettyIdentifiedChannel(&ch),
+                            e
+                        )
+                    })
+                    .ok()
+            })
+            .collect();
+
+        Ok(channels)
     }
 
     fn query_channel(
