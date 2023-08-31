@@ -6,6 +6,7 @@ use crate::chain::endpoint::{ChainEndpoint, HealthCheck};
 use crate::chain::requests::{IncludeProof, QueryHeight};
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::config::ChainConfig;
+use crate::consensus_state::AnyConsensusState;
 use crate::error::Error;
 use crate::keyring::Secp256k1KeyPair;
 use crate::light_client::tendermint::LightClient as TmLightClient;
@@ -17,9 +18,10 @@ use ibc_proto::protobuf::Protobuf;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
+use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::ClientId;
-use ibc_relayer_types::core::ics24_host::path::ClientStatePath;
+use ibc_relayer_types::core::ics24_host::path::{ClientConsensusStatePath, ClientStatePath};
 use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
 use tendermint::block::Height;
 use tendermint::node::info::TxIndexStatus;
@@ -379,7 +381,40 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+             "query_consensus_state",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_consensus_state");
+
+        let res = self.query(
+            ClientConsensusStatePath {
+                client_id: request.client_id.clone(),
+                epoch: request.consensus_height.revision_number(),
+                height: request.consensus_height.revision_height(),
+            },
+            request.query_height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
+
+        let consensus_state = AnyConsensusState::decode_vec(&res.value).map_err(Error::decode)?;
+
+        if !matches!(consensus_state, AnyConsensusState::Tendermint(_)) {
+            return Err(Error::consensus_state_type_mismatch(
+                ClientType::Tendermint,
+                consensus_state.client_type(),
+            ));
+        }
+
+        match include_proof {
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                Ok((consensus_state, Some(proof)))
+            }
+            IncludeProof::No => Ok((consensus_state, None)),
+        }
     }
 
     fn query_consensus_state_heights(
