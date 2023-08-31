@@ -164,7 +164,17 @@ impl ChainEndpoint for PenumbraChain {
         update: &ibc_relayer_types::core::ics02_client::events::UpdateClient,
         client_state: &crate::client_state::AnyClientState,
     ) -> Result<Option<crate::misbehaviour::MisbehaviourEvidence>, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "check_misbehaviour",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        let now = self.chain_status()?.sync_info.latest_block_time;
+
+        self.light_client
+            .detect_misbehaviour(update, client_state, now)
     }
 
     fn query_balance(
