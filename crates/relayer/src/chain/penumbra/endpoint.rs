@@ -712,7 +712,37 @@ impl ChainEndpoint for PenumbraChain {
         &self,
         request: crate::chain::requests::QueryChannelClientStateRequest,
     ) -> Result<Option<crate::client_state::IdentifiedAnyClientState>, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "query_channel_client_state",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_channel_client_state");
+
+        let mut client = self
+            .block_on(
+                ibc_proto::ibc::core::channel::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        client = client
+            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .block_on(client.channel_client_state(request))
+            .map_err(|e| Error::grpc_status(e, "query_channel_client_state".to_owned()))?
+            .into_inner();
+
+        let client_state: Option<IdentifiedAnyClientState> = response
+            .identified_client_state
+            .map_or_else(|| None, |proto_cs| proto_cs.try_into().ok());
+
+        Ok(client_state)
     }
 
     fn query_packet_commitment(
