@@ -22,10 +22,12 @@ use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusStat
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::core::ics03_connection::connection::IdentifiedConnectionEnd;
-use ibc_relayer_types::core::ics04_channel::channel::IdentifiedChannelEnd;
+use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd};
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
-use ibc_relayer_types::core::ics24_host::path::{ClientConsensusStatePath, ClientStatePath};
+use ibc_relayer_types::core::ics24_host::path::{
+    ChannelEndsPath, ClientConsensusStatePath, ClientStatePath,
+};
 use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
 use tendermint::block::Height;
 use tendermint::node::info::TxIndexStatus;
@@ -681,7 +683,29 @@ impl ChainEndpoint for PenumbraChain {
         ),
         crate::error::Error,
     > {
-        todo!()
+        crate::time!(
+            "query_channel",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_channel");
+
+        let res = self.query(
+            ChannelEndsPath(request.port_id, request.channel_id),
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
+
+        let channel_end = ChannelEnd::decode_vec(&res.value).map_err(Error::decode)?;
+
+        match include_proof {
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                Ok((channel_end, Some(proof)))
+            }
+            IncludeProof::No => Ok((channel_end, None)),
+        }
     }
 
     fn query_channel_client_state(
