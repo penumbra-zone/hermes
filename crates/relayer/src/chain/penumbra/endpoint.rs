@@ -1,16 +1,21 @@
 use bytes::{Buf, Bytes};
+use ibc_relayer_types::signer::Signer;
+use std::time::Duration;
 use std::{str::FromStr, sync::Arc};
 
+use crate::chain::client::ClientSettings;
 use crate::chain::cosmos::query::status::query_status;
 use crate::chain::cosmos::query::QueryResponse;
-use crate::chain::endpoint::{ChainEndpoint, HealthCheck};
+use crate::chain::endpoint::{ChainEndpoint, ChainStatus, HealthCheck};
 
 use crate::chain::requests::{IncludeProof, QueryHeight};
+use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::config::ChainConfig;
 use crate::consensus_state::AnyConsensusState;
 use crate::error::Error;
-use crate::keyring::Secp256k1KeyPair;
+use crate::event::IbcEventWithHeight;
+use crate::keyring::{KeyRing, Secp256k1KeyPair, SigningKeyPair, Store};
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::light_client::LightClient;
 use crate::util::pretty::{
@@ -19,15 +24,18 @@ use crate::util::pretty::{
 use futures::Future;
 use http::Uri;
 use ibc_proto::protobuf::Protobuf;
-use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
+use ibc_relayer_types::clients::ics07_tendermint::client_state::{
+    AllowUpdate, ClientState as TmClientState,
+};
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
+use ibc_relayer_types::core::ics02_client::error::Error as ClientError;
 use ibc_relayer_types::core::ics03_connection::connection::IdentifiedConnectionEnd;
 use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd};
 use ibc_relayer_types::core::ics04_channel::packet::Sequence;
 use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
-use ibc_relayer_types::core::ics24_host::identifier::{ClientId, ConnectionId};
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{
     AcksPath, ChannelEndsPath, ClientConsensusStatePath, ClientStatePath, CommitmentsPath,
     ReceiptsPath, SeqRecvsPath,
@@ -101,6 +109,15 @@ pub async fn abci_query(
     Ok(response)
 }
 
+pub fn key_pair_to_signer(key_pair: &Secp256k1KeyPair) -> Result<Signer, Error> {
+    let signer = key_pair
+        .account()
+        .parse()
+        .map_err(|e| Error::ics02(ClientError::signer(e)))?;
+
+    Ok(signer)
+}
+
 pub struct PenumbraChain {
     config: ChainConfig,
     rpc_client: HttpClient,
@@ -108,6 +125,37 @@ pub struct PenumbraChain {
     grpc_addr: Uri,
     light_client: TmLightClient,
     rt: Arc<TokioRuntime>,
+    keybase: KeyRing<Secp256k1KeyPair>,
+}
+
+impl PenumbraChain {
+    #[instrument(
+        name = "send_messages_and_wait_commit",
+        level = "error",
+        skip_all,
+        fields(
+            chain = %self.id(),
+            tracking_id = %tracked_msgs.tracking_id()
+        ),
+    )]
+    async fn do_send_messages_and_wait_commit(
+        &mut self,
+        tracked_msgs: TrackedMsgs,
+    ) -> Result<Vec<IbcEventWithHeight>, Error> {
+        crate::time!(
+            "send_messages_and_wait_commit",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        let proto_msgs = tracked_msgs.msgs;
+
+        // TODO:
+        // pack proto_msgs into a penumbra tx, each proto_msg being an IbcAction
+        // send the tx to the penumbra chain
+        // poll the penumbra chain until the tx is committed
+    }
 }
 
 impl ChainEndpoint for PenumbraChain {
@@ -145,6 +193,8 @@ impl ChainEndpoint for PenumbraChain {
 
         let grpc_addr = Uri::from_str(&config.grpc_addr.to_string())
             .map_err(|e| Error::invalid_uri(config.grpc_addr.to_string(), e))?;
+        let keybase =
+            crate::keyring::KeyRing::new_secp256k1(Store::Test, "test", &config.id, &None).unwrap();
 
         let chain = Self {
             config,
@@ -153,6 +203,7 @@ impl ChainEndpoint for PenumbraChain {
             grpc_addr,
             light_client,
             rt,
+            keybase,
         };
 
         Ok(chain)
@@ -189,7 +240,7 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn keybase(&self) -> &crate::keyring::KeyRing<Self::SigningKeyPair> {
-        todo!()
+        return &self.keybase;
     }
 
     fn keybase_mut(&mut self) -> &mut crate::keyring::KeyRing<Self::SigningKeyPair> {
@@ -197,7 +248,7 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn get_signer(&self) -> Result<ibc_relayer_types::signer::Signer, crate::error::Error> {
-        todo!()
+        Ok(Signer::dummy())
     }
 
     fn ibc_version(&self) -> Result<Option<semver::Version>, crate::error::Error> {
@@ -208,7 +259,9 @@ impl ChainEndpoint for PenumbraChain {
         &mut self,
         tracked_msgs: crate::chain::tracking::TrackedMsgs,
     ) -> Result<Vec<crate::event::IbcEventWithHeight>, crate::error::Error> {
-        todo!()
+        let runtime = self.rt.clone();
+
+        runtime.block_on(self.do_send_messages_and_wait_commit(tracked_msgs))
     }
 
     fn send_messages_and_wait_check_tx(
@@ -291,7 +344,34 @@ impl ChainEndpoint for PenumbraChain {
     fn query_application_status(
         &self,
     ) -> Result<crate::chain::endpoint::ChainStatus, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "query_application_status",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_application_status");
+
+        // We cannot rely on `/status` endpoint to provide details about the latest block.
+        // Instead, we need to pull block height via `/abci_info` and then fetch block
+        // metadata at the given height via `/blockchain` endpoint.
+        let abci_info = self
+            .block_on(self.rpc_client.abci_info())
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        // Query `/header` endpoint to pull the latest block that the application committed.
+        let response = self
+            .block_on(self.rpc_client.header(abci_info.last_block_height))
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        let height = ICSHeight::new(
+            ChainId::chain_version(response.header.chain_id.as_str()),
+            u64::from(abci_info.last_block_height),
+        )
+        .map_err(|_| Error::invalid_height_no_source())?;
+
+        let timestamp = response.header.time.into();
+        Ok(ChainStatus { height, timestamp })
     }
 
     fn query_clients(
@@ -1115,14 +1195,47 @@ impl ChainEndpoint for PenumbraChain {
         height: ibc_relayer_types::Height,
         settings: crate::chain::client::ClientSettings,
     ) -> Result<Self::ClientState, crate::error::Error> {
-        todo!()
+        let ClientSettings::Tendermint(settings) = settings;
+        // two hour duration
+        let two_hours = Duration::from_secs(2 * 60 * 60);
+        let unbonding_period = two_hours;
+        let trusting_period_default = 2 * unbonding_period / 3;
+        let trusting_period = settings
+            .trusting_period
+            .unwrap_or_else(|| trusting_period_default);
+
+        let proof_specs = self.config.proof_specs.clone().unwrap_or_default();
+
+        // Build the client state.
+        TmClientState::new(
+            self.id().clone(),
+            settings.trust_threshold,
+            trusting_period,
+            unbonding_period,
+            settings.max_clock_drift,
+            height,
+            proof_specs,
+            vec!["upgrade".to_string(), "upgradedIBCState".to_string()],
+            AllowUpdate {
+                after_expiry: true,
+                after_misbehaviour: true,
+            },
+        )
+        .map_err(Error::ics07)
     }
 
     fn build_consensus_state(
         &self,
         light_block: Self::LightBlock,
     ) -> Result<Self::ConsensusState, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "build_consensus_state",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        Ok(TmConsensusState::from(light_block.signed_header.header))
     }
 
     fn build_header(

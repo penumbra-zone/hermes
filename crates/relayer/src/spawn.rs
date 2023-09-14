@@ -55,6 +55,8 @@ pub fn spawn_chain_runtime<Handle: ChainHandle>(
         .cloned()
         .ok_or_else(|| SpawnError::missing_chain_config(chain_id.clone()))?;
 
+    tracing::debug!(?chain_config);
+
     let handle = match chain_config.r#type {
         ChainType::CosmosSdk => ChainRuntime::<CosmosSdkChain>::spawn::<Handle>(chain_config, rt),
         ChainType::Penumbra => ChainRuntime::<PenumbraChain>::spawn::<Handle>(chain_config, rt),
