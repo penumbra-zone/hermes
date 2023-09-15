@@ -4,6 +4,7 @@ use ibc_relayer_types::signer::Signer;
 use penumbra_proto::core::ibc::v1alpha1::IbcAction;
 use prost::Message;
 use rand::Rng;
+use std::thread;
 use std::time::Duration;
 use std::{str::FromStr, sync::Arc};
 
@@ -13,9 +14,12 @@ use crate::chain::cosmos::query::QueryResponse;
 use crate::chain::cosmos::types::tx::{TxStatus, TxSyncResult};
 use crate::chain::cosmos::wait::wait_for_block_commits;
 use crate::chain::endpoint::{ChainEndpoint, ChainStatus, HealthCheck};
+use crate::event::source::{EventSource, TxEventSourceCmd};
 use tendermint_rpc::endpoint::broadcast::tx_sync::Response;
 
-use crate::chain::requests::{IncludeProof, QueryHeight};
+use crate::chain::requests::{
+    IncludeProof, QueryClientStatesRequest, QueryConnectionsRequest, QueryHeight,
+};
 use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::config::ChainConfig;
@@ -168,6 +172,8 @@ pub struct PenumbraChain {
     light_client: TmLightClient,
     rt: Arc<TokioRuntime>,
     keybase: KeyRing<Secp256k1KeyPair>,
+
+    tx_monitor_cmd: Option<TxEventSourceCmd>,
 }
 
 impl PenumbraChain {
@@ -200,6 +206,37 @@ impl PenumbraChain {
         Ok(penumbra_proto::core::crypto::v1alpha1::MerkleRoot {
             inner: res.value[2..].into(),
         })
+    }
+    fn init_event_source(&mut self) -> Result<TxEventSourceCmd, Error> {
+        crate::time!(
+            "init_event_source",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        use crate::config::EventSourceMode as Mode;
+
+        let (event_source, monitor_tx) = match &self.config.event_source {
+            Mode::Push { url, batch_delay } => EventSource::websocket(
+                self.config.id.clone(),
+                url.clone(),
+                self.compat_mode,
+                *batch_delay,
+                self.rt.clone(),
+            ),
+            Mode::Pull { interval } => EventSource::rpc(
+                self.config.id.clone(),
+                self.rpc_client.clone(),
+                *interval,
+                self.rt.clone(),
+            ),
+        }
+        .map_err(Error::event_source)?;
+
+        thread::spawn(move || event_source.run());
+
+        Ok(monitor_tx)
     }
     #[instrument(
         name = "send_messages_and_wait_commit",
@@ -395,6 +432,7 @@ impl ChainEndpoint for PenumbraChain {
             light_client,
             rt,
             keybase,
+            tx_monitor_cmd: None,
         };
 
         Ok(chain)
@@ -427,7 +465,17 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn subscribe(&mut self) -> Result<crate::chain::handle::Subscription, crate::error::Error> {
-        todo!()
+        let tx_monitor_cmd = match &self.tx_monitor_cmd {
+            Some(tx_monitor_cmd) => tx_monitor_cmd,
+            None => {
+                let tx_monitor_cmd = self.init_event_source()?;
+                self.tx_monitor_cmd = Some(tx_monitor_cmd);
+                self.tx_monitor_cmd.as_ref().unwrap()
+            }
+        };
+
+        let subscription = tx_monitor_cmd.subscribe().map_err(Error::event_source)?;
+        Ok(subscription)
     }
 
     fn keybase(&self) -> &crate::keyring::KeyRing<Self::SigningKeyPair> {
@@ -800,36 +848,21 @@ impl ChainEndpoint for PenumbraChain {
         );
         crate::telemetry!(query, self.id(), "query_client_connections");
 
-        let mut client = self
-            .block_on(
-                ibc_proto::ibc::core::connection::v1::query_client::QueryClient::connect(
-                    self.grpc_addr.clone(),
-                ),
-            )
-            .map_err(Error::grpc_transport)?;
+        let connections = self.query_connections(QueryConnectionsRequest {
+            pagination: Default::default(),
+        })?;
 
-        client = client
-            .max_decoding_message_size(self.config().max_grpc_decoding_size.get_bytes() as usize);
+        let mut client_conns = vec![];
+        for connection in connections {
+            if connection
+                .connection_end
+                .client_id_matches(&request.client_id)
+            {
+                client_conns.push(connection.connection_id);
+            }
+        }
 
-        let request = tonic::Request::new(request.into());
-
-        let response = match self.block_on(client.client_connections(request)) {
-            Ok(res) => res.into_inner(),
-            Err(e) if e.code() == tonic::Code::NotFound => return Ok(vec![]),
-            Err(e) => return Err(Error::grpc_status(e, "query_client_connections".to_owned())),
-        };
-
-        let ids = response
-            .connection_paths
-            .iter()
-            .filter_map(|id| {
-                ConnectionId::from_str(id)
-                    .map_err(|e| warn!("connection with ID {} failed parsing. Error: {}", id, e))
-                    .ok()
-            })
-            .collect();
-
-        Ok(ids)
+        Ok(client_conns)
     }
 
     fn query_connection(
