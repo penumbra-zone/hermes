@@ -34,6 +34,7 @@ use crate::util::pretty::{
 };
 use futures::Future;
 use http::Uri;
+//use ibc_proto::cosmos::ics23::v1 as ics23;
 use ibc_proto::protobuf::Protobuf;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::{
     AllowUpdate, ClientState as TmClientState,
@@ -66,14 +67,36 @@ use tendermint_rpc::{Client, HttpClient, Url};
 use tokio::runtime::Runtime as TokioRuntime;
 use tracing::{error, info, instrument, trace, warn};
 
-pub static PENUMBRA_PROOF_SPECS: Lazy<ProofSpecs> =
-    Lazy::new(|| vec![jmt::ics23_spec(), apphash_spec()].into());
+const SPARSE_MERKLE_PLACEHOLDER_HASH: [u8; 32] = *b"SPARSE_MERKLE_PLACEHOLDER_HASH__";
+
+fn jmt_spec() -> ics23::ProofSpec {
+    ics23::ProofSpec {
+        leaf_spec: Some(ics23::LeafOp {
+            hash: ics23::HashOp::Sha256.into(),
+            prehash_key: ics23::HashOp::Sha256.into(),
+            prehash_value: ics23::HashOp::Sha256.into(),
+            length: ics23::LengthOp::NoPrefix.into(),
+            prefix: jmt::proof::LEAF_DOMAIN_SEPARATOR.to_vec(),
+        }),
+        inner_spec: Some(ics23::InnerSpec {
+            hash: ics23::HashOp::Sha256.into(),
+            child_order: vec![0, 1],
+            min_prefix_length: jmt::proof::INTERNAL_DOMAIN_SEPARATOR.len() as i32,
+            max_prefix_length: jmt::proof::INTERNAL_DOMAIN_SEPARATOR.len() as i32,
+            child_size: 32,
+            empty_child: SPARSE_MERKLE_PLACEHOLDER_HASH.to_vec(),
+        }),
+        min_depth: 0,
+        max_depth: 64,
+        prehash_key_before_comparison: false, // for now, until support lands
+    }
+}
 
 /// this is a proof spec for computing Penumbra's AppHash, which is defined as
 /// SHA256("PenumbraAppHash" || jmt.root()). In ICS/IBC terms, this applies a single global prefix
 /// to Penumbra's state. Having a stable merkle prefix is currently required for our IBC
 /// counterparties to verify our proofs.
-fn apphash_spec() -> ics23::ProofSpec {
+fn apphash_spec() -> ibc_proto::cosmos::ics23::v1::ProofSpec {
     ics23::ProofSpec {
         // the leaf hash is simply H(key || value)
         leaf_spec: Some(ics23::LeafOp {
@@ -94,7 +117,7 @@ fn apphash_spec() -> ics23::ProofSpec {
         }),
         min_depth: 0,
         max_depth: 1,
-        prehash_key_before_comparison: true,
+        prehash_key_before_comparison: false,
     }
 }
 
@@ -1512,7 +1535,7 @@ impl ChainEndpoint for PenumbraChain {
             .config
             .proof_specs
             .clone()
-            .unwrap_or(vec![jmt::ics23_spec(), apphash_spec()].into());
+            .unwrap_or(vec![jmt_spec(), apphash_spec()].into());
 
         // Build the client state.
         TmClientState::new(
