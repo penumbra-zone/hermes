@@ -72,7 +72,10 @@ once_cell = "1.17.1"
 rand = "0.8.5"
 pbjson = "0.5"
 pbjson-types = "0.5"
+# NOTE: this should be a git dep or crate, currently git dep doesn't work due to git lfs
 penumbra-proto = { path = "../../../penumbra/crates/proto" }
+jmt = "0.6"
+ics23 = "0.10.1"
 
 [dependencies.byte-unit]
 version = "4.0.19"

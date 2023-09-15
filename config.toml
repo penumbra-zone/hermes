@@ -43,7 +43,7 @@ trust_threshold = { numerator = '1', denominator = '3' }
 
 
 [[chains]]
-id = 'penumbra-testnet-tethys-04900a3f'
+id = 'penumbra-testnet-tethys-2b1d1631'
 type = 'penumbra'
 rpc_addr = 'https://rpc.testnet-preview.penumbra.zone'
 grpc_addr = 'https://grpc.testnet-preview.penumbra.zone'
