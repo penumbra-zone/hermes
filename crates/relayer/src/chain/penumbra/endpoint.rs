@@ -10,7 +10,11 @@ use std::{str::FromStr, sync::Arc};
 
 use crate::chain::client::ClientSettings;
 use crate::chain::cosmos::query::status::query_status;
-use crate::chain::cosmos::query::QueryResponse;
+use crate::chain::cosmos::query::tx::{
+    filter_matching_event, query_packets_from_block, query_packets_from_txs,
+};
+use crate::chain::cosmos::query::{packet_query, QueryResponse};
+use crate::chain::cosmos::sort_events_by_sequence;
 use crate::chain::cosmos::types::tx::{TxStatus, TxSyncResult};
 use crate::chain::cosmos::wait::wait_for_block_commits;
 use crate::chain::endpoint::{ChainEndpoint, ChainStatus, HealthCheck};
@@ -18,7 +22,8 @@ use crate::event::source::{EventSource, TxEventSourceCmd};
 use tendermint_rpc::endpoint::broadcast::tx_sync::Response;
 
 use crate::chain::requests::{
-    IncludeProof, QueryClientStatesRequest, QueryConnectionsRequest, QueryHeight,
+    IncludeProof, Qualified, QueryClientStatesRequest, QueryConnectionsRequest, QueryHeight,
+    QueryPacketEventDataRequest,
 };
 use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
@@ -63,7 +68,7 @@ use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
 use tendermint_rpc::client::CompatMode;
 use tendermint_rpc::endpoint::status;
-use tendermint_rpc::{Client, HttpClient, Url};
+use tendermint_rpc::{Client, HttpClient, Order, Url};
 use tokio::runtime::Runtime as TokioRuntime;
 use tracing::{error, info, instrument, trace, warn};
 
@@ -200,6 +205,117 @@ pub struct PenumbraChain {
 }
 
 impl PenumbraChain {
+    fn query_packet_from_block(
+        &self,
+        request: &QueryPacketEventDataRequest,
+        seqs: &[Sequence],
+        block_height: &ICSHeight,
+    ) -> Result<(Vec<IbcEventWithHeight>, Vec<IbcEventWithHeight>), Error> {
+        crate::time!(
+            "query_block: query block packet events",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_block");
+
+        let mut begin_block_events = vec![];
+        let mut end_block_events = vec![];
+
+        let tm_height =
+            tendermint::block::Height::try_from(block_height.revision_height()).unwrap();
+
+        let response = self
+            .block_on(self.rpc_client.block_results(tm_height))
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        let response_height = ICSHeight::new(self.id().version(), u64::from(response.height))
+            .map_err(|_| Error::invalid_height_no_source())?;
+
+        begin_block_events.append(
+            &mut response
+                .begin_block_events
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|ev| filter_matching_event(ev, request, seqs))
+                .map(|ev| IbcEventWithHeight::new(ev, response_height))
+                .collect(),
+        );
+
+        end_block_events.append(
+            &mut response
+                .end_block_events
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|ev| filter_matching_event(ev, request, seqs))
+                .map(|ev| IbcEventWithHeight::new(ev, response_height))
+                .collect(),
+        );
+
+        Ok((begin_block_events, end_block_events))
+    }
+
+    fn query_packets_from_blocks(
+        &self,
+        request: &QueryPacketEventDataRequest,
+    ) -> Result<(Vec<IbcEventWithHeight>, Vec<IbcEventWithHeight>), Error> {
+        crate::time!(
+            "query_blocks: query block packet events",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_blocks");
+
+        let mut begin_block_events = vec![];
+        let mut end_block_events = vec![];
+
+        for seq in request.sequences.iter().copied() {
+            let response = self
+                .block_on(self.rpc_client.block_search(
+                    packet_query(request, seq),
+                    // We only need the first page
+                    1,
+                    // There should only be a single match for this query, but due to
+                    // the fact that the indexer treat the query as a disjunction over
+                    // all events in a block rather than a conjunction over a single event,
+                    // we may end up with partial matches and therefore have to account for
+                    // that by fetching multiple results and filter it down after the fact.
+                    // In the worst case we get N blocks where N is the number of channels,
+                    // but 10 seems to work well enough in practice while keeping the response
+                    // size, and therefore pressure on the node, fairly low.
+                    10,
+                    // We could pick either ordering here, since matching blocks may be at pretty
+                    // much any height relative to the target blocks, so we went with most recent
+                    // blocks first.
+                    Order::Descending,
+                ))
+                .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+            for block in response.blocks.into_iter().map(|response| response.block) {
+                let response_height =
+                    ICSHeight::new(self.id().version(), u64::from(block.header.height))
+                        .map_err(|_| Error::invalid_height_no_source())?;
+
+                if let QueryHeight::Specific(query_height) = request.height.get() {
+                    if response_height > query_height {
+                        continue;
+                    }
+                }
+
+                // `query_packet_from_block` retrieves the begin and end block events
+                // and filter them to retain only those matching the query
+                let (new_begin_block_events, new_end_block_events) =
+                    self.query_packet_from_block(request, &[seq], &response_height)?;
+
+                begin_block_events.extend(new_begin_block_events);
+                end_block_events.extend(new_end_block_events);
+            }
+        }
+
+        Ok((begin_block_events, end_block_events))
+    }
+
     async fn get_anchor(
         &self,
     ) -> Result<penumbra_proto::core::crypto::v1alpha1::MerkleRoot, Error> {
@@ -1505,9 +1621,76 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_packet_events(
         &self,
-        request: crate::chain::requests::QueryPacketEventDataRequest,
+        mut request: crate::chain::requests::QueryPacketEventDataRequest,
     ) -> Result<Vec<crate::event::IbcEventWithHeight>, crate::error::Error> {
-        todo!()
+        crate::time!(
+            "query_packet_events",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_packet_events");
+
+        tracing::info!(?request);
+
+        match request.height {
+            // Usage note: `Qualified::Equal` is currently only used in the call hierarchy involving
+            // the CLI methods, namely the CLI for `tx packet-recv` and `tx packet-ack` when the
+            // user passes the flag `packet-data-query-height`.
+            Qualified::Equal(_) => self.block_on(query_packets_from_block(
+                self.id(),
+                &self.rpc_client,
+                &self.config.rpc_addr,
+                &request,
+            )),
+            Qualified::SmallerEqual(_) => {
+                let tx_events = self.block_on(query_packets_from_txs(
+                    self.id(),
+                    &self.rpc_client,
+                    &self.config.rpc_addr,
+                    &request,
+                ))?;
+
+                let recvd_sequences: Vec<_> = tx_events
+                    .iter()
+                    .filter_map(|eh| eh.event.packet().map(|p| p.sequence))
+                    .collect();
+
+                request
+                    .sequences
+                    .retain(|seq| !recvd_sequences.contains(seq));
+
+                let (start_block_events, end_block_events) = if !request.sequences.is_empty() {
+                    self.query_packets_from_blocks(&request)?
+                } else {
+                    Default::default()
+                };
+
+                trace!("start_block_events {:?}", start_block_events);
+                trace!("tx_events {:?}", tx_events);
+                trace!("end_block_events {:?}", end_block_events);
+
+                // Events should be ordered in the following fashion,
+                // for any two blocks b1, b2 at height h1, h2 with h1 < h2:
+                // b1.start_block_events
+                // b1.tx_events
+                // b1.end_block_events
+                // b2.start_block_events
+                // b2.tx_events
+                // b2.end_block_events
+                //
+                // As of now, we just sort them by sequence number which should
+                // yield a similar result and will revisit this approach in the future.
+                let mut events = vec![];
+                events.extend(start_block_events);
+                events.extend(tx_events);
+                events.extend(end_block_events);
+
+                sort_events_by_sequence(&mut events);
+
+                Ok(events)
+            }
+        }
     }
 
     fn query_host_consensus_state(
