@@ -26,7 +26,7 @@ host = '127.0.0.1'
 port = 3001
 
 [[chains]]
-id = 'penumbra-testnet-tethys-04f6e1b1'
+id = 'penumbra-testnet-tethys-8777cb20'
 type = 'penumbra'
 rpc_addr = 'http://localhost:26657'
 grpc_addr = 'http://localhost:8080'

@@ -340,8 +340,6 @@ impl PenumbraChain {
             .await
             .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
 
-        println!("RES: {:?}", res);
-
         Ok(penumbra_proto::core::crypto::v1alpha1::MerkleRoot {
             inner: res.value[2..].into(),
         })
