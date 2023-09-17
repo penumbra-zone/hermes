@@ -494,6 +494,85 @@ impl PenumbraChain {
 
         Ok(events)
     }
+
+    #[instrument(
+        name = "send_messages_and_wait_check_tx",
+        level = "error",
+        skip_all,
+        fields(
+            chain = %self.id(),
+            tracking_id = %tracked_msgs.tracking_id()
+        ),
+    )]
+    async fn do_send_messages_and_wait_check_tx(
+        &mut self,
+        tracked_msgs: TrackedMsgs,
+    ) -> Result<Vec<tendermint_rpc::endpoint::broadcast::tx_sync::Response>, Error> {
+        crate::time!(
+            "send_messages_and_wait_check_tx",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+
+        let last_anchor = self.get_anchor().await?;
+
+        let proto_msgs = tracked_msgs.msgs;
+
+        let mut ibc_actions = vec![];
+
+        for msg in proto_msgs {
+            //cursed
+            ibc_actions.push(penumbra_proto::core::transaction::v1alpha1::Action {
+                action: Some(
+                    penumbra_proto::core::transaction::v1alpha1::action::Action::IbcAction(
+                        IbcAction {
+                            raw_action: Some(pbjson_types::Any {
+                                type_url: msg.type_url,
+                                value: msg.value.into(),
+                            }),
+                        },
+                    ),
+                ),
+            });
+        }
+
+        let tx_body = penumbra_proto::core::transaction::v1alpha1::TransactionBody {
+            actions: ibc_actions.clone(),
+            fee: Some(penumbra_proto::core::crypto::v1alpha1::Fee {
+                amount: Some(penumbra_proto::core::crypto::v1alpha1::Amount { lo: 0, hi: 0 }),
+                asset_id: None,
+            }),
+            memo_data: Some(penumbra_proto::core::transaction::v1alpha1::MemoData {
+                encrypted_memo: vec![].into(),
+            }),
+            transaction_parameters: Some(
+                penumbra_proto::core::transaction::v1alpha1::TransactionParameters {
+                    expiry_height: 0,
+                    chain_id: "".to_string(),
+                },
+            ),
+            detection_data: None,
+        };
+
+        let tx = penumbra_proto::core::transaction::v1alpha1::Transaction {
+            body: Some(tx_body),
+            binding_sig: vec![0; 64].into(), // cool signature
+            anchor: Some(last_anchor),
+        };
+
+        let tx_bytes = tx.encode_to_vec();
+
+        // submit tx
+
+        let res = self
+            .rpc_client
+            .broadcast_tx_sync(tx_bytes)
+            .await
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        Ok(vec![res])
+    }
 }
 
 fn response_to_tx_sync_result(
@@ -647,7 +726,9 @@ impl ChainEndpoint for PenumbraChain {
         tracked_msgs: crate::chain::tracking::TrackedMsgs,
     ) -> Result<Vec<tendermint_rpc::endpoint::broadcast::tx_sync::Response>, crate::error::Error>
     {
-        todo!()
+        let runtime = self.rt.clone();
+
+        runtime.block_on(self.do_send_messages_and_wait_check_tx(tracked_msgs))
     }
 
     fn verify_header(
