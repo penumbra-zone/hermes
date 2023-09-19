@@ -11,7 +11,7 @@ use std::{str::FromStr, sync::Arc};
 use crate::chain::client::ClientSettings;
 use crate::chain::cosmos::query::status::query_status;
 use crate::chain::cosmos::query::tx::{
-    filter_matching_event, query_packets_from_block, query_packets_from_txs,
+    filter_matching_event, query_packets_from_block, query_packets_from_txs, query_txs,
 };
 use crate::chain::cosmos::query::{packet_query, QueryResponse};
 use crate::chain::cosmos::sort_events_by_sequence;
@@ -1695,7 +1695,18 @@ impl ChainEndpoint for PenumbraChain {
         &self,
         request: crate::chain::requests::QueryTxRequest,
     ) -> Result<Vec<crate::event::IbcEventWithHeight>, crate::error::Error> {
-        todo!()
+        crate::time!("query_txs",
+        {
+            "src_chain": self.config().id.to_string(),
+        });
+        crate::telemetry!(query, self.id(), "query_txs");
+
+        self.block_on(query_txs(
+            self.id(),
+            &self.rpc_client,
+            &self.config.rpc_addr,
+            request,
+        ))
     }
 
     fn query_packet_events(
