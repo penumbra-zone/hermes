@@ -2235,7 +2235,7 @@ impl ChainEndpoint for CosmosSdkChain {
     }
 }
 
-fn sort_events_by_sequence(events: &mut [IbcEventWithHeight]) {
+pub fn sort_events_by_sequence(events: &mut [IbcEventWithHeight]) {
     events.sort_by(|a, b| {
         a.event
             .packet()
@@ -2245,7 +2245,7 @@ fn sort_events_by_sequence(events: &mut [IbcEventWithHeight]) {
     });
 }
 
-async fn fetch_node_info(
+pub(crate) async fn fetch_node_info(
     rpc_client: &HttpClient,
     config: &ChainConfig,
 ) -> Result<node::Info, Error> {
