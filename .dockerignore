@@ -1,1 +1,4 @@
-target/
+**
+!crates/
+!tools/
+!Cargo.*
