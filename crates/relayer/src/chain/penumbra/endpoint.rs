@@ -1,9 +1,7 @@
 use bytes::{Buf, Bytes};
-use ibc_relayer_types::core::ics23_commitment::specs::ProofSpecs;
 use ibc_relayer_types::signer::Signer;
 use penumbra_proto::core::ibc::v1alpha1::IbcAction;
 use prost::Message;
-use rand::Rng;
 use std::thread;
 use std::time::Duration;
 use std::{str::FromStr, sync::Arc};
@@ -11,27 +9,25 @@ use std::{str::FromStr, sync::Arc};
 use crate::chain::client::ClientSettings;
 use crate::chain::cosmos::query::status::query_status;
 use crate::chain::cosmos::query::tx::{
-    filter_matching_event, query_packets_from_block, query_packets_from_txs, query_txs,
+    query_packets_from_block, query_packets_from_txs, query_txs,
 };
-use crate::chain::cosmos::query::{packet_query, QueryResponse};
+use crate::chain::cosmos::query::QueryResponse;
 use crate::chain::cosmos::sort_events_by_sequence;
 use crate::chain::cosmos::types::tx::{TxStatus, TxSyncResult};
 use crate::chain::cosmos::wait::wait_for_block_commits;
 use crate::chain::endpoint::{ChainEndpoint, ChainStatus, HealthCheck};
+use crate::chain::penumbra::query::abci_query;
 use crate::event::source::{EventSource, TxEventSourceCmd};
 use tendermint_rpc::endpoint::broadcast::tx_sync::Response;
 
-use crate::chain::requests::{
-    IncludeProof, Qualified, QueryClientStatesRequest, QueryConnectionsRequest, QueryHeight,
-    QueryPacketEventDataRequest,
-};
+use crate::chain::requests::{IncludeProof, Qualified, QueryConnectionsRequest, QueryHeight};
 use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::config::ChainConfig;
 use crate::consensus_state::AnyConsensusState;
 use crate::error::Error;
 use crate::event::IbcEventWithHeight;
-use crate::keyring::{KeyRing, Secp256k1KeyPair, SigningKeyPair, Store};
+use crate::keyring::{KeyRing, Secp256k1KeyPair, Store};
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::light_client::{LightClient, Verified};
 use crate::util::pretty::{
@@ -39,7 +35,6 @@ use crate::util::pretty::{
 };
 use futures::Future;
 use http::Uri;
-//use ibc_proto::cosmos::ics23::v1 as ics23;
 use ibc_proto::protobuf::Protobuf;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::{
     AllowUpdate, ClientState as TmClientState,
@@ -47,84 +42,26 @@ use ibc_relayer_types::clients::ics07_tendermint::client_state::{
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
-use ibc_relayer_types::core::ics02_client::error::Error as ClientError;
 use ibc_relayer_types::core::ics03_connection::connection::{
     ConnectionEnd, IdentifiedConnectionEnd,
 };
 use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd};
 use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use ibc_relayer_types::core::ics23_commitment::merkle::convert_tm_to_ics_merkle_proof;
 use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId, ConnectionId};
 use ibc_relayer_types::core::ics24_host::path::{
     AcksPath, ChannelEndsPath, ClientConsensusStatePath, ClientStatePath, CommitmentsPath,
     ConnectionsPath, ReceiptsPath, SeqRecvsPath,
 };
-use ibc_relayer_types::core::ics24_host::{Path, IBC_QUERY_PATH};
+use ibc_relayer_types::core::ics24_host::Path;
 use ibc_relayer_types::Height as ICSHeight;
-use once_cell::sync::Lazy;
-use tendermint::block::Height;
 use tendermint::node::info::TxIndexStatus;
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
 use tendermint_rpc::client::CompatMode;
 use tendermint_rpc::endpoint::status;
-use tendermint_rpc::{Client, HttpClient, Order, Url};
+use tendermint_rpc::{Client, HttpClient};
 use tokio::runtime::Runtime as TokioRuntime;
-use tracing::{error, info, instrument, trace, warn};
-
-const SPARSE_MERKLE_PLACEHOLDER_HASH: [u8; 32] = *b"SPARSE_MERKLE_PLACEHOLDER_HASH__";
-
-fn jmt_spec() -> ics23::ProofSpec {
-    ics23::ProofSpec {
-        leaf_spec: Some(ics23::LeafOp {
-            hash: ics23::HashOp::Sha256.into(),
-            prehash_key: ics23::HashOp::Sha256.into(),
-            prehash_value: ics23::HashOp::Sha256.into(),
-            length: ics23::LengthOp::NoPrefix.into(),
-            prefix: jmt::proof::LEAF_DOMAIN_SEPARATOR.to_vec(),
-        }),
-        inner_spec: Some(ics23::InnerSpec {
-            hash: ics23::HashOp::Sha256.into(),
-            child_order: vec![0, 1],
-            min_prefix_length: jmt::proof::INTERNAL_DOMAIN_SEPARATOR.len() as i32,
-            max_prefix_length: jmt::proof::INTERNAL_DOMAIN_SEPARATOR.len() as i32,
-            child_size: 32,
-            empty_child: SPARSE_MERKLE_PLACEHOLDER_HASH.to_vec(),
-        }),
-        min_depth: 0,
-        max_depth: 64,
-        prehash_key_before_comparison: false, // for now, until support lands
-    }
-}
-
-/// this is a proof spec for computing Penumbra's AppHash, which is defined as
-/// SHA256("PenumbraAppHash" || jmt.root()). In ICS/IBC terms, this applies a single global prefix
-/// to Penumbra's state. Having a stable merkle prefix is currently required for our IBC
-/// counterparties to verify our proofs.
-fn apphash_spec() -> ibc_proto::cosmos::ics23::v1::ProofSpec {
-    ics23::ProofSpec {
-        // the leaf hash is simply H(key || value)
-        leaf_spec: Some(ics23::LeafOp {
-            prefix: vec![],
-            hash: ics23::HashOp::Sha256.into(),
-            length: ics23::LengthOp::NoPrefix.into(),
-            prehash_key: ics23::HashOp::NoHash.into(),
-            prehash_value: ics23::HashOp::NoHash.into(),
-        }),
-        // NOTE: we don't actually use any InnerOps.
-        inner_spec: Some(ics23::InnerSpec {
-            hash: ics23::HashOp::Sha256.into(),
-            child_order: vec![0, 1],
-            child_size: 32,
-            empty_child: vec![],
-            min_prefix_length: 0,
-            max_prefix_length: 0,
-        }),
-        min_depth: 0,
-        max_depth: 1,
-        prehash_key_before_comparison: false,
-    }
-}
+use tracing::{error, instrument, trace, warn};
 
 /// Returns the suffix counter for a CosmosSDK client id.
 /// Returns `None` if the client identifier is malformed
@@ -137,64 +74,9 @@ fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
         .and_then(|e| e.parse::<u64>().ok())
 }
 
-/// Perform a generic `abci_query`, and return the corresponding deserialized response data.
-pub async fn abci_query(
-    rpc_client: &HttpClient,
-    rpc_address: &Url,
-    path: String,
-    data: String,
-    height: Height,
-    prove: bool,
-) -> Result<QueryResponse, Error> {
-    let height = if height.value() == 0 {
-        None
-    } else {
-        Some(height)
-    };
-
-    // Use the Tendermint-rs RPC client to do the query.
-    let response = rpc_client
-        .abci_query(Some(path), data.into_bytes(), height, prove)
-        .await
-        .map_err(|e| Error::rpc(rpc_address.clone(), e))?;
-
-    if !response.code.is_ok() {
-        // Fail with response log.
-        return Err(Error::abci_query(response));
-    }
-
-    if prove && response.proof.is_none() {
-        // Fail due to empty proof
-        return Err(Error::empty_response_proof());
-    }
-
-    let proof = response
-        .proof
-        .map(|p| convert_tm_to_ics_merkle_proof(&p))
-        .transpose()
-        .map_err(Error::ics23)?;
-
-    let response = QueryResponse {
-        value: response.value,
-        height: response.height,
-        proof,
-    };
-
-    Ok(response)
-}
-
-pub fn key_pair_to_signer(key_pair: &Secp256k1KeyPair) -> Result<Signer, Error> {
-    let signer = key_pair
-        .account()
-        .parse()
-        .map_err(|e| Error::ics02(ClientError::signer(e)))?;
-
-    Ok(signer)
-}
-
 pub struct PenumbraChain {
-    config: ChainConfig,
-    rpc_client: HttpClient,
+    pub(super) config: ChainConfig,
+    pub(super) rpc_client: HttpClient,
     compat_mode: CompatMode,
     grpc_addr: Uri,
     light_client: TmLightClient,
@@ -205,145 +87,6 @@ pub struct PenumbraChain {
 }
 
 impl PenumbraChain {
-    fn query_packet_from_block(
-        &self,
-        request: &QueryPacketEventDataRequest,
-        seqs: &[Sequence],
-        block_height: &ICSHeight,
-    ) -> Result<(Vec<IbcEventWithHeight>, Vec<IbcEventWithHeight>), Error> {
-        crate::time!(
-            "query_block: query block packet events",
-            {
-                "src_chain": self.config().id.to_string(),
-            }
-        );
-        crate::telemetry!(query, self.id(), "query_block");
-
-        let mut begin_block_events = vec![];
-        let mut end_block_events = vec![];
-
-        let tm_height =
-            tendermint::block::Height::try_from(block_height.revision_height()).unwrap();
-
-        let response = self
-            .block_on(self.rpc_client.block_results(tm_height))
-            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
-
-        let response_height = ICSHeight::new(self.id().version(), u64::from(response.height))
-            .map_err(|_| Error::invalid_height_no_source())?;
-
-        begin_block_events.append(
-            &mut response
-                .begin_block_events
-                .unwrap_or_default()
-                .iter()
-                .filter_map(|ev| filter_matching_event(ev, request, seqs))
-                .map(|ev| IbcEventWithHeight::new(ev, response_height))
-                .collect(),
-        );
-
-        end_block_events.append(
-            &mut response
-                .end_block_events
-                .unwrap_or_default()
-                .iter()
-                .filter_map(|ev| filter_matching_event(ev, request, seqs))
-                .map(|ev| IbcEventWithHeight::new(ev, response_height))
-                .collect(),
-        );
-
-        Ok((begin_block_events, end_block_events))
-    }
-
-    fn query_packets_from_blocks(
-        &self,
-        request: &QueryPacketEventDataRequest,
-    ) -> Result<(Vec<IbcEventWithHeight>, Vec<IbcEventWithHeight>), Error> {
-        crate::time!(
-            "query_blocks: query block packet events",
-            {
-                "src_chain": self.config().id.to_string(),
-            }
-        );
-        crate::telemetry!(query, self.id(), "query_blocks");
-
-        let mut begin_block_events = vec![];
-        let mut end_block_events = vec![];
-
-        for seq in request.sequences.iter().copied() {
-            let response = self
-                .block_on(self.rpc_client.block_search(
-                    packet_query(request, seq),
-                    // We only need the first page
-                    1,
-                    // There should only be a single match for this query, but due to
-                    // the fact that the indexer treat the query as a disjunction over
-                    // all events in a block rather than a conjunction over a single event,
-                    // we may end up with partial matches and therefore have to account for
-                    // that by fetching multiple results and filter it down after the fact.
-                    // In the worst case we get N blocks where N is the number of channels,
-                    // but 10 seems to work well enough in practice while keeping the response
-                    // size, and therefore pressure on the node, fairly low.
-                    10,
-                    // We could pick either ordering here, since matching blocks may be at pretty
-                    // much any height relative to the target blocks, so we went with most recent
-                    // blocks first.
-                    Order::Descending,
-                ))
-                .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
-
-            for block in response.blocks.into_iter().map(|response| response.block) {
-                let response_height =
-                    ICSHeight::new(self.id().version(), u64::from(block.header.height))
-                        .map_err(|_| Error::invalid_height_no_source())?;
-
-                if let QueryHeight::Specific(query_height) = request.height.get() {
-                    if response_height > query_height {
-                        continue;
-                    }
-                }
-
-                // `query_packet_from_block` retrieves the begin and end block events
-                // and filter them to retain only those matching the query
-                let (new_begin_block_events, new_end_block_events) =
-                    self.query_packet_from_block(request, &[seq], &response_height)?;
-
-                begin_block_events.extend(new_begin_block_events);
-                end_block_events.extend(new_end_block_events);
-            }
-        }
-
-        Ok((begin_block_events, end_block_events))
-    }
-
-    async fn get_anchor(
-        &self,
-    ) -> Result<penumbra_proto::core::crypto::v1alpha1::MerkleRoot, Error> {
-        let status = self
-            .rpc_client
-            .status()
-            .await
-            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
-
-        let path = format!("sct/anchor/0");
-        let height_u64 = status.sync_info.latest_block_height.value();
-        let height_tm = Height::try_from(height_u64 - 1).unwrap();
-
-        let res = self
-            .rpc_client
-            .abci_query(
-                Some("state/key".to_string()),
-                path.into_bytes(),
-                Some(height_tm),
-                false,
-            )
-            .await
-            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
-
-        Ok(penumbra_proto::core::crypto::v1alpha1::MerkleRoot {
-            inner: res.value[2..].into(),
-        })
-    }
     fn init_event_source(&mut self) -> Result<TxEventSourceCmd, Error> {
         crate::time!(
             "init_event_source",
@@ -769,22 +512,22 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_balance(
         &self,
-        key_name: Option<&str>,
-        denom: Option<&str>,
+        _key_name: Option<&str>,
+        _denom: Option<&str>,
     ) -> Result<crate::account::Balance, crate::error::Error> {
         todo!()
     }
 
     fn query_all_balances(
         &self,
-        key_name: Option<&str>,
+        _key_name: Option<&str>,
     ) -> Result<Vec<crate::account::Balance>, crate::error::Error> {
         todo!()
     }
 
     fn query_denom_trace(
         &self,
-        hash: String,
+        _hash: String,
     ) -> Result<crate::denom::DenomTrace, crate::error::Error> {
         todo!()
     }
@@ -968,14 +711,14 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_consensus_state_heights(
         &self,
-        request: crate::chain::requests::QueryConsensusStateHeightsRequest,
+        _request: crate::chain::requests::QueryConsensusStateHeightsRequest,
     ) -> Result<Vec<ibc_relayer_types::Height>, crate::error::Error> {
         todo!()
     }
 
     fn query_upgraded_client_state(
         &self,
-        request: crate::chain::requests::QueryUpgradedClientStateRequest,
+        _request: crate::chain::requests::QueryUpgradedClientStateRequest,
     ) -> Result<
         (
             crate::client_state::AnyClientState,
@@ -988,7 +731,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_upgraded_consensus_state(
         &self,
-        request: crate::chain::requests::QueryUpgradedConsensusStateRequest,
+        _request: crate::chain::requests::QueryUpgradedConsensusStateRequest,
     ) -> Result<
         (
             crate::consensus_state::AnyConsensusState,
@@ -1106,7 +849,6 @@ impl ChainEndpoint for PenumbraChain {
             config: &ChainConfig,
             grpc_addr: Uri,
             connection_id: &ConnectionId,
-            height_query: QueryHeight,
         ) -> Result<ConnectionEnd, Error> {
             use ibc_proto::ibc::core::connection::v1 as connection;
             use tonic::IntoRequest;
@@ -1168,7 +910,6 @@ impl ChainEndpoint for PenumbraChain {
                         &self.config,
                         self.grpc_addr.clone(),
                         &request.connection_id,
-                        request.height,
                     )
                     .await
                 })
@@ -1785,7 +1526,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_host_consensus_state(
         &self,
-        request: crate::chain::requests::QueryHostConsensusStateRequest,
+        _request: crate::chain::requests::QueryHostConsensusStateRequest,
     ) -> Result<Self::ConsensusState, crate::error::Error> {
         todo!()
     }
@@ -1808,7 +1549,7 @@ impl ChainEndpoint for PenumbraChain {
             .config
             .proof_specs
             .clone()
-            .unwrap_or(vec![jmt_spec(), apphash_spec()].into());
+            .unwrap_or(crate::chain::penumbra::proofspec::penumbra_proof_spec());
 
         // Build the client state.
         TmClientState::new(
@@ -1870,16 +1611,16 @@ impl ChainEndpoint for PenumbraChain {
 
     fn maybe_register_counterparty_payee(
         &mut self,
-        channel_id: &ibc_relayer_types::core::ics24_host::identifier::ChannelId,
-        port_id: &ibc_relayer_types::core::ics24_host::identifier::PortId,
-        counterparty_payee: &ibc_relayer_types::signer::Signer,
+        _channel_id: &ibc_relayer_types::core::ics24_host::identifier::ChannelId,
+        _port_id: &ibc_relayer_types::core::ics24_host::identifier::PortId,
+        _counterparty_payee: &ibc_relayer_types::signer::Signer,
     ) -> Result<(), crate::error::Error> {
         todo!()
     }
 
     fn cross_chain_query(
         &self,
-        requests: Vec<crate::chain::requests::CrossChainQueryRequest>,
+        _requests: Vec<crate::chain::requests::CrossChainQueryRequest>,
     ) -> Result<
         Vec<ibc_relayer_types::applications::ics31_icq::response::CrossChainQueryResponse>,
         crate::error::Error,
@@ -1889,7 +1630,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_incentivized_packet(
         &self,
-        request: ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketRequest,
+        _request: ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketRequest,
     ) -> Result<ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketResponse, crate::error::Error>
     {
         todo!()
@@ -1898,7 +1639,7 @@ impl ChainEndpoint for PenumbraChain {
 
 impl PenumbraChain {
     /// Run a future to completion on the Tokio runtime.
-    fn block_on<F: Future>(&self, f: F) -> F::Output {
+    pub(super) fn block_on<F: Future>(&self, f: F) -> F::Output {
         self.rt.block_on(f)
     }
     /// Query the chain's latest height
@@ -1986,7 +1727,6 @@ impl PenumbraChain {
     /// 3. Checks that the self-reported chain ID matches the configured one.
     fn do_health_check(&self) -> Result<(), Error> {
         let chain_id = self.id();
-        let grpc_address = self.grpc_addr.to_string();
         let rpc_address = self.config.rpc_addr.to_string();
 
         self.block_on(self.rpc_client.health()).map_err(|e| {
