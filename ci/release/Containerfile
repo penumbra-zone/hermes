@@ -1,0 +1,24 @@
+FROM docker.io/rust:1-bookworm AS builder
+COPY . /usr/src/hermes
+WORKDIR /usr/src/hermes
+
+# Support building from a specific git dependency of the upstream Penumbra repo.
+# Eventually we'll pull from crates.io; for now, we use a git dep.
+# N.B. tags earlier than v0.61.0 will fail, due to lack of git-lfs support.
+ARG PENUMBRA_VERSION=main
+# ARG PENUMBRA_VERSION=v0.61.0
+# Set the desired PENUMBRA_VERSION in the Cargo.toml file prior to building.
+RUN sed -i -e "s/^\(penumbra-proto.*\)\(branch = \".*\".*\)$/\1branch = \"${PENUMBRA_VERSION}\" }/" ./crates/relayer/Cargo.toml
+RUN cargo build --release
+
+# Runtime container, with binary and normal user account.
+FROM docker.io/debian:bookworm-slim
+LABEL maintainer="team@penumbralabs.xyz"
+
+COPY --from=builder /usr/src/hermes/target/release/hermes /usr/bin/hermes
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
+RUN groupadd --gid 1000 hermes \
+        && useradd -m -d /home/hermes -g 1000 -u 1000 hermes
+WORKDIR /home/hermes
+USER hermes
+ENTRYPOINT ["/usr/bin/hermes"]
