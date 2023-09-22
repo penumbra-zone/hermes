@@ -135,6 +135,7 @@ impl FullNode {
             .to_string();
 
         Ok(config::ChainConfig {
+            penumbra_use_prehash_key_before_comparison: false,
             id: self.chain_driver.chain_id.clone(),
             r#type: ChainType::CosmosSdk,
             rpc_addr: Url::from_str(&self.chain_driver.rpc_address())?,

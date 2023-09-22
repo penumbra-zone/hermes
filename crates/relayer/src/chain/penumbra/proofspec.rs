@@ -2,7 +2,7 @@ use ibc_relayer_types::core::ics23_commitment::specs::ProofSpecs;
 
 const SPARSE_MERKLE_PLACEHOLDER_HASH: [u8; 32] = *b"SPARSE_MERKLE_PLACEHOLDER_HASH__";
 
-fn jmt_spec() -> ics23::ProofSpec {
+fn jmt_spec_no_prehash() -> ics23::ProofSpec {
     ics23::ProofSpec {
         leaf_spec: Some(ics23::LeafOp {
             hash: ics23::HashOp::Sha256.into(),
@@ -23,6 +23,12 @@ fn jmt_spec() -> ics23::ProofSpec {
         max_depth: 64,
         prehash_key_before_comparison: false, // for now, until support lands
     }
+}
+
+fn jmt_spec_with_prehash() -> ics23::ProofSpec {
+    let mut spec = jmt_spec_no_prehash();
+    spec.prehash_key_before_comparison = true;
+    spec
 }
 
 /// this is a proof spec for computing Penumbra's AppHash, which is defined as
@@ -55,6 +61,10 @@ fn apphash_spec() -> ibc_proto::cosmos::ics23::v1::ProofSpec {
 }
 
 // TODO: this should re-export the proof specs from the Penumbra crate
-pub fn penumbra_proof_spec() -> ProofSpecs {
-    vec![jmt_spec(), apphash_spec()].into()
+pub fn penumbra_proof_spec_no_prehash() -> ProofSpecs {
+    vec![jmt_spec_no_prehash(), apphash_spec()].into()
+}
+
+pub fn penumbra_proof_spec_with_prehash() -> ProofSpecs {
+    vec![jmt_spec_with_prehash(), apphash_spec()].into()
 }
