@@ -1313,11 +1313,13 @@ impl ChainEndpoint for PenumbraChain {
             .trusting_period
             .unwrap_or_else(|| trusting_period_default);
 
-        let proof_specs = self
-            .config
-            .proof_specs
-            .clone()
-            .unwrap_or(crate::chain::penumbra::proofspec::penumbra_proof_spec());
+        let proof_specs = self.config.proof_specs.clone().unwrap_or_else(|| {
+            if self.config.penumbra_use_prehash_key_before_comparison {
+                crate::chain::penumbra::proofspec::penumbra_proof_spec_with_prehash()
+            } else {
+                crate::chain::penumbra::proofspec::penumbra_proof_spec_no_prehash()
+            }
+        });
 
         // Build the client state.
         TmClientState::new(

@@ -579,6 +579,10 @@ pub struct ChainConfig {
     #[serde(default = "default::trusted_node")]
     pub trusted_node: bool,
 
+    /// Whether to use prehash_key_before_comparison in Penumbra proof specs.
+    #[serde(default)]
+    pub penumbra_use_prehash_key_before_comparison: bool,
+
     pub account_prefix: String,
     pub key_name: String,
     #[serde(default)]

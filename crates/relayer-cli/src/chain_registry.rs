@@ -129,6 +129,7 @@ where
             url: websocket_address,
             batch_delay: default::batch_delay(),
         },
+        penumbra_use_prehash_key_before_comparison: false,
         rpc_timeout: default::rpc_timeout(),
         trusted_node: default::trusted_node(),
         genesis_restart: None,
