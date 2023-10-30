@@ -13,6 +13,7 @@ use tendermint_rpc::{Client, HttpClient, Order, Url};
 use crate::chain::cosmos::query::{packet_query, QueryResponse};
 
 use super::PenumbraChain;
+use penumbra_proto::crypto::tct::v1alpha1::MerkleRoot;
 
 /// Perform a generic `abci_query`, and return the corresponding deserialized response data.
 pub async fn abci_query(
@@ -173,7 +174,7 @@ impl PenumbraChain {
     }
     pub(super) async fn get_anchor(
         &self,
-    ) -> Result<penumbra_proto::core::crypto::v1alpha1::MerkleRoot, Error> {
+    ) -> Result<MerkleRoot, Error> {
         let status = self
             .rpc_client
             .status()
@@ -195,7 +196,7 @@ impl PenumbraChain {
             .await
             .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
 
-        Ok(penumbra_proto::core::crypto::v1alpha1::MerkleRoot {
+        Ok(MerkleRoot {
             inner: res.value[2..].into(),
         })
     }
