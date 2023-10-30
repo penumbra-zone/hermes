@@ -26,7 +26,7 @@ host = '127.0.0.1'
 port = 3001
 
 [[chains]]
-id = 'penumbra-testnet-dione'
+id = 'penumbra-testnet-rhea'
 type = 'penumbra'
 rpc_addr = 'https://rpc.testnet.penumbra.zone'
 grpc_addr = 'https://grpc.testnet.penumbra.zone'
