@@ -75,7 +75,7 @@ pbjson-types = "0.5"
 jmt = "0.6"
 ics23 = "0.10.1"
 # TODO: publish the crate?
-penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
+penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.63.0" }
 
 [dependencies.byte-unit]
 version = "4.0.19"
