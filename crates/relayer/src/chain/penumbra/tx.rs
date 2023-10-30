@@ -9,8 +9,8 @@ use crate::{
     event::IbcEventWithHeight,
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
-use penumbra_proto::core::ibc::v1alpha1::IbcAction;
-use prost::Message;
+use penumbra_proto::core::component::ibc::v1alpha1::IbcAction;
+use penumbra_proto::Message;
 use tendermint_rpc::{endpoint::broadcast::tx_sync::Response, Client};
 use tracing::instrument;
 
@@ -88,8 +88,8 @@ impl PenumbraChain {
 
         let tx_body = penumbra_proto::core::transaction::v1alpha1::TransactionBody {
             actions: ibc_actions.clone(),
-            fee: Some(penumbra_proto::core::crypto::v1alpha1::Fee {
-                amount: Some(penumbra_proto::core::crypto::v1alpha1::Amount { lo: 0, hi: 0 }),
+            fee: Some(penumbra_proto::core::component::fee::v1alpha1::Fee {
+                amount: Some(penumbra_proto::core::num::v1alpha1::Amount { lo: 0, hi: 0 }),
                 asset_id: None,
             }),
             memo_data: Some(penumbra_proto::core::transaction::v1alpha1::MemoData {
@@ -166,8 +166,8 @@ impl PenumbraChain {
 
         let tx_body = penumbra_proto::core::transaction::v1alpha1::TransactionBody {
             actions: ibc_actions.clone(),
-            fee: Some(penumbra_proto::core::crypto::v1alpha1::Fee {
-                amount: Some(penumbra_proto::core::crypto::v1alpha1::Amount { lo: 0, hi: 0 }),
+            fee: Some(penumbra_proto::core::component::fee::v1alpha1::Fee {
+                amount: Some(penumbra_proto::core::num::v1alpha1::Amount { lo: 0, hi: 0 }),
                 asset_id: None,
             }),
             memo_data: Some(penumbra_proto::core::transaction::v1alpha1::MemoData {
