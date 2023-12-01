@@ -172,9 +172,7 @@ impl PenumbraChain {
 
         Ok((begin_block_events, end_block_events))
     }
-    pub(super) async fn get_anchor(
-        &self,
-    ) -> Result<MerkleRoot, Error> {
+    pub(super) async fn get_anchor(&self) -> Result<MerkleRoot, Error> {
         let status = self
             .rpc_client
             .status()

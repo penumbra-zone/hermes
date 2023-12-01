@@ -307,7 +307,7 @@ impl ChainEndpoint for PenumbraChain {
         crate::error::Error,
     > {
         // This is hardcoded for now.
-        Ok("PenumbraAppHash".as_bytes().to_vec().try_into().unwrap())
+        Ok(b"ibc-data".to_vec().try_into().unwrap())
     }
 
     fn query_application_status(

@@ -34,7 +34,7 @@ event_source = { mode = 'pull', interval = '1s' }
 rpc_timeout = '15s'
 account_prefix = 'fake' # not used
 key_name = 'penumbra-wallet'
-store_prefix = '' # not used, the commitment prefix for penumbra IBC is PenumbraAppHash
+store_prefix = 'ibc-data' 
 gas_price = { price = 1, denom = 'upenumbra' } # not used
 max_gas = 10000000 # not used
 clock_drift = '5s'
@@ -51,7 +51,7 @@ event_source = { mode = 'pull', interval = '1s' }
 rpc_timeout = '15s'
 account_prefix = 'fake' # not used
 key_name = 'penumbra-wallet'
-store_prefix = '' # not used, the commitment prefix for penumbra IBC is PenumbraAppHash
+store_prefix = 'ibc-data' 
 gas_price = { price = 1, denom = 'upenumbra' } # not used
 max_gas = 10000000 # not used
 clock_drift = '5s'
