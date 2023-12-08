@@ -1469,16 +1469,13 @@ impl PenumbraChain {
             "src_chain": self.config().id.to_string(),
         });
 
-        let data = data.into();
-        if !data.is_provable() & prove {
-            return Err(Error::private_store());
-        }
+        let data_prefixed = format!("ibc-data/{}", data.into());
 
         let response = self.block_on(abci_query(
             &self.rpc_client,
             &self.config.rpc_addr,
             "state/key".to_string(),
-            data.to_string(),
+            data_prefixed,
             height_query.into(),
             prove,
         ))?;
