@@ -82,6 +82,7 @@ pub fn spawn_chain_runtime_with_config<Handle: ChainHandle>(
 ) -> Result<Handle, SpawnError> {
     let handle = match config {
         ChainConfig::CosmosSdk(_) => ChainRuntime::<CosmosSdkChain>::spawn(config, rt),
+        ChainConfig::Penumbra(_) => ChainRuntime::<PenumbraChain>::spawn(config, rt),
     }
     .map_err(SpawnError::relayer)?;
 
