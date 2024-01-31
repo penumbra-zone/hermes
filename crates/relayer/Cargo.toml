@@ -51,6 +51,7 @@ num-bigint = { workspace = true, features = ["serde"] }
 num-rational = { workspace = true, features = ["num-bigint", "serde"] }
 once_cell = { workspace = true }
 penumbra-custody = { workspace = true }
+penumbra-proto = { workspace = true }
 penumbra-view = { workspace = true }
 prost = { workspace = true }
 regex = { workspace = true }
