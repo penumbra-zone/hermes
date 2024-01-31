@@ -27,6 +27,7 @@ use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId
 use ibc_relayer_types::timestamp::ZERO_DURATION;
 
 use crate::chain::cosmos::config::CosmosSdkConfig;
+use crate::chain::penumbra::config::PenumbraConfig;
 use crate::config::types::ics20_field_size_limit::Ics20FieldSizeLimit;
 use crate::config::types::TrustThreshold;
 use crate::error::Error as RelayerError;
@@ -313,6 +314,8 @@ impl Config {
                         .validate()
                         .map_err(Into::<Diagnostic<Error>>::into)?;
                 }
+                // TODO: define a PenumbraConfig::validate
+                ChainConfig::Penumbra(_) => { /* no-op, for now */ }
             }
         }
 
@@ -629,36 +632,43 @@ pub enum EventSourceMode {
 #[serde(tag = "type")]
 pub enum ChainConfig {
     CosmosSdk(CosmosSdkConfig),
+    Penumbra(PenumbraConfig),
 }
 
 impl ChainConfig {
     pub fn id(&self) -> &ChainId {
         match self {
             Self::CosmosSdk(config) => &config.id,
+            Self::Penumbra(config) => &config.id,
         }
     }
 
     pub fn packet_filter(&self) -> &PacketFilter {
         match self {
             Self::CosmosSdk(config) => &config.packet_filter,
+            Self::Penumbra(config) => &config.packet_filter,
         }
     }
 
     pub fn max_block_time(&self) -> Duration {
         match self {
             Self::CosmosSdk(config) => config.max_block_time,
+            Self::Penumbra(config) => config.max_block_time,
         }
     }
 
+    // TODO(extract): needs to be changed to return &str so penumbra can return ""
     pub fn key_name(&self) -> &String {
         match self {
             Self::CosmosSdk(config) => &config.key_name,
+            Self::Penumbra(config) => &config.stub_key_name,
         }
     }
 
     pub fn set_key_name(&mut self, key_name: String) {
         match self {
             Self::CosmosSdk(config) => config.key_name = key_name,
+            Self::Penumbra(_) => { /* no-op */ }
         }
     }
 
@@ -677,6 +687,7 @@ impl ChainConfig {
                     .map(|(key_name, keys)| (key_name, keys.into()))
                     .collect()
             }
+            ChainConfig::Penumbra(_) => vec![],
         };
 
         Ok(keys)
@@ -685,18 +696,21 @@ impl ChainConfig {
     pub fn clear_interval(&self) -> Option<u64> {
         match self {
             Self::CosmosSdk(config) => config.clear_interval,
+            Self::Penumbra(config) => config.clear_interval,
         }
     }
 
     pub fn query_packets_chunk_size(&self) -> usize {
         match self {
             Self::CosmosSdk(config) => config.query_packets_chunk_size,
+            Self::Penumbra(config) => config.query_packets_chunk_size,
         }
     }
 
     pub fn set_query_packets_chunk_size(&mut self, query_packets_chunk_size: usize) {
         match self {
             Self::CosmosSdk(config) => config.query_packets_chunk_size = query_packets_chunk_size,
+            Self::Penumbra(config) => config.query_packets_chunk_size = query_packets_chunk_size,
         }
     }
 }
@@ -725,6 +739,9 @@ impl<'de> Deserialize<'de> for ChainConfig {
             "CosmosSdk" => CosmosSdkConfig::deserialize(value)
                 .map(Self::CosmosSdk)
                 .map_err(|e| serde::de::Error::custom(format!("invalid CosmosSdk config: {e}"))),
+            "Penumbra" => PenumbraConfig::deserialize(value)
+                .map(Self::Penumbra)
+                .map_err(|e| serde::de::Error::custom(format!("invalid Penumbra config: {e}"))),
 
             //
             // <-- Add new chain types here -->
@@ -883,6 +900,9 @@ mod tests {
         match config.chains[0] {
             super::ChainConfig::CosmosSdk(_) => {
                 // all good
+            }
+            _ => {
+                panic!("expected CosmosSdk chain type as default");
             }
         }
     }

@@ -904,8 +904,11 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
             )
         })?;
 
+        // TODO(extract): needs to be a method on ChainConfig to highlight
+        // that it's common behavior.
         let refresh_rate = match src_config {
             ChainConfig::CosmosSdk(config) => config.client_refresh_rate,
+            ChainConfig::Penumbra(config) => config.client_refresh_rate,
         };
 
         let refresh_period = client_state
@@ -1751,6 +1754,7 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
 
         let is_ccv_consumer_chain = match chain_config {
             ChainConfig::CosmosSdk(config) => config.ccv_consumer_chain,
+            ChainConfig::Penumbra(_) => false,
         };
 
         let mut msgs = vec![];
