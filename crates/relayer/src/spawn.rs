@@ -6,7 +6,10 @@ use tokio::runtime::Runtime as TokioRuntime;
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 
 use crate::{
-    chain::{cosmos::CosmosSdkChain, handle::ChainHandle, runtime::ChainRuntime},
+    chain::{
+        cosmos::CosmosSdkChain, handle::ChainHandle, penumbra::chain::PenumbraChain,
+        runtime::ChainRuntime,
+    },
     config::{ChainConfig, Config},
     error::Error as RelayerError,
 };

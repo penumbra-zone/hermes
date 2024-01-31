@@ -1,11 +1,26 @@
 use std::sync::Arc;
+use std::thread;
 
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
-use penumbra_view::ViewService;
+use futures::StreamExt;
+use penumbra_proto::box_grpc_svc::{self, BoxGrpcService};
+use penumbra_proto::{
+    custody::v1alpha1::{
+        custody_protocol_service_client::CustodyProtocolServiceClient,
+        custody_protocol_service_server::CustodyProtocolServiceServer,
+    },
+    view::v1alpha1::{
+        view_protocol_service_client::ViewProtocolServiceClient,
+        view_protocol_service_server::ViewProtocolServiceServer,
+    },
+};
+use crate::event::source::{EventSource, TxEventSourceCmd};
+use penumbra_view::{ViewService, ViewClient};
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
+use tendermint_rpc::HttpClient;
 use tokio::runtime::Runtime as TokioRuntime;
 
 use crate::{
@@ -23,11 +38,41 @@ use super::config::PenumbraConfig;
 pub struct PenumbraChain {
     config: PenumbraConfig,
     rt: Arc<TokioRuntime>,
-    // TODO: need a handle for a view service, spawned on rt that we can use with rt.block_on
-    // TODO: need a custody service
+
+    view_client: ViewProtocolServiceClient<BoxGrpcService>,
+    custody_client: CustodyProtocolServiceClient<BoxGrpcService>,
+    tendermint_rpc_client: HttpClient,
+
+    tx_monitor_cmd: Option<TxEventSourceCmd>,
 }
 
-impl PenumbraChain {}
+impl PenumbraChain {
+    fn init_event_source(&mut self) -> Result<TxEventSourceCmd, Error> {
+        crate::time!(
+            "init_event_source",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+
+        use crate::config::EventSourceMode as Mode;
+
+        let (event_source, monitor_tx) = match &self.config.event_source {
+            Mode::Pull { interval } => EventSource::rpc(
+                self.config.id.clone(),
+                self.tendermint_rpc_client.clone(),
+                *interval,
+                self.rt.clone(),
+            ),
+            _ => unimplemented!(),
+        }
+        .map_err(Error::event_source)?;
+
+        thread::spawn(move || event_source.run());
+
+        Ok(monitor_tx)
+    }
+}
 
 impl ChainEndpoint for PenumbraChain {
     type LightBlock = TmLightBlock;
@@ -51,10 +96,14 @@ impl ChainEndpoint for PenumbraChain {
             return Err(Error::config(ConfigError::wrong_type()));
         };
 
+         let rpc_client = HttpClient::new(config.rpc_addr.clone())
+            .map_err(|e| Error::rpc(config.rpc_addr.clone(), e))?;
+
+
         let fvk = config.kms_config.spend_key.full_viewing_key();
 
         // TODO: pass None until we figure out where to persist view data
-        let view_service = rt
+        let svc = rt
             .block_on(ViewService::load_or_initialize(
                 None::<&str>,
                 fvk,
@@ -62,25 +111,36 @@ impl ChainEndpoint for PenumbraChain {
             ))
             .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
 
+        let svc = ViewProtocolServiceServer::new(svc);
+        let mut view_client = ViewProtocolServiceClient::new(box_grpc_svc::local(svc));
+
+        let soft_kms = penumbra_custody::soft_kms::SoftKms::new(config.kms_config.clone());
+        let custody_svc = CustodyProtocolServiceServer::new(soft_kms);
+        let custody_client = CustodyProtocolServiceClient::new(box_grpc_svc::local(custody_svc));
+
         tracing::info!("starting view service sync");
 
-        // Wait for the view service to sync with the chain.
-        let vs2 = view_service.clone();
-        let sync_height = rt
-            .block_on(async move {
-                // TODO: ViewService should implement ViewClient on itself for local access
-                let mut stream = vs2.status_stream().await?;
-                let mut sync_height = 0u64;
-                while let Some(status) = stream.next().await.transpose()? {
-                    sync_height = status.full_sync_height;
-                }
-                Ok(sync_height)
-            })
-            .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
+        let sync_height = rt.block_on(async {
+            let mut stream = ViewClient::status_stream(&mut view_client).await?;
+            let mut sync_height = 0u64;
+            while let Some(status) = stream.next().await.transpose()? {
+                sync_height = status.full_sync_height;
+            }
+            Ok(sync_height)
+        })
+        .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
+
 
         tracing::info!(?sync_height, "view service sync complete");
 
-        todo!()
+        Ok(Self {
+            config,
+            rt,
+            view_client: view_client.clone(),
+            custody_client,
+            tendermint_rpc_client: rpc_client,
+            tx_monitor_cmd: None,
+        })
     }
 
     fn shutdown(self) -> Result<(), Error> {
@@ -88,11 +148,31 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn health_check(&mut self) -> Result<HealthCheck, Error> {
-        todo!()
+        let catching_up = self.rt.block_on(async {
+            let status = ViewClient::status(&mut self.view_client).await?;
+            Ok(status.catching_up)
+        })
+        .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
+
+        if catching_up {
+            Ok(HealthCheck::Unhealthy(Box::new(Error::temp_penumbra_error(anyhow::anyhow!("view service is not synced").to_string()))))
+        } else {
+            Ok(HealthCheck::Healthy)
+        }
     }
 
     fn subscribe(&mut self) -> Result<Subscription, Error> {
-        todo!()
+        let tx_monitor_cmd = match &self.tx_monitor_cmd {
+            Some(tx_monitor_cmd) => tx_monitor_cmd,
+            None => {
+                let tx_monitor_cmd = self.init_event_source()?;
+                self.tx_monitor_cmd = Some(tx_monitor_cmd);
+                self.tx_monitor_cmd.as_ref().unwrap()
+            }
+        };
+
+        let subscription = tx_monitor_cmd.subscribe().map_err(Error::event_source)?;
+        Ok(subscription)
     }
 
     fn keybase(&self) -> &crate::keyring::KeyRing<Self::SigningKeyPair> {
