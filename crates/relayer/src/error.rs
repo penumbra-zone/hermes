@@ -618,6 +618,11 @@ define_error! {
         Base64Decode
             [ TraceError<subtle_encoding::Error> ]
             |_| { "Error decoding base64-encoded data" },
+
+        // TODO: replace with finer error variants later
+        TempPenumbraError
+            { detail: String }
+            |e| { format!("penumbra error: {}", e.detail) },
     }
 }
 
