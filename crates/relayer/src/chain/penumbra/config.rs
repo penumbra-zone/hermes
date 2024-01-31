@@ -5,11 +5,22 @@ use penumbra_custody::soft_kms;
 use serde_derive::{Deserialize, Serialize};
 use tendermint_rpc::Url;
 
-use crate::config::{default, EventSourceMode, PacketFilter, RefreshRate};
+use crate::config::{default, types::TrustThreshold, EventSourceMode, PacketFilter, RefreshRate};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PenumbraConfig {
+    /// A fake key name, not used except to satisfy external interfaces.
+    ///
+    /// The Config::key_name() method returns &String, forcing configs to own a String.
+    /// We don't want to just change the method, because we want our fork to apply cleanly
+    /// onto upstream, so we need to
+    /// 1. use a stub field (here)
+    /// 2. create a separate PR to change the method signature
+    /// 3. rebase our change stack once it's merged and remove the stub field.
+    #[serde(default)]
+    pub stub_key_name: String,
+
     pub id: ChainId,
     /// The URL of the app's gRPC endpoint.
     pub grpc_addr: Url,
@@ -35,10 +46,21 @@ pub struct PenumbraConfig {
     #[serde(default = "default::max_block_time", with = "humantime_serde")]
     pub max_block_time: Duration,
 
+    /// A correction parameter that helps deal with clocks that are only approximately synchronized
+    /// between the source and destination chains for a client.
+    /// This parameter is used when deciding to accept or reject a new header
+    /// (originating from the source chain) for any client with the destination chain
+    /// that uses this configuration, unless it is overridden by the client-specific
+    /// clock drift option.
+    #[serde(default = "default::clock_drift", with = "humantime_serde")]
+    pub clock_drift: Duration,
+
     /// The rate at which to refresh the client referencing this chain,
     /// expressed as a fraction of the trusting period.
     #[serde(default = "default::client_refresh_rate")]
     pub client_refresh_rate: RefreshRate,
+
+    // These last few need to be last otherwise we run into `ValueAfterTable` error when serializing to TOML
 
     /// Key configuration
     ///
@@ -47,14 +69,8 @@ pub struct PenumbraConfig {
     /// this with the Hermes keyring, but it's a low-priority item.
     pub kms_config: soft_kms::Config,
 
-    /// A fake key name, not used except to satisfy external interfaces.
-    ///
-    /// The Config::key_name() method returns &String, forcing configs to own a String.
-    /// We don't want to just change the method, because we want our fork to apply cleanly
-    /// onto upstream, so we need to
-    /// 1. use a stub field (here)
-    /// 2. create a separate PR to change the method signature
-    /// 3. rebase our change stack once it's merged and remove the stub field.
+    /// The trust threshold defines what fraction of the total voting power of a known
+    /// and trusted validator set is sufficient for a commit to be accepted going forward.
     #[serde(default)]
-    pub stub_key_name: String,
+    pub trust_threshold: TrustThreshold,
 }

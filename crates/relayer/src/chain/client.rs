@@ -25,7 +25,7 @@ impl ClientSettings {
         // ForeignClient::build_create_client_and_send. Support for
         // heterogeneous chains is left for future revisions.
         //
-        // TODO: extract Tendermint-related configs into a separate substructure
+        // TODO(extract): extract Tendermint-related configs into a separate substructure
         // that can be used both by CosmosSdkConfig and configs for nonSDK chains.
         use ChainConfig::CosmosSdk as Csdk;
         match (src_chain_config, dst_chain_config) {
@@ -36,6 +36,7 @@ impl ClientSettings {
                     dst_chain_config,
                 ))
             }
+            (_, _) => unimplemented!("need to extract tendermint client setting generation code"),
         }
     }
 }
