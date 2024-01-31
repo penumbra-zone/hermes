@@ -61,7 +61,6 @@ pub struct PenumbraConfig {
     pub client_refresh_rate: RefreshRate,
 
     // These last few need to be last otherwise we run into `ValueAfterTable` error when serializing to TOML
-
     /// Key configuration
     ///
     /// This is used instead of the Hermes keyring, which doesn't yet handle

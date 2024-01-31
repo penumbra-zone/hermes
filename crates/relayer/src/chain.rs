@@ -3,7 +3,7 @@ pub mod cosmos;
 pub mod counterparty;
 pub mod endpoint;
 pub mod handle;
+pub mod penumbra;
 pub mod requests;
 pub mod runtime;
 pub mod tracking;
-pub mod penumbra;

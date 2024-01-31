@@ -1,10 +1,22 @@
+use http::Uri;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 
+use crate::chain::requests::{IncludeProof, Qualified, QueryConnectionsRequest, QueryHeight};
+use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
+use crate::event::source::{EventSource, TxEventSourceCmd};
+use crate::light_client::tendermint::LightClient as TmLightClient;
+use crate::util::pretty::{
+    PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
+};
+use futures::StreamExt;
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
-use futures::StreamExt;
+use ibc_relayer_types::core::ics03_connection::connection::{
+    ConnectionEnd, IdentifiedConnectionEnd,
+};
 use penumbra_proto::box_grpc_svc::{self, BoxGrpcService};
 use penumbra_proto::{
     custody::v1alpha1::{
@@ -16,8 +28,7 @@ use penumbra_proto::{
         view_protocol_service_server::ViewProtocolServiceServer,
     },
 };
-use crate::event::source::{EventSource, TxEventSourceCmd};
-use penumbra_view::{ViewService, ViewClient};
+use penumbra_view::{ViewClient, ViewService};
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
 use tendermint_rpc::HttpClient;
@@ -41,7 +52,9 @@ pub struct PenumbraChain {
 
     view_client: ViewProtocolServiceClient<BoxGrpcService>,
     custody_client: CustodyProtocolServiceClient<BoxGrpcService>,
+
     tendermint_rpc_client: HttpClient,
+    grpc_addr: Uri,
 
     tx_monitor_cmd: Option<TxEventSourceCmd>,
 }
@@ -96,9 +109,11 @@ impl ChainEndpoint for PenumbraChain {
             return Err(Error::config(ConfigError::wrong_type()));
         };
 
-         let rpc_client = HttpClient::new(config.rpc_addr.clone())
+        let rpc_client = HttpClient::new(config.rpc_addr.clone())
             .map_err(|e| Error::rpc(config.rpc_addr.clone(), e))?;
 
+        let grpc_addr = Uri::from_str(&config.grpc_addr.to_string())
+            .map_err(|e| Error::invalid_uri(config.grpc_addr.to_string(), e))?;
 
         let fvk = config.kms_config.spend_key.full_viewing_key();
 
@@ -120,16 +135,16 @@ impl ChainEndpoint for PenumbraChain {
 
         tracing::info!("starting view service sync");
 
-        let sync_height = rt.block_on(async {
-            let mut stream = ViewClient::status_stream(&mut view_client).await?;
-            let mut sync_height = 0u64;
-            while let Some(status) = stream.next().await.transpose()? {
-                sync_height = status.full_sync_height;
-            }
-            Ok(sync_height)
-        })
-        .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
-
+        let sync_height = rt
+            .block_on(async {
+                let mut stream = ViewClient::status_stream(&mut view_client).await?;
+                let mut sync_height = 0u64;
+                while let Some(status) = stream.next().await.transpose()? {
+                    sync_height = status.full_sync_height;
+                }
+                Ok(sync_height)
+            })
+            .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
 
         tracing::info!(?sync_height, "view service sync complete");
 
@@ -140,6 +155,7 @@ impl ChainEndpoint for PenumbraChain {
             custody_client,
             tendermint_rpc_client: rpc_client,
             tx_monitor_cmd: None,
+            grpc_addr,
         })
     }
 
@@ -148,14 +164,20 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn health_check(&mut self) -> Result<HealthCheck, Error> {
-        let catching_up = self.rt.block_on(async {
-            let status = ViewClient::status(&mut self.view_client).await?;
-            Ok(status.catching_up)
-        })
-        .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
+        let catching_up = self
+            .rt
+            .block_on(async {
+                let status = ViewClient::status(&mut self.view_client).await?;
+                Ok(status.catching_up)
+            })
+            .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
 
         if catching_up {
-            Ok(HealthCheck::Unhealthy(Box::new(Error::temp_penumbra_error(anyhow::anyhow!("view service is not synced").to_string()))))
+            Ok(HealthCheck::Unhealthy(Box::new(
+                Error::temp_penumbra_error(
+                    anyhow::anyhow!("view service is not synced").to_string(),
+                ),
+            )))
         } else {
             Ok(HealthCheck::Healthy)
         }
@@ -249,7 +271,8 @@ impl ChainEndpoint for PenumbraChain {
         &self,
     ) -> Result<ibc_relayer_types::core::ics23_commitment::commitment::CommitmentPrefix, Error>
     {
-        todo!()
+        // This is hardcoded for now.
+        Ok(b"ibc-data".to_vec().try_into().unwrap())
     }
 
     fn query_application_status(&self) -> Result<crate::chain::endpoint::ChainStatus, Error> {
@@ -259,8 +282,52 @@ impl ChainEndpoint for PenumbraChain {
     fn query_clients(
         &self,
         request: crate::chain::requests::QueryClientStatesRequest,
-    ) -> Result<Vec<crate::client_state::IdentifiedAnyClientState>, Error> {
-        todo!()
+    ) -> Result<Vec<IdentifiedAnyClientState>, Error> {
+        crate::time!(
+            "query_clients",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_clients");
+
+        let mut client = self
+            .rt
+            .block_on(
+                ibc_proto::ibc::core::client::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        let request = tonic::Request::new(request.into());
+        let response = self
+            .rt
+            .block_on(client.client_states(request))
+            .map_err(|e| Error::grpc_status(e, "query_clients".to_owned()))?
+            .into_inner();
+
+        // Deserialize into domain type
+        let mut clients: Vec<IdentifiedAnyClientState> = response
+            .client_states
+            .into_iter()
+            .filter_map(|cs| {
+                IdentifiedAnyClientState::try_from(cs.clone())
+                    .map_err(|e| {
+                        tracing::warn!(
+                            "failed to parse client state {}. Error: {}",
+                            PrettyIdentifiedClientState(&cs),
+                            e
+                        )
+                    })
+                    .ok()
+            })
+            .collect();
+
+        // Sort by client identifier counter
+        clients.sort_by_cached_key(|c| client_id_suffix(&c.client_id).unwrap_or(0));
+
+        Ok(clients)
     }
 
     fn query_client_state(
@@ -326,19 +393,79 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_connections(
         &self,
-        request: crate::chain::requests::QueryConnectionsRequest,
-    ) -> Result<
-        Vec<ibc_relayer_types::core::ics03_connection::connection::IdentifiedConnectionEnd>,
-        Error,
-    > {
-        todo!()
+        request: QueryConnectionsRequest,
+    ) -> Result<Vec<IdentifiedConnectionEnd>, Error> {
+        crate::time!(
+            "query_connections",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_connections");
+
+        let mut client = self
+            .rt
+            .block_on(
+                ibc_proto::ibc::core::connection::v1::query_client::QueryClient::connect(
+                    self.grpc_addr.clone(),
+                ),
+            )
+            .map_err(Error::grpc_transport)?;
+
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.connections(request))
+            .map_err(|e| Error::grpc_status(e, "query_connections".to_owned()))?
+            .into_inner();
+
+        let connections = response
+            .connections
+            .into_iter()
+            .filter_map(|co| {
+                IdentifiedConnectionEnd::try_from(co.clone())
+                    .map_err(|e| {
+                        tracing::warn!(
+                            "connection with ID {} failed parsing. Error: {}",
+                            PrettyIdentifiedConnection(&co),
+                            e
+                        )
+                    })
+                    .ok()
+            })
+            .collect();
+
+        Ok(connections)
     }
 
     fn query_client_connections(
         &self,
         request: crate::chain::requests::QueryClientConnectionsRequest,
     ) -> Result<Vec<ibc_relayer_types::core::ics24_host::identifier::ConnectionId>, Error> {
-        todo!()
+        crate::time!(
+            "query_client_connections",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_client_connections");
+
+        let connections = self.query_connections(QueryConnectionsRequest {
+            pagination: Default::default(),
+        })?;
+
+        let mut client_conns = vec![];
+        for connection in connections {
+            if connection
+                .connection_end
+                .client_id_matches(&request.client_id)
+            {
+                client_conns.push(connection.connection_id);
+            }
+        }
+
+        Ok(client_conns)
     }
 
     fn query_connection(
@@ -570,4 +697,15 @@ impl ChainEndpoint for PenumbraChain {
     > {
         todo!()
     }
+}
+
+/// Returns the suffix counter for a CosmosSDK client id.
+/// Returns `None` if the client identifier is malformed
+/// and the suffix could not be parsed.
+fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
+    client_id
+        .as_str()
+        .split('-')
+        .last()
+        .and_then(|e| e.parse::<u64>().ok())
 }
