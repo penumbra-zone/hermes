@@ -1108,7 +1108,7 @@ dependencies = [
 [[package]]
 name = "cnidarium"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1136,7 +1136,7 @@ dependencies = [
 [[package]]
 name = "cnidarium-component"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1502,7 +1502,7 @@ dependencies = [
 [[package]]
 name = "decaf377-fmd"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "ark-ff",
  "ark-serialize",
@@ -1516,7 +1516,7 @@ dependencies = [
 [[package]]
 name = "decaf377-frost"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -1532,7 +1532,7 @@ dependencies = [
 [[package]]
 name = "decaf377-ka"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "ark-ff",
  "decaf377 0.5.0",
@@ -3891,7 +3891,7 @@ checksum = "c719dcf55f09a3a7e764c6649ab594c18a177e3599c467983cdf644bfc0a4088"
 [[package]]
 name = "penumbra-app"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -3915,7 +3915,6 @@ dependencies = [
  "once_cell",
  "parking_lot",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-compact-block",
  "penumbra-dex",
@@ -3954,7 +3953,7 @@ dependencies = [
 [[package]]
 name = "penumbra-asset"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -3989,33 +3988,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "penumbra-chain"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
-dependencies = [
- "anyhow",
- "ark-ff",
- "async-trait",
- "bytes",
- "cnidarium",
- "decaf377 0.5.0",
- "hex",
- "ibc-types",
- "ics23",
- "once_cell",
- "penumbra-proto",
- "serde",
- "sha2 0.9.9",
- "tendermint",
- "tokio",
- "tonic",
- "tracing",
-]
-
-[[package]]
 name = "penumbra-community-pool"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4030,7 +4005,6 @@ dependencies = [
  "once_cell",
  "pbjson-types",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-keys",
  "penumbra-num",
  "penumbra-proto",
@@ -4048,7 +4022,7 @@ dependencies = [
 [[package]]
 name = "penumbra-compact-block"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4061,7 +4035,6 @@ dependencies = [
  "futures",
  "im",
  "metrics",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-dex",
  "penumbra-fee",
@@ -4086,7 +4059,7 @@ dependencies = [
 [[package]]
 name = "penumbra-custody"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4102,7 +4075,6 @@ dependencies = [
  "ed25519-consensus",
  "futures",
  "hex",
- "penumbra-chain",
  "penumbra-keys",
  "penumbra-proto",
  "penumbra-transaction",
@@ -4120,7 +4092,7 @@ dependencies = [
 [[package]]
 name = "penumbra-dex"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4148,7 +4120,6 @@ dependencies = [
  "parking_lot",
  "pbjson-types",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-fee",
  "penumbra-keys",
  "penumbra-num",
@@ -4176,16 +4147,16 @@ dependencies = [
 [[package]]
 name = "penumbra-distributions"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "async-trait",
  "cnidarium",
  "cnidarium-component",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-num",
  "penumbra-proto",
+ "penumbra-sct",
  "serde",
  "tendermint",
  "tracing",
@@ -4194,7 +4165,7 @@ dependencies = [
 [[package]]
 name = "penumbra-fee"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4219,7 +4190,7 @@ dependencies = [
 [[package]]
 name = "penumbra-funding"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4227,7 +4198,6 @@ dependencies = [
  "cnidarium-component",
  "futures",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-distributions",
  "penumbra-proto",
@@ -4242,7 +4212,7 @@ dependencies = [
 [[package]]
 name = "penumbra-governance"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4267,7 +4237,6 @@ dependencies = [
  "once_cell",
  "pbjson-types",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-distributions",
  "penumbra-fee",
@@ -4296,7 +4265,7 @@ dependencies = [
 [[package]]
 name = "penumbra-ibc"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4313,9 +4282,9 @@ dependencies = [
  "once_cell",
  "pbjson-types",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-num",
  "penumbra-proto",
+ "penumbra-sct",
  "penumbra-txhash",
  "prost",
  "serde",
@@ -4330,7 +4299,7 @@ dependencies = [
 [[package]]
 name = "penumbra-keys"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "aes",
  "anyhow",
@@ -4374,7 +4343,7 @@ dependencies = [
 [[package]]
 name = "penumbra-num"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4410,7 +4379,7 @@ dependencies = [
 [[package]]
 name = "penumbra-proof-params"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -4436,7 +4405,7 @@ dependencies = [
 [[package]]
 name = "penumbra-proto"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4467,7 +4436,7 @@ dependencies = [
 [[package]]
 name = "penumbra-sct"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4485,7 +4454,6 @@ dependencies = [
  "im",
  "metrics",
  "once_cell",
- "penumbra-chain",
  "penumbra-keys",
  "penumbra-proto",
  "penumbra-tct",
@@ -4501,7 +4469,7 @@ dependencies = [
 [[package]]
 name = "penumbra-shielded-pool"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4527,7 +4495,6 @@ dependencies = [
  "metrics",
  "once_cell",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-ibc",
  "penumbra-keys",
  "penumbra-num",
@@ -4551,7 +4518,7 @@ dependencies = [
 [[package]]
 name = "penumbra-stake"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4575,7 +4542,6 @@ dependencies = [
  "metrics",
  "once_cell",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-distributions",
  "penumbra-keys",
@@ -4602,7 +4568,7 @@ dependencies = [
 [[package]]
 name = "penumbra-tct"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "ark-ed-on-bls12-377",
  "ark-ff",
@@ -4630,7 +4596,7 @@ dependencies = [
 [[package]]
 name = "penumbra-transaction"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4652,7 +4618,6 @@ dependencies = [
  "once_cell",
  "pbjson-types",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-dex",
  "penumbra-fee",
@@ -4682,7 +4647,7 @@ dependencies = [
 [[package]]
 name = "penumbra-txhash"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "blake2b_simd 0.5.11",
@@ -4695,7 +4660,7 @@ dependencies = [
 [[package]]
 name = "penumbra-view"
 version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=move-boxgrpc#5d57a028be76a46f8f18cf9ab20f9b0c103b4643"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
 dependencies = [
  "anyhow",
  "ark-std",
@@ -4715,7 +4680,6 @@ dependencies = [
  "parking_lot",
  "penumbra-app",
  "penumbra-asset",
- "penumbra-chain",
  "penumbra-community-pool",
  "penumbra-compact-block",
  "penumbra-dex",

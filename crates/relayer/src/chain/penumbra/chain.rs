@@ -1,22 +1,42 @@
 use http::Uri;
+use ibc_proto::ics23;
+use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
+use once_cell::sync::Lazy;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
+use std::time::Duration;
 
-use crate::chain::requests::{IncludeProof, Qualified, QueryConnectionsRequest, QueryHeight};
+use crate::chain::client::ClientSettings;
+use crate::chain::requests::IncludeProof;
+use crate::chain::requests::*;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
+use crate::consensus_state::AnyConsensusState;
 use crate::event::source::{EventSource, TxEventSourceCmd};
+use crate::event::IbcEventWithHeight;
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::util::pretty::{
     PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
 };
 use futures::StreamExt;
+use ibc_proto::ibc::core::commitment::v1::MerkleProof as RawMerkleProof;
+use ibc_proto::ibc::core::{
+    channel::v1::query_client::QueryClient as IbcChannelQueryClient,
+    client::v1::query_client::QueryClient as IbcClientQueryClient,
+    connection::v1::query_client::QueryClient as IbcConnectionQueryClient,
+};
 use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
 use ibc_relayer_types::clients::ics07_tendermint::consensus_state::ConsensusState as TmConsensusState;
 use ibc_relayer_types::clients::ics07_tendermint::header::Header as TmHeader;
+use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::core::ics03_connection::connection::{
     ConnectionEnd, IdentifiedConnectionEnd,
 };
+use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd};
+use ibc_relayer_types::core::ics04_channel::packet::Sequence;
+use ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof;
+use ibc_relayer_types::core::ics24_host::identifier::ClientId;
+use ibc_relayer_types::Height as ICSHeight;
 use penumbra_proto::box_grpc_svc::{self, BoxGrpcService};
 use penumbra_proto::{
     custody::v1alpha1::{
@@ -31,8 +51,9 @@ use penumbra_proto::{
 use penumbra_view::{ViewClient, ViewService};
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
-use tendermint_rpc::HttpClient;
+use tendermint_rpc::{Client as _, HttpClient};
 use tokio::runtime::Runtime as TokioRuntime;
+use tonic::IntoRequest;
 
 use crate::{
     chain::{
@@ -53,8 +74,11 @@ pub struct PenumbraChain {
     view_client: ViewProtocolServiceClient<BoxGrpcService>,
     custody_client: CustodyProtocolServiceClient<BoxGrpcService>,
 
+    ibc_client_grpc_client: IbcClientQueryClient<tonic::transport::Channel>,
+    ibc_connection_grpc_client: IbcConnectionQueryClient<tonic::transport::Channel>,
+    ibc_channel_grpc_client: IbcChannelQueryClient<tonic::transport::Channel>,
+
     tendermint_rpc_client: HttpClient,
-    grpc_addr: Uri,
 
     tx_monitor_cmd: Option<TxEventSourceCmd>,
 }
@@ -84,6 +108,117 @@ impl PenumbraChain {
         thread::spawn(move || event_source.run());
 
         Ok(monitor_tx)
+    }
+
+    fn chain_status(&self) -> Result<tendermint_rpc::endpoint::status::Response, Error> {
+        let status = self
+            .rt
+            .block_on(self.tendermint_rpc_client.status())
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        Ok(status)
+    }
+
+    async fn query_packets_from_blocks(
+        &self,
+        request: &QueryPacketEventDataRequest,
+    ) -> Result<(Vec<IbcEventWithHeight>, Vec<IbcEventWithHeight>), Error> {
+        use crate::chain::cosmos::query::packet_query;
+
+        let mut begin_block_events = vec![];
+        let mut end_block_events = vec![];
+
+        for seq in request.sequences.iter().copied() {
+            let response = self
+                .tendermint_rpc_client
+                .block_search(
+                    packet_query(request, seq),
+                    // We only need the first page
+                    1,
+                    // There should only be a single match for this query, but due to
+                    // the fact that the indexer treat the query as a disjunction over
+                    // all events in a block rather than a conjunction over a single event,
+                    // we may end up with partial matches and therefore have to account for
+                    // that by fetching multiple results and filter it down after the fact.
+                    // In the worst case we get N blocks where N is the number of channels,
+                    // but 10 seems to work well enough in practice while keeping the response
+                    // size, and therefore pressure on the node, fairly low.
+                    10,
+                    // We could pick either ordering here, since matching blocks may be at pretty
+                    // much any height relative to the target blocks, so we went with most recent
+                    // blocks first.
+                    tendermint_rpc::Order::Descending,
+                )
+                .await
+                .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+            for block in response.blocks.into_iter().map(|response| response.block) {
+                let response_height =
+                    ICSHeight::new(self.id().version(), u64::from(block.header.height))
+                        .map_err(|_| Error::invalid_height_no_source())?;
+
+                if let QueryHeight::Specific(query_height) = request.height.get() {
+                    if response_height > query_height {
+                        continue;
+                    }
+                }
+
+                // `query_packet_from_block` retrieves the begin and end block events
+                // and filter them to retain only those matching the query
+                let (new_begin_block_events, new_end_block_events) =
+                    self.query_packet_from_block(request, &[seq], &response_height)?;
+
+                begin_block_events.extend(new_begin_block_events);
+                end_block_events.extend(new_end_block_events);
+            }
+        }
+
+        Ok((begin_block_events, end_block_events))
+    }
+
+    pub(super) fn query_packet_from_block(
+        &self,
+        request: &QueryPacketEventDataRequest,
+        seqs: &[Sequence],
+        block_height: &ICSHeight,
+    ) -> Result<(Vec<IbcEventWithHeight>, Vec<IbcEventWithHeight>), Error> {
+        use crate::chain::cosmos::query::tx::filter_matching_event;
+
+        let mut begin_block_events = vec![];
+        let mut end_block_events = vec![];
+
+        let tm_height =
+            tendermint::block::Height::try_from(block_height.revision_height()).unwrap();
+
+        let response = self
+            .rt
+            .block_on(self.tendermint_rpc_client.block_results(tm_height))
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        let response_height = ICSHeight::new(self.id().version(), u64::from(response.height))
+            .map_err(|_| Error::invalid_height_no_source())?;
+
+        begin_block_events.append(
+            &mut response
+                .begin_block_events
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|ev| filter_matching_event(ev, request, seqs))
+                .map(|ev| IbcEventWithHeight::new(ev, response_height))
+                .collect(),
+        );
+
+        end_block_events.append(
+            &mut response
+                .end_block_events
+                .unwrap_or_default()
+                .iter()
+                .filter_map(|ev| filter_matching_event(ev, request, seqs))
+                .map(|ev| IbcEventWithHeight::new(ev, response_height))
+                .collect(),
+        );
+
+        Ok((begin_block_events, end_block_events))
     }
 }
 
@@ -148,6 +283,21 @@ impl ChainEndpoint for PenumbraChain {
 
         tracing::info!(?sync_height, "view service sync complete");
 
+        let grpc_addr = Uri::from_str(&config.grpc_addr.to_string())
+            .map_err(|e| Error::invalid_uri(config.grpc_addr.to_string(), e))?;
+
+        let ibc_client_grpc_client = rt
+            .block_on(IbcClientQueryClient::connect(grpc_addr.clone()))
+            .map_err(Error::grpc_transport)?;
+        let ibc_connection_grpc_client = rt
+            .block_on(IbcConnectionQueryClient::connect(grpc_addr.clone()))
+            .map_err(Error::grpc_transport)?;
+        let ibc_channel_grpc_client = rt
+            .block_on(IbcChannelQueryClient::connect(grpc_addr.clone()))
+            .map_err(Error::grpc_transport)?;
+
+        tracing::info!("ibc grpc query clients connected");
+
         Ok(Self {
             config,
             rt,
@@ -155,7 +305,10 @@ impl ChainEndpoint for PenumbraChain {
             custody_client,
             tendermint_rpc_client: rpc_client,
             tx_monitor_cmd: None,
-            grpc_addr,
+
+            ibc_client_grpc_client,
+            ibc_connection_grpc_client,
+            ibc_channel_grpc_client,
         })
     }
 
@@ -291,14 +444,7 @@ impl ChainEndpoint for PenumbraChain {
         );
         crate::telemetry!(query, self.id(), "query_clients");
 
-        let mut client = self
-            .rt
-            .block_on(
-                ibc_proto::ibc::core::client::v1::query_client::QueryClient::connect(
-                    self.grpc_addr.clone(),
-                ),
-            )
-            .map_err(Error::grpc_transport)?;
+        let mut client = self.ibc_client_grpc_client.clone();
 
         let request = tonic::Request::new(request.into());
         let response = self
@@ -333,36 +479,115 @@ impl ChainEndpoint for PenumbraChain {
     fn query_client_state(
         &self,
         request: crate::chain::requests::QueryClientStateRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            crate::client_state::AnyClientState,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        include_proof: IncludeProof,
+    ) -> Result<(AnyClientState, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_client_grpc_client.clone();
+
+        let mut req = ibc_proto::ibc::core::client::v1::QueryClientStateRequest {
+            client_id: request.client_id.to_string(),
+            // NOTE: height is ignored
+        }
+        .into_request();
+
+        let map = req.metadata_mut();
+        let height_str: String = match request.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+        map.insert("height", height_str.parse().expect("valid ascii string"));
+
+        let response = self
+            .rt
+            .block_on(client.client_state(req))
+            .map_err(|e| Error::grpc_status(e, "query_client_state".to_owned()))?
+            .into_inner();
+
+        let Some(client_state) = response.client_state else {
+            return Err(Error::empty_response_value());
+        };
+
+        let client_state: AnyClientState = client_state
+            .try_into()
+            .map_err(|_| Error::temp_penumbra_error("couldnt decode AnyClientState".to_string()))?;
+
+        match include_proof {
+            IncludeProof::Yes => Ok((client_state, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::No => Ok((client_state, None)),
+        }
     }
 
     fn query_consensus_state(
         &self,
         request: crate::chain::requests::QueryConsensusStateRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            crate::consensus_state::AnyConsensusState,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        include_proof: IncludeProof,
+    ) -> Result<(AnyConsensusState, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_client_grpc_client.clone();
+
+        let mut req = ibc_proto::ibc::core::client::v1::QueryConsensusStateRequest {
+            client_id: request.client_id.to_string(),
+            revision_height: request.consensus_height.revision_height(),
+            revision_number: request.consensus_height.revision_number(),
+            latest_height: false, // TODO?
+        }
+        .into_request();
+
+        let map = req.metadata_mut();
+        let height_str: String = match request.query_height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+        map.insert("height", height_str.parse().expect("valid ascii string"));
+
+        let response = self
+            .rt
+            .block_on(client.consensus_state(req))
+            .map_err(|e| Error::grpc_status(e, "query_consensus_state".to_owned()))?
+            .into_inner();
+
+        let Some(consensus_state) = response.consensus_state else {
+            return Err(Error::empty_response_value());
+        };
+
+        let consensus_state: AnyConsensusState = consensus_state.try_into().map_err(|e| {
+            Error::temp_penumbra_error("couldnt decode AnyConsensusState".to_string())
+        })?;
+
+        if !matches!(consensus_state, AnyConsensusState::Tendermint(_)) {
+            return Err(Error::consensus_state_type_mismatch(
+                ClientType::Tendermint,
+                consensus_state.client_type(),
+            ));
+        }
+
+        match include_proof {
+            IncludeProof::Yes => Ok((consensus_state, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::No => Ok((consensus_state, None)),
+        }
     }
 
     fn query_consensus_state_heights(
         &self,
         request: crate::chain::requests::QueryConsensusStateHeightsRequest,
     ) -> Result<Vec<ibc_relayer_types::Height>, Error> {
-        todo!()
+        let mut client = self.ibc_client_grpc_client.clone();
+
+        let req = ibc_proto::ibc::core::client::v1::QueryConsensusStateHeightsRequest {
+            client_id: request.client_id.to_string(),
+            pagination: Default::default(),
+        };
+
+        let response = self
+            .rt
+            .block_on(client.consensus_state_heights(req))
+            .map_err(|e| Error::grpc_status(e, "query_consensus_state_heights".to_owned()))?
+            .into_inner();
+
+        let heights = response
+            .consensus_state_heights
+            .into_iter()
+            .filter_map(|h| ICSHeight::new(h.revision_number, h.revision_height).ok())
+            .collect();
+        Ok(heights)
     }
 
     fn query_upgraded_client_state(
@@ -403,14 +628,7 @@ impl ChainEndpoint for PenumbraChain {
         );
         crate::telemetry!(query, self.id(), "query_connections");
 
-        let mut client = self
-            .rt
-            .block_on(
-                ibc_proto::ibc::core::connection::v1::query_client::QueryClient::connect(
-                    self.grpc_addr.clone(),
-                ),
-            )
-            .map_err(Error::grpc_transport)?;
+        let mut client = self.ibc_connection_grpc_client.clone();
 
         let request = tonic::Request::new(request.into());
 
@@ -446,7 +664,7 @@ impl ChainEndpoint for PenumbraChain {
         crate::time!(
             "query_client_connections",
             {
-                "src_chain": self.config().id.to_string(),
+                "src_chain": self.config().id().to_string(),
             }
         );
         crate::telemetry!(query, self.id(), "query_client_connections");
@@ -471,167 +689,452 @@ impl ChainEndpoint for PenumbraChain {
     fn query_connection(
         &self,
         request: crate::chain::requests::QueryConnectionRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            ibc_relayer_types::core::ics03_connection::connection::ConnectionEnd,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        include_proof: IncludeProof,
+    ) -> Result<(ConnectionEnd, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_connection_grpc_client.clone();
+        let mut req = ibc_proto::ibc::core::connection::v1::QueryConnectionRequest {
+            connection_id: request.connection_id.to_string(),
+            // TODO height is ignored
+        }
+        .into_request();
+
+        let map = req.metadata_mut();
+        let height_str: String = match request.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+        map.insert("height", height_str.parse().expect("valid ascii string"));
+
+        let response = self.rt.block_on(client.connection(req)).map_err(|e| {
+            if e.code() == tonic::Code::NotFound {
+                Error::connection_not_found(request.connection_id.clone())
+            } else {
+                Error::grpc_status(e, "query_connection".to_owned())
+            }
+        })?;
+
+        let resp = response.into_inner();
+        let connection_end: ConnectionEnd = match resp.connection {
+            Some(raw_connection) => raw_connection.try_into().map_err(Error::ics03)?,
+            None => {
+                // When no connection is found, the GRPC call itself should return
+                // the NotFound error code. Nevertheless even if the call is successful,
+                // the connection field may not be present, because in protobuf3
+                // everything is optional.
+                return Err(Error::connection_not_found(request.connection_id.clone()));
+            }
+        };
+
+        match include_proof {
+            IncludeProof::Yes => Ok((connection_end, Some(decode_merkle_proof(resp.proof)?))),
+            IncludeProof::No => Ok((connection_end, None)),
+        }
     }
 
     fn query_connection_channels(
         &self,
         request: crate::chain::requests::QueryConnectionChannelsRequest,
-    ) -> Result<Vec<ibc_relayer_types::core::ics04_channel::channel::IdentifiedChannelEnd>, Error>
-    {
-        todo!()
+    ) -> Result<Vec<IdentifiedChannelEnd>, Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.connection_channels(request))
+            .map_err(|e| Error::grpc_status(e, "query_connection_channels".to_owned()))?
+            .into_inner();
+
+        let channels = response
+            .channels
+            .into_iter()
+            .filter_map(|ch| {
+                IdentifiedChannelEnd::try_from(ch.clone())
+                    .map_err(|e| {
+                        tracing::warn!(
+                            "channel with ID {} failed parsing. Error: {}",
+                            PrettyIdentifiedChannel(&ch),
+                            e
+                        )
+                    })
+                    .ok()
+            })
+            .collect();
+        Ok(channels)
     }
 
     fn query_channels(
         &self,
-        request: crate::chain::requests::QueryChannelsRequest,
-    ) -> Result<Vec<ibc_relayer_types::core::ics04_channel::channel::IdentifiedChannelEnd>, Error>
-    {
-        todo!()
+        request: QueryChannelsRequest,
+    ) -> Result<Vec<IdentifiedChannelEnd>, Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.channels(request))
+            .map_err(|e| Error::grpc_status(e, "query_channels".to_owned()))?
+            .into_inner();
+
+        let channels = response
+            .channels
+            .into_iter()
+            .filter_map(|ch| {
+                IdentifiedChannelEnd::try_from(ch.clone())
+                    .map_err(|e| {
+                        tracing::warn!(
+                            "channel with ID {} failed parsing. Error: {}",
+                            PrettyIdentifiedChannel(&ch),
+                            e
+                        );
+                    })
+                    .ok()
+            })
+            .collect();
+
+        Ok(channels)
     }
 
     fn query_channel(
         &self,
         request: crate::chain::requests::QueryChannelRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            ibc_relayer_types::core::ics04_channel::channel::ChannelEnd,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        include_proof: IncludeProof,
+    ) -> Result<(ChannelEnd, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let req = ibc_proto::ibc::core::channel::v1::QueryChannelRequest {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+        };
+
+        let request = tonic::Request::new(req);
+        let response = self
+            .rt
+            .block_on(client.channel(request))
+            .map_err(|e| Error::grpc_status(e, "query_channel".to_owned()))?
+            .into_inner();
+
+        let Some(channel_end) = response.channel else {
+            return Err(Error::empty_response_value());
+        };
+
+        let channel_end: ChannelEnd = channel_end
+            .try_into()
+            .map_err(|e| Error::temp_penumbra_error("couldnt decode ChannelEnd".to_string()))?;
+
+        match include_proof {
+            IncludeProof::Yes => Ok((channel_end, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::No => Ok((channel_end, None)),
+        }
     }
 
     fn query_channel_client_state(
         &self,
         request: crate::chain::requests::QueryChannelClientStateRequest,
-    ) -> Result<Option<crate::client_state::IdentifiedAnyClientState>, Error> {
-        todo!()
+    ) -> Result<Option<IdentifiedAnyClientState>, Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.channel_client_state(request))
+            .map_err(|e| Error::grpc_status(e, "query_channel_client_state".to_owned()))?
+            .into_inner();
+
+        let client_state: Option<IdentifiedAnyClientState> = response
+            .identified_client_state
+            .map_or_else(|| None, |proto_cs| proto_cs.try_into().ok());
+
+        Ok(client_state)
     }
 
     fn query_packet_commitment(
         &self,
         request: crate::chain::requests::QueryPacketCommitmentRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            Vec<u8>,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        include_proof: IncludeProof,
+    ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let req = ibc_proto::ibc::core::channel::v1::QueryPacketCommitmentRequest {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+            sequence: request.sequence.into(),
+        };
+
+        let request = tonic::Request::new(req);
+        let response = self
+            .rt
+            .block_on(client.packet_commitment(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_commitment".to_owned()))?
+            .into_inner();
+
+        match include_proof {
+            IncludeProof::Yes => Ok((
+                response.commitment,
+                Some(decode_merkle_proof(response.proof)?),
+            )),
+            IncludeProof::No => Ok((response.commitment, None)),
+        }
     }
 
     fn query_packet_commitments(
         &self,
         request: crate::chain::requests::QueryPacketCommitmentsRequest,
-    ) -> Result<
-        (
-            Vec<ibc_relayer_types::core::ics04_channel::packet::Sequence>,
-            ibc_relayer_types::Height,
-        ),
-        Error,
-    > {
-        todo!()
+    ) -> Result<(Vec<Sequence>, ibc_relayer_types::Height), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.packet_commitments(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_commitments".to_owned()))?
+            .into_inner();
+
+        let mut commitment_sequences: Vec<Sequence> = response
+            .commitments
+            .into_iter()
+            .map(|v| v.sequence.into())
+            .collect();
+        commitment_sequences.sort_unstable();
+
+        let height = response
+            .height
+            .and_then(|raw_height| raw_height.try_into().ok())
+            .ok_or_else(|| Error::grpc_response_param("height".to_string()))?;
+
+        Ok((commitment_sequences, height))
     }
 
     fn query_packet_receipt(
         &self,
-        request: crate::chain::requests::QueryPacketReceiptRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            Vec<u8>,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        request: QueryPacketReceiptRequest,
+        include_proof: IncludeProof,
+    ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let req = ibc_proto::ibc::core::channel::v1::QueryPacketReceiptRequest {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+            sequence: request.sequence.into(),
+            // NOTE: height is ignored
+        };
+
+        let request = tonic::Request::new(req);
+        let response = self
+            .rt
+            .block_on(client.packet_receipt(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_receipt".to_owned()))?
+            .into_inner();
+
+        // TODO: is this right?
+        let value = match response.received {
+            true => vec![1],
+            false => vec![0],
+        };
+
+        match include_proof {
+            IncludeProof::Yes => Ok((value, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::No => Ok((value, None)),
+        }
     }
 
     fn query_unreceived_packets(
         &self,
-        request: crate::chain::requests::QueryUnreceivedPacketsRequest,
-    ) -> Result<Vec<ibc_relayer_types::core::ics04_channel::packet::Sequence>, Error> {
-        todo!()
+        request: QueryUnreceivedPacketsRequest,
+    ) -> Result<Vec<Sequence>, Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+
+        let request = tonic::Request::new(request.into());
+
+        let mut response = self
+            .rt
+            .block_on(client.unreceived_packets(request))
+            .map_err(|e| Error::grpc_status(e, "query_unreceived_packets".to_owned()))?
+            .into_inner();
+
+        response.sequences.sort_unstable();
+        Ok(response
+            .sequences
+            .into_iter()
+            .map(|seq| seq.into())
+            .collect())
     }
 
     fn query_packet_acknowledgement(
         &self,
-        request: crate::chain::requests::QueryPacketAcknowledgementRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            Vec<u8>,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        request: QueryPacketAcknowledgementRequest,
+        include_proof: IncludeProof,
+    ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let req = ibc_proto::ibc::core::channel::v1::QueryPacketAcknowledgementRequest {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+            sequence: request.sequence.into(),
+            // NOTE: height is ignored
+        };
+
+        let request = tonic::Request::new(req);
+        let response = self
+            .rt
+            .block_on(client.packet_acknowledgement(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_acknowledgement".to_owned()))?
+            .into_inner();
+
+        match include_proof {
+            IncludeProof::Yes => Ok((
+                response.acknowledgement,
+                Some(decode_merkle_proof(response.proof)?),
+            )),
+            IncludeProof::No => Ok((response.acknowledgement, None)),
+        }
     }
 
     fn query_packet_acknowledgements(
         &self,
-        request: crate::chain::requests::QueryPacketAcknowledgementsRequest,
-    ) -> Result<
-        (
-            Vec<ibc_relayer_types::core::ics04_channel::packet::Sequence>,
-            ibc_relayer_types::Height,
-        ),
-        Error,
-    > {
-        todo!()
+        request: QueryPacketAcknowledgementsRequest,
+    ) -> Result<(Vec<Sequence>, ibc_relayer_types::Height), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.packet_acknowledgements(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_acknowledgements".to_owned()))?
+            .into_inner();
+
+        let acks_sequences = response
+            .acknowledgements
+            .into_iter()
+            .map(|v| v.sequence.into())
+            .collect();
+
+        let height = response
+            .height
+            .and_then(|raw_height| raw_height.try_into().ok())
+            .ok_or_else(|| Error::grpc_response_param("height".to_string()))?;
+
+        Ok((acks_sequences, height))
     }
 
     fn query_unreceived_acknowledgements(
         &self,
-        request: crate::chain::requests::QueryUnreceivedAcksRequest,
-    ) -> Result<Vec<ibc_relayer_types::core::ics04_channel::packet::Sequence>, Error> {
-        todo!()
+        request: QueryUnreceivedAcksRequest,
+    ) -> Result<Vec<Sequence>, Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let mut response = self
+            .rt
+            .block_on(client.unreceived_acks(request))
+            .map_err(|e| Error::grpc_status(e, "query_unreceived_acknowledgements".to_owned()))?
+            .into_inner();
+
+        response.sequences.sort_unstable();
+        Ok(response
+            .sequences
+            .into_iter()
+            .map(|seq| seq.into())
+            .collect())
     }
 
     fn query_next_sequence_receive(
         &self,
-        request: crate::chain::requests::QueryNextSequenceReceiveRequest,
-        include_proof: crate::chain::requests::IncludeProof,
-    ) -> Result<
-        (
-            ibc_relayer_types::core::ics04_channel::packet::Sequence,
-            Option<ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof>,
-        ),
-        Error,
-    > {
-        todo!()
+        request: QueryNextSequenceReceiveRequest,
+        include_proof: IncludeProof,
+    ) -> Result<(Sequence, Option<MerkleProof>), Error> {
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let request = tonic::Request::new(request.into());
+
+        let response = self
+            .rt
+            .block_on(client.next_sequence_receive(request))
+            .map_err(|e| Error::grpc_status(e, "query_next_sequence_receive".to_owned()))?
+            .into_inner();
+
+        match include_proof {
+            IncludeProof::Yes => Ok((
+                response.next_sequence_receive.into(),
+                Some(decode_merkle_proof(response.proof)?),
+            )),
+            IncludeProof::No => Ok((response.next_sequence_receive.into(), None)),
+        }
     }
 
-    fn query_txs(
-        &self,
-        request: crate::chain::requests::QueryTxRequest,
-    ) -> Result<Vec<crate::event::IbcEventWithHeight>, Error> {
-        todo!()
+    fn query_txs(&self, request: QueryTxRequest) -> Result<Vec<IbcEventWithHeight>, Error> {
+        use crate::chain::cosmos::query::tx::query_txs;
+
+        self.rt.block_on(query_txs(
+            self.id(),
+            &self.tendermint_rpc_client,
+            &self.config.rpc_addr,
+            request,
+        ))
     }
 
     fn query_packet_events(
         &self,
-        request: crate::chain::requests::QueryPacketEventDataRequest,
-    ) -> Result<Vec<crate::event::IbcEventWithHeight>, Error> {
-        todo!()
+        mut request: QueryPacketEventDataRequest,
+    ) -> Result<Vec<IbcEventWithHeight>, Error> {
+        use crate::chain::cosmos::{
+            query::tx::{query_packets_from_block, query_packets_from_txs},
+            sort_events_by_sequence,
+        };
+
+        match request.height {
+            // Usage note: `Qualified::Equal` is currently only used in the call hierarchy involving
+            // the CLI methods, namely the CLI for `tx packet-recv` and `tx packet-ack` when the
+            // user passes the flag `packet-data-query-height`.
+            Qualified::Equal(_) => self.rt.block_on(query_packets_from_block(
+                self.id(),
+                &self.tendermint_rpc_client,
+                &self.config.rpc_addr,
+                &request,
+            )),
+            Qualified::SmallerEqual(_) => {
+                let tx_events = self.rt.block_on(query_packets_from_txs(
+                    self.id(),
+                    &self.tendermint_rpc_client,
+                    &self.config.rpc_addr,
+                    &request,
+                ))?;
+
+                let recvd_sequences: Vec<_> = tx_events
+                    .iter()
+                    .filter_map(|eh| eh.event.packet().map(|p| p.sequence))
+                    .collect();
+
+                request
+                    .sequences
+                    .retain(|seq| !recvd_sequences.contains(seq));
+
+                let (start_block_events, end_block_events) = if !request.sequences.is_empty() {
+                    self.rt.block_on(self.query_packets_from_blocks(&request))?
+                } else {
+                    Default::default()
+                };
+
+                // Events should be ordered in the following fashion,
+                // for any two blocks b1, b2 at height h1, h2 with h1 < h2:
+                // b1.start_block_events
+                // b1.tx_events
+                // b1.end_block_events
+                // b2.start_block_events
+                // b2.tx_events
+                // b2.end_block_events
+                //
+                // As of now, we just sort them by sequence number which should
+                // yield a similar result and will revisit this approach in the future.
+                let mut events = vec![];
+                events.extend(start_block_events);
+                events.extend(tx_events);
+                events.extend(end_block_events);
+
+                sort_events_by_sequence(&mut events);
+
+                Ok(events)
+            }
+        }
     }
 
     fn query_host_consensus_state(
         &self,
-        request: crate::chain::requests::QueryHostConsensusStateRequest,
+        _request: QueryHostConsensusStateRequest,
     ) -> Result<Self::ConsensusState, Error> {
         todo!()
     }
@@ -639,25 +1142,66 @@ impl ChainEndpoint for PenumbraChain {
     fn build_client_state(
         &self,
         height: ibc_relayer_types::Height,
-        settings: crate::chain::client::ClientSettings,
+        settings: ClientSettings,
     ) -> Result<Self::ClientState, Error> {
-        todo!()
+        use ibc_relayer_types::clients::ics07_tendermint::client_state::AllowUpdate;
+        let ClientSettings::Tendermint(settings) = settings;
+
+        // two hour duration
+        // TODO what is this?
+        let two_hours = Duration::from_secs(2 * 60 * 60);
+        let unbonding_period = two_hours;
+        let trusting_period_default = 2 * unbonding_period / 3;
+        let trusting_period = settings.trusting_period.unwrap_or(trusting_period_default);
+
+        let proof_specs = IBC_PROOF_SPECS.clone();
+
+        Self::ClientState::new(
+            self.id().clone(),
+            settings.trust_threshold,
+            trusting_period,
+            unbonding_period,
+            settings.max_clock_drift,
+            height,
+            proof_specs.into(),
+            vec!["upgrade".to_string(), "upgradedIBCState".to_string()],
+            AllowUpdate {
+                after_expiry: true,
+                after_misbehaviour: true,
+            },
+        )
+        .map_err(Error::ics07)
     }
 
     fn build_consensus_state(
         &self,
         light_block: Self::LightBlock,
     ) -> Result<Self::ConsensusState, Error> {
-        todo!()
+        Ok(Self::ConsensusState::from(light_block.signed_header.header))
     }
 
     fn build_header(
         &mut self,
         trusted_height: ibc_relayer_types::Height,
         target_height: ibc_relayer_types::Height,
-        client_state: &crate::client_state::AnyClientState,
+        client_state: &AnyClientState,
     ) -> Result<(Self::Header, Vec<Self::Header>), Error> {
+        use crate::light_client::Verified;
+
+        let now = self.chain_status()?.sync_info.latest_block_time;
+
         todo!()
+
+        // Get the light block at target_height from chain.
+        /*
+        let Verified { target, supporting } = self.light_client.header_and_minimal_set(
+            trusted_height,
+            target_height,
+            client_state,
+            now,
+        )?;
+
+        Ok((target, supporting))*/
     }
 
     fn maybe_register_counterparty_payee(
@@ -671,7 +1215,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn cross_chain_query(
         &self,
-        requests: Vec<crate::chain::requests::CrossChainQueryRequest>,
+        requests: Vec<CrossChainQueryRequest>,
     ) -> Result<
         Vec<ibc_relayer_types::applications::ics31_icq::response::CrossChainQueryResponse>,
         Error,
@@ -691,7 +1235,7 @@ impl ChainEndpoint for PenumbraChain {
     ) -> Result<
         Vec<(
             ibc_relayer_types::core::ics24_host::identifier::ChainId,
-            ibc_relayer_types::core::ics24_host::identifier::ClientId,
+            ClientId,
         )>,
         Error,
     > {
@@ -709,3 +1253,48 @@ fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
         .last()
         .and_then(|e| e.parse::<u64>().ok())
 }
+
+fn decode_merkle_proof(proof_bytes: Vec<u8>) -> Result<MerkleProof, Error> {
+    let proof_bytes = CommitmentProofBytes::try_from(proof_bytes).map_err(|e| {
+        Error::temp_penumbra_error(format!("couldnt decode CommitmentProofBytes: {}", e))
+    })?;
+    let raw_proof: RawMerkleProof = RawMerkleProof::try_from(proof_bytes)
+        .map_err(|e| Error::temp_penumbra_error(format!("couldnt decode RawMerkleProof: {}", e)))?;
+
+    let proof = MerkleProof::from(raw_proof);
+
+    Ok(proof)
+}
+
+const LEAF_DOMAIN_SEPARATOR: &[u8] = b"JMT::LeafNode";
+const INTERNAL_DOMAIN_SEPARATOR: &[u8] = b"JMT::IntrnalNode";
+
+const SPARSE_MERKLE_PLACEHOLDER_HASH: [u8; 32] = *b"SPARSE_MERKLE_PLACEHOLDER_HASH__";
+
+fn ics23_spec() -> ics23::ProofSpec {
+    ics23::ProofSpec {
+        leaf_spec: Some(ics23::LeafOp {
+            hash: ics23::HashOp::Sha256.into(),
+            prehash_key: ics23::HashOp::Sha256.into(),
+            prehash_value: ics23::HashOp::Sha256.into(),
+            length: ics23::LengthOp::NoPrefix.into(),
+            prefix: LEAF_DOMAIN_SEPARATOR.to_vec(),
+        }),
+        inner_spec: Some(ics23::InnerSpec {
+            hash: ics23::HashOp::Sha256.into(),
+            child_order: vec![0, 1],
+            min_prefix_length: INTERNAL_DOMAIN_SEPARATOR.len() as i32,
+            max_prefix_length: INTERNAL_DOMAIN_SEPARATOR.len() as i32,
+            child_size: 32,
+            empty_child: SPARSE_MERKLE_PLACEHOLDER_HASH.to_vec(),
+        }),
+        min_depth: 0,
+        max_depth: 64,
+        prehash_key_before_comparison: true,
+    }
+}
+/// The ICS23 proof spec for penumbra's IBC state; this can be used to verify proofs
+/// for other substores in the penumbra state, provided that the data is indeed inside a substore
+/// (as opposed to directly in the root store.)
+pub static IBC_PROOF_SPECS: Lazy<Vec<ics23::ProofSpec>> =
+    Lazy::new(|| vec![ics23_spec(), ics23_spec()]);
