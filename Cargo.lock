@@ -2559,9 +2559,15 @@ dependencies = [
  "num-bigint",
  "num-rational",
  "once_cell",
+ "penumbra-asset",
  "penumbra-custody",
+ "penumbra-fee",
+ "penumbra-ibc",
+ "penumbra-keys",
  "penumbra-proto",
+ "penumbra-transaction",
  "penumbra-view",
+ "penumbra-wallet",
  "prost",
  "regex",
  "reqwest",
@@ -4707,6 +4713,41 @@ dependencies = [
  "tracing",
  "tracing-subscriber 0.3.18",
  "url",
+]
+
+[[package]]
+name = "penumbra-wallet"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
+dependencies = [
+ "anyhow",
+ "ark-std",
+ "bincode",
+ "bytes",
+ "decaf377 0.5.0",
+ "hex",
+ "penumbra-app",
+ "penumbra-asset",
+ "penumbra-custody",
+ "penumbra-dex",
+ "penumbra-fee",
+ "penumbra-governance",
+ "penumbra-keys",
+ "penumbra-num",
+ "penumbra-proto",
+ "penumbra-stake",
+ "penumbra-tct",
+ "penumbra-transaction",
+ "penumbra-view",
+ "pin-project",
+ "rand",
+ "rand_core",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tower",
+ "tracing",
 ]
 
 [[package]]

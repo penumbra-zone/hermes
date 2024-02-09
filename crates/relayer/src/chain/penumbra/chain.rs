@@ -6,14 +6,18 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+use anyhow::Context;
+use futures::FutureExt;
 
 use crate::chain::client::ClientSettings;
+use signature::rand_core::OsRng;
 use crate::chain::requests::IncludeProof;
 use crate::chain::requests::*;
+use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::consensus_state::AnyConsensusState;
 use crate::event::source::{EventSource, TxEventSourceCmd};
-use crate::event::IbcEventWithHeight;
+use crate::event::{IbcEventWithHeight, ibc_event_try_from_abci_event};
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::util::pretty::{
     PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
@@ -39,19 +43,28 @@ use ibc_relayer_types::core::ics24_host::identifier::ClientId;
 use ibc_relayer_types::Height as ICSHeight;
 use penumbra_proto::box_grpc_svc::{self, BoxGrpcService};
 use penumbra_proto::{
-    custody::v1alpha1::{
-        custody_protocol_service_client::CustodyProtocolServiceClient,
-        custody_protocol_service_server::CustodyProtocolServiceServer,
+    custody::v1::{
+        custody_service_client::CustodyServiceClient,
+        custody_service_server::CustodyServiceServer,
     },
-    view::v1alpha1::{
-        view_protocol_service_client::ViewProtocolServiceClient,
-        view_protocol_service_server::ViewProtocolServiceServer,
+    view::v1::{
+        GasPricesRequest,
+        view_service_client::ViewServiceClient,
+        view_service_server::ViewServiceServer,
+        broadcast_transaction_response::Status as BroadcastStatus,
     },
 };
+use penumbra_keys::keys::AddressIndex;
 use penumbra_view::{ViewClient, ViewService};
+use penumbra_wallet::plan::Planner;
+use penumbra_fee::FeeTier;
+use penumbra_transaction::memo::MemoPlaintext;
+use penumbra_transaction::gas::GasCost;
+use penumbra_ibc::IbcAction;
+
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
-use tendermint_rpc::{Client as _, HttpClient};
+use tendermint_rpc::{Client as _, HttpClient, endpoint::broadcast::tx_sync::Response as TxResponse};
 use tokio::runtime::Runtime as TokioRuntime;
 use tonic::IntoRequest;
 
@@ -220,6 +233,149 @@ impl PenumbraChain {
 
         Ok((begin_block_events, end_block_events))
     }
+
+    async fn broadcast_messages(&mut self, tracked_msgs: TrackedMsgs) -> Result<Vec<IbcEventWithHeight>, Error> {
+        let gas_prices = self 
+            .view_client
+            .gas_prices(GasPricesRequest {})
+            .await?
+            .into_inner()
+            .gas_prices
+            .expect("gas prices must be available")
+            .try_into()?;
+        // TODO: should this be a config option?
+        let fee_tier = FeeTier::default();
+
+        // use the transaction builder in the custody service to construct a transaction, including
+        // each tracked message as an IbcRelay message
+        let mut planner = Planner::new(OsRng);
+
+        planner
+            .set_gas_prices(gas_prices)
+            .set_fee_tier(fee_tier);
+
+        let return_address = self 
+            .config
+            .kms_config
+            .spend_key
+            .full_viewing_key()
+            .payment_address(0.into())
+            .0;
+
+        let tx_memo = "IBC Relay".to_string();
+
+        let memo_plaintext = 
+            MemoPlaintext::new(return_address, tx_memo.clone()).unwrap();
+
+        for msg in tracked_msgs.msgs {
+            let ibc_action = IbcAction::from(msg);
+            planner.ibc_action(ibc_action);
+        }
+
+        let plan = planner
+            .memo(memo_plaintext).unwrap()
+            .plan(
+                self.view_client,
+                AddressIndex::new(0),
+            )
+            .await
+            .context("can't build send transaction")
+            .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
+
+        let tx = penumbra_wallet::build_transaction(
+            &self.config.kms_config.spend_key.full_viewing_key(),
+            self.view_client,
+            self.custody_client,
+            plan,
+        )
+        .await
+        .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
+
+        let gas_cost = tx.gas_cost();
+        let fee = gas_prices.fee(&gas_cost);
+
+        assert!(
+            tx.transaction_parameters().fee.amount() >= fee,
+            "paid fee {} must be greater than minimum fee {}",
+            tx.transaction_parameters().fee.amount(),
+            fee
+        );
+
+        let txid = self.submit_transaction(tx).await.map_err(|e| {
+            tracing::error!("error submitting transaction: {}", e);
+            Error::temp_penumbra_error(e.to_string())
+        })?;
+
+        // query the tendermint rpc for the transaction's events
+        let tm_tx_hash: tendermint::Hash = txid.0.to_vec().try_into().unwrap();
+        let tm_tx = self.tendermint_rpc_client.tx(tm_tx_hash, false).await.map_err(|e| {
+            tracing::error!("error querying transaction: {}", e);
+            Error::temp_penumbra_error(e.to_string())
+        })?;
+
+        let height = ICSHeight::new(self.config.id.version(), u64::from(tm_tx.height)).unwrap();
+        let events = tm_tx
+            .tx_result
+            .events
+            .iter()
+            .map(|ev| IbcEventWithHeight::new(ibc_event_try_from_abci_event(ev).unwrap(), height))
+            .collect();
+
+        Ok(events)
+    }
+
+    /// Submits a transaction to the network.
+    async fn submit_transaction(
+        &mut self,
+        transaction: penumbra_transaction::Transaction,
+    ) -> anyhow::Result<penumbra_transaction::txhash::TransactionId> {
+        println!("broadcasting transaction and awaiting confirmation...");
+        let mut rsp = self.view_client.broadcast_transaction(transaction, true).await?;
+
+        let id = (async move {
+            while let Some(rsp) = rsp.try_next().await? {
+                match rsp.status {
+                    Some(status) => match status {
+                        BroadcastStatus::BroadcastSuccess(bs) => {
+                            println!(
+                                "transaction broadcast successfully: {}",
+                                penumbra_transaction::txhash::TransactionId::try_from(
+                                    bs.id.expect("detected transaction missing id")
+                                )?
+                            );
+                        }
+                        BroadcastStatus::Confirmed(c) => {
+                            let id = c.id.expect("detected transaction missing id").try_into()?;
+                            if c.detection_height != 0 {
+                                println!(
+                                    "transaction confirmed and detected: {} @ height {}",
+                                    id, c.detection_height
+                                );
+                            } else {
+                                println!("transaction confirmed and detected: {}", id);
+                            }
+                            return Ok(id);
+                        }
+                    },
+                    None => {
+                        // No status is unexpected behavior
+                        return Err(anyhow::anyhow!(
+                            "empty BroadcastTransactionResponse message"
+                        ));
+                    }
+                }
+            }
+
+            Err(anyhow::anyhow!(
+                "should have received BroadcastTransaction status or error"
+            ))
+        }
+        .boxed())
+        .await
+        .context("error broadcasting transaction")?;
+
+        Ok(id)
+    }
 }
 
 impl ChainEndpoint for PenumbraChain {
@@ -246,9 +402,6 @@ impl ChainEndpoint for PenumbraChain {
 
         let rpc_client = HttpClient::new(config.rpc_addr.clone())
             .map_err(|e| Error::rpc(config.rpc_addr.clone(), e))?;
-
-        let grpc_addr = Uri::from_str(&config.grpc_addr.to_string())
-            .map_err(|e| Error::invalid_uri(config.grpc_addr.to_string(), e))?;
 
         let fvk = config.kms_config.spend_key.full_viewing_key();
 
@@ -372,14 +525,18 @@ impl ChainEndpoint for PenumbraChain {
 
     fn send_messages_and_wait_commit(
         &mut self,
-        tracked_msgs: crate::chain::tracking::TrackedMsgs,
-    ) -> Result<Vec<crate::event::IbcEventWithHeight>, Error> {
-        todo!()
+        tracked_msgs: TrackedMsgs,
+    ) -> Result<Vec<IbcEventWithHeight>, Error> {
+        let runtime = self.rt.clone();
+        let msg_len = tracked_msgs.msgs.len();
+        let events = runtime.block_on(self.broadcast_messages(tracked_msgs))?;
+
+        Ok(events)
     }
 
     fn send_messages_and_wait_check_tx(
         &mut self,
-        tracked_msgs: crate::chain::tracking::TrackedMsgs,
+        tracked_msgs: TrackedMsgs,
     ) -> Result<Vec<tendermint_rpc::endpoint::broadcast::tx_sync::Response>, Error> {
         todo!()
     }
@@ -388,7 +545,7 @@ impl ChainEndpoint for PenumbraChain {
         &mut self,
         trusted: ibc_relayer_types::Height,
         target: ibc_relayer_types::Height,
-        client_state: &crate::client_state::AnyClientState,
+        client_state: &AnyClientState,
     ) -> Result<Self::LightBlock, Error> {
         todo!()
     }
@@ -396,7 +553,7 @@ impl ChainEndpoint for PenumbraChain {
     fn check_misbehaviour(
         &mut self,
         update: &ibc_relayer_types::core::ics02_client::events::UpdateClient,
-        client_state: &crate::client_state::AnyClientState,
+        client_state: &AnyClientState,
     ) -> Result<Option<crate::misbehaviour::MisbehaviourEvidence>, Error> {
         todo!()
     }
@@ -548,7 +705,7 @@ impl ChainEndpoint for PenumbraChain {
             return Err(Error::empty_response_value());
         };
 
-        let consensus_state: AnyConsensusState = consensus_state.try_into().map_err(|e| {
+        let consensus_state: AnyConsensusState = consensus_state.try_into().map_err(|_| {
             Error::temp_penumbra_error("couldnt decode AnyConsensusState".to_string())
         })?;
 
@@ -567,7 +724,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_consensus_state_heights(
         &self,
-        request: crate::chain::requests::QueryConsensusStateHeightsRequest,
+        request: QueryConsensusStateHeightsRequest,
     ) -> Result<Vec<ibc_relayer_types::Height>, Error> {
         let mut client = self.ibc_client_grpc_client.clone();
 
@@ -592,11 +749,11 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_upgraded_client_state(
         &self,
-        request: crate::chain::requests::QueryUpgradedClientStateRequest,
+        _request: QueryUpgradedClientStateRequest,
     ) -> Result<
         (
-            crate::client_state::AnyClientState,
-            ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof,
+            AnyClientState,
+            MerkleProof,
         ),
         Error,
     > {
@@ -605,11 +762,11 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_upgraded_consensus_state(
         &self,
-        request: crate::chain::requests::QueryUpgradedConsensusStateRequest,
+        _request: QueryUpgradedConsensusStateRequest,
     ) -> Result<
         (
-            crate::consensus_state::AnyConsensusState,
-            ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof,
+            AnyConsensusState,
+            MerkleProof,
         ),
         Error,
     > {
@@ -659,7 +816,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_client_connections(
         &self,
-        request: crate::chain::requests::QueryClientConnectionsRequest,
+        request: QueryClientConnectionsRequest,
     ) -> Result<Vec<ibc_relayer_types::core::ics24_host::identifier::ConnectionId>, Error> {
         crate::time!(
             "query_client_connections",
@@ -688,7 +845,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_connection(
         &self,
-        request: crate::chain::requests::QueryConnectionRequest,
+        request: QueryConnectionRequest,
         include_proof: IncludeProof,
     ) -> Result<(ConnectionEnd, Option<MerkleProof>), Error> {
         let mut client = self.ibc_connection_grpc_client.clone();
@@ -733,7 +890,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_connection_channels(
         &self,
-        request: crate::chain::requests::QueryConnectionChannelsRequest,
+        request: QueryConnectionChannelsRequest,
     ) -> Result<Vec<IdentifiedChannelEnd>, Error> {
         let mut client = self.ibc_channel_grpc_client.clone();
         let request = tonic::Request::new(request.into());
@@ -796,7 +953,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_channel(
         &self,
-        request: crate::chain::requests::QueryChannelRequest,
+        request: QueryChannelRequest,
         include_proof: IncludeProof,
     ) -> Result<(ChannelEnd, Option<MerkleProof>), Error> {
         let mut client = self.ibc_channel_grpc_client.clone();
@@ -828,7 +985,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_channel_client_state(
         &self,
-        request: crate::chain::requests::QueryChannelClientStateRequest,
+        request: QueryChannelClientStateRequest,
     ) -> Result<Option<IdentifiedAnyClientState>, Error> {
         let mut client = self.ibc_channel_grpc_client.clone();
         let request = tonic::Request::new(request.into());
@@ -848,7 +1005,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_packet_commitment(
         &self,
-        request: crate::chain::requests::QueryPacketCommitmentRequest,
+        request: QueryPacketCommitmentRequest,
         include_proof: IncludeProof,
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
         let mut client = self.ibc_channel_grpc_client.clone();
@@ -876,7 +1033,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_packet_commitments(
         &self,
-        request: crate::chain::requests::QueryPacketCommitmentsRequest,
+        request: QueryPacketCommitmentsRequest,
     ) -> Result<(Vec<Sequence>, ibc_relayer_types::Height), Error> {
         let mut client = self.ibc_channel_grpc_client.clone();
         let request = tonic::Request::new(request.into());
@@ -1189,6 +1346,8 @@ impl ChainEndpoint for PenumbraChain {
         use crate::light_client::Verified;
 
         let now = self.chain_status()?.sync_info.latest_block_time;
+
+         
 
         todo!()
 

@@ -50,9 +50,15 @@ moka = { workspace = true, features = ["sync"] }
 num-bigint = { workspace = true, features = ["serde"] }
 num-rational = { workspace = true, features = ["num-bigint", "serde"] }
 once_cell = { workspace = true }
+penumbra-asset = { workspace = true }
 penumbra-custody = { workspace = true }
+penumbra-fee = { workspace = true }
+penumbra-ibc = { workspace = true }
+penumbra-keys = { workspace = true }
 penumbra-proto = { workspace = true }
+penumbra-transaction = { workspace = true }
 penumbra-view = { workspace = true }
+penumbra-wallet = { workspace = true }
 prost = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true, features = ["rustls-tls-native-roots", "json"] }
