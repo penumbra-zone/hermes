@@ -78,17 +78,6 @@ dependencies = [
 
 [[package]]
 name = "ahash"
-version = "0.7.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a824f2aa7e75a0c98c5a504fceb80649e9c35265d44525b5f94de4771a395cd"
-dependencies = [
- "getrandom",
- "once_cell",
- "version_check",
-]
-
-[[package]]
-name = "ahash"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c3a9648d43b9cd48db467b3f87fdd6e146bcc88ab0180006cef2179fe11d01"
@@ -428,34 +417,13 @@ checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
 
 [[package]]
 name = "async-stream"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22068c0c19514942eefcfd4daf8976ef1aad84e61539f95cd200c35202f80af5"
-dependencies = [
- "async-stream-impl 0.2.1",
- "futures-core",
-]
-
-[[package]]
-name = "async-stream"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd56dd203fef61ac097dd65721a419ddccb106b2d2b70ba60a6b529f03961a51"
 dependencies = [
- "async-stream-impl 0.3.5",
+ "async-stream-impl",
  "futures-core",
  "pin-project-lite",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25f9db3b38af870bf7e5cc649167533b493928e50744e2c30ae350230b414670"
-dependencies = [
- "proc-macro2 1.0.78",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -591,18 +559,6 @@ name = "base16ct"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
-
-[[package]]
-name = "base64"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
-
-[[package]]
-name = "base64"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
 
 [[package]]
 name = "base64"
@@ -1107,8 +1063,8 @@ dependencies = [
 
 [[package]]
 name = "cnidarium"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1135,8 +1091,8 @@ dependencies = [
 
 [[package]]
 name = "cnidarium-component"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1501,13 +1457,13 @@ dependencies = [
 
 [[package]]
 name = "decaf377-fmd"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "ark-ff",
  "ark-serialize",
  "bitvec",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "decaf377 0.5.0",
  "rand_core",
  "thiserror",
@@ -1515,12 +1471,12 @@ dependencies = [
 
 [[package]]
 name = "decaf377-frost"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "decaf377 0.5.0",
  "decaf377-rdsa",
  "frost-core",
@@ -1531,8 +1487,8 @@ dependencies = [
 
 [[package]]
 name = "decaf377-ka"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "ark-ff",
  "decaf377 0.5.0",
@@ -2269,7 +2225,7 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
- "ahash 0.8.7",
+ "ahash",
 ]
 
 [[package]]
@@ -2278,7 +2234,7 @@ version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
 dependencies = [
- "ahash 0.8.7",
+ "ahash",
  "allocator-api2",
 ]
 
@@ -2549,7 +2505,7 @@ version = "0.40.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4222cfac37f21da28292db0f2673fdb8455284895891ff09979680243efb9a20"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "bytes",
  "flex-error",
  "ics23",
@@ -2567,7 +2523,7 @@ version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd4ee32b22d3b06f31529b956f4928e5c9a068d71e46cf6abfa19c31ca550553"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "bytes",
  "flex-error",
  "ics23",
@@ -2584,7 +2540,7 @@ name = "ibc-relayer"
 version = "0.27.0"
 dependencies = [
  "anyhow",
- "async-stream 0.3.5",
+ "async-stream",
  "bech32 0.9.1",
  "bitcoin",
  "bs58",
@@ -2614,8 +2570,13 @@ dependencies = [
  "num-rational",
  "once_cell",
  "penumbra-custody",
+ "penumbra-fee",
+ "penumbra-ibc",
+ "penumbra-keys",
  "penumbra-proto",
+ "penumbra-transaction",
  "penumbra-view",
+ "penumbra-wallet",
  "prost",
  "regex",
  "reqwest",
@@ -3161,7 +3122,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9aa4a0980c8379295100d70854354e78df2ee1c6ca0f96ffe89afeb3140e3a3d"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "serde",
 ]
 
@@ -3430,23 +3391,12 @@ dependencies = [
 
 [[package]]
 name = "metrics"
-version = "0.19.0"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "142c53885123b68d94108295a09d4afe1a1388ed95b54d5dacd9a454753030f2"
+checksum = "77b9e10a211c839210fd7f99954bda26e5f8e26ec686ad68da6a32df7c80e782"
 dependencies = [
- "ahash 0.7.7",
- "metrics-macros",
-]
-
-[[package]]
-name = "metrics-macros"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49e30813093f757be5cf21e50389a24dc7dbb22c49f23b7e8f51d69b508a5ffa"
-dependencies = [
- "proc-macro2 1.0.78",
- "quote",
- "syn 1.0.109",
+ "ahash",
+ "portable-atomic",
 ]
 
 [[package]]
@@ -3805,7 +3755,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1030c719b0ec2a2d25a5df729d6cff1acf3cc230bf766f4f97833591f7577b90"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "serde",
 ]
 
@@ -3890,17 +3840,17 @@ checksum = "c719dcf55f09a3a7e764c6649ab594c18a177e3599c467983cdf644bfc0a4088"
 
 [[package]]
 name = "penumbra-app"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "base64 0.20.0",
+ "base64",
  "bech32 0.8.1",
  "bincode",
  "bitvec",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
@@ -3921,6 +3871,7 @@ dependencies = [
  "penumbra-distributions",
  "penumbra-fee",
  "penumbra-funding",
+ "penumbra-genesis",
  "penumbra-governance",
  "penumbra-ibc",
  "penumbra-keys",
@@ -3939,8 +3890,8 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_unit_struct",
- "serde_with 2.3.3",
- "sha2 0.9.9",
+ "serde_with",
+ "sha2 0.10.8",
  "tempfile",
  "tendermint",
  "tendermint-light-client-verifier",
@@ -3952,8 +3903,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-asset"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -3961,9 +3912,9 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
- "base64 0.20.0",
+ "base64",
  "bech32 0.8.1",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "decaf377 0.5.0",
  "decaf377-fmd",
@@ -3981,7 +3932,7 @@ dependencies = [
  "rand_core",
  "regex",
  "serde",
- "serde_with 3.6.0",
+ "serde_with",
  "sha2 0.10.8",
  "thiserror",
  "tracing",
@@ -3989,14 +3940,14 @@ dependencies = [
 
 [[package]]
 name = "penumbra-community-pool"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "base64 0.20.0",
- "blake2b_simd 0.5.11",
+ "base64",
+ "blake2b_simd 1.0.2",
  "cnidarium",
  "cnidarium-component",
  "futures",
@@ -4021,13 +3972,13 @@ dependencies = [
 
 [[package]]
 name = "penumbra-compact-block"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "cnidarium",
  "cnidarium-component",
@@ -4058,14 +4009,14 @@ dependencies = [
 
 [[package]]
 name = "penumbra-custody"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "ark-serialize",
- "base64 0.20.0",
- "blake2b_simd 0.5.11",
+ "base64",
+ "blake2b_simd 1.0.2",
  "bytes",
  "chacha20poly1305",
  "decaf377 0.5.0",
@@ -4083,7 +4034,7 @@ dependencies = [
  "rand_core",
  "serde",
  "serde_json",
- "serde_with 2.3.3",
+ "serde_with",
  "tokio",
  "tonic",
  "tracing",
@@ -4091,8 +4042,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-dex"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4101,11 +4052,11 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-snark",
- "async-stream 0.2.1",
+ "async-stream",
  "async-trait",
- "base64 0.20.0",
+ "base64",
  "bincode",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
@@ -4146,8 +4097,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-distributions"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4164,13 +4115,13 @@ dependencies = [
 
 [[package]]
 name = "penumbra-fee"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "cnidarium",
  "cnidarium-component",
@@ -4184,13 +4135,14 @@ dependencies = [
  "rand_core",
  "serde",
  "tendermint",
+ "tonic",
  "tracing",
 ]
 
 [[package]]
 name = "penumbra-funding"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4210,9 +4162,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "penumbra-genesis"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
+dependencies = [
+ "anyhow",
+ "penumbra-community-pool",
+ "penumbra-distributions",
+ "penumbra-fee",
+ "penumbra-funding",
+ "penumbra-governance",
+ "penumbra-ibc",
+ "penumbra-proto",
+ "penumbra-sct",
+ "penumbra-shielded-pool",
+ "penumbra-stake",
+ "serde",
+]
+
+[[package]]
 name = "penumbra-governance"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4221,10 +4192,10 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-snark",
- "async-stream 0.2.1",
+ "async-stream",
  "async-trait",
- "base64 0.21.7",
- "blake2b_simd 0.5.11",
+ "base64",
+ "blake2b_simd 1.0.2",
  "bytes",
  "cnidarium",
  "cnidarium-component",
@@ -4264,14 +4235,14 @@ dependencies = [
 
 [[package]]
 name = "penumbra-ibc"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "base64 0.20.0",
- "blake2b_simd 0.5.11",
+ "base64",
+ "blake2b_simd 1.0.2",
  "cnidarium",
  "hex",
  "ibc-proto 0.40.0",
@@ -4298,8 +4269,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-keys"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "aes",
  "anyhow",
@@ -4308,10 +4279,10 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
- "base64 0.20.0",
+ "base64",
  "bech32 0.8.1",
  "bip32",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "chacha20poly1305",
  "decaf377 0.5.0",
@@ -4342,8 +4313,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-num"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4353,9 +4324,9 @@ dependencies = [
  "ark-serialize",
  "ark-snark",
  "ark-std",
- "base64 0.20.0",
+ "base64",
  "bech32 0.8.1",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "decaf377 0.5.0",
  "decaf377-fmd",
@@ -4378,8 +4349,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-proof-params"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -4404,8 +4375,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-proto"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4435,8 +4406,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-sct"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4445,9 +4416,10 @@ dependencies = [
  "ark-serialize",
  "async-trait",
  "bincode",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "cnidarium",
+ "cnidarium-component",
  "decaf377 0.5.0",
  "decaf377-rdsa",
  "hex",
@@ -4468,8 +4440,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-shielded-pool"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4479,8 +4451,8 @@ dependencies = [
  "ark-serialize",
  "ark-snark",
  "async-trait",
- "base64 0.20.0",
- "blake2b_simd 0.5.11",
+ "base64",
+ "blake2b_simd 1.0.2",
  "bytes",
  "chacha20poly1305",
  "cnidarium",
@@ -4517,8 +4489,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-stake"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4527,9 +4499,9 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-snark",
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
- "base64 0.20.0",
+ "base64",
  "bech32 0.8.1",
  "bitvec",
  "cnidarium",
@@ -4557,8 +4529,8 @@ dependencies = [
  "regex",
  "serde",
  "serde_unit_struct",
- "serde_with 2.3.3",
- "sha2 0.9.9",
+ "serde_with",
+ "sha2 0.10.8",
  "tendermint",
  "tokio",
  "tonic",
@@ -4567,8 +4539,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-tct"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "ark-ed-on-bls12-377",
  "ark-ff",
@@ -4595,15 +4567,15 @@ dependencies = [
 
 [[package]]
 name = "penumbra-transaction"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-ff",
  "ark-serialize",
- "base64 0.21.7",
+ "base64",
  "bech32 0.8.1",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "bytes",
  "chacha20poly1305",
  "decaf377 0.5.0",
@@ -4638,7 +4610,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "sha2 0.9.9",
+ "sha2 0.10.8",
  "thiserror",
  "tokio",
  "tracing",
@@ -4646,11 +4618,11 @@ dependencies = [
 
 [[package]]
 name = "penumbra-txhash"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
- "blake2b_simd 0.5.11",
+ "blake2b_simd 1.0.2",
  "hex",
  "penumbra-proto",
  "penumbra-tct",
@@ -4659,12 +4631,12 @@ dependencies = [
 
 [[package]]
 name = "penumbra-view"
-version = "0.65.0-alpha.1"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#c7aefdc9710dfdad0aa616c86c7a82392a6e00ff"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
 dependencies = [
  "anyhow",
  "ark-std",
- "async-stream 0.2.1",
+ "async-stream",
  "async-trait",
  "bytes",
  "camino",
@@ -4709,8 +4681,43 @@ dependencies = [
  "tokio-stream",
  "tonic",
  "tracing",
- "tracing-subscriber 0.2.25",
+ "tracing-subscriber 0.3.18",
  "url",
+]
+
+[[package]]
+name = "penumbra-wallet"
+version = "0.66.0"
+source = "git+https://github.com/penumbra-zone/penumbra?branch=main#3933ffe24522134d7552eb16074bb8d59a4f0d9f"
+dependencies = [
+ "anyhow",
+ "ark-std",
+ "bincode",
+ "bytes",
+ "decaf377 0.5.0",
+ "hex",
+ "penumbra-app",
+ "penumbra-asset",
+ "penumbra-custody",
+ "penumbra-dex",
+ "penumbra-fee",
+ "penumbra-governance",
+ "penumbra-keys",
+ "penumbra-num",
+ "penumbra-proto",
+ "penumbra-stake",
+ "penumbra-tct",
+ "penumbra-transaction",
+ "penumbra-view",
+ "pin-project",
+ "rand",
+ "rand_core",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tower",
+ "tracing",
 ]
 
 [[package]]
@@ -4793,6 +4800,12 @@ dependencies = [
  "opaque-debug",
  "universal-hash",
 ]
+
+[[package]]
+name = "portable-atomic"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
 
 [[package]]
 name = "poseidon-parameters"
@@ -5121,10 +5134,12 @@ dependencies = [
 [[package]]
 name = "r2d2_sqlite"
 version = "0.22.0"
-source = "git+https://github.com/penumbra-zone/r2d2-sqlite.git#bcb4957c9bba34d0f22a4e84422edf8d29568e5f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99f31323d6161385f385046738df520e0e8694fa74852d35891fc0be08348ddc"
 dependencies = [
  "r2d2",
  "rusqlite",
+ "uuid 1.7.0",
 ]
 
 [[package]]
@@ -5271,7 +5286,7 @@ version = "0.11.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b1ae8d9ac08420c66222fb9096fc5de435c3c48542bc5336c51892cffafb41"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "bytes",
  "encoding_rs",
  "futures-core",
@@ -5438,7 +5453,7 @@ version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c74cae0a4cf6ccbbf5f359f08efdf8ee7e1dc532573bf0db71968cb56b1448c"
 dependencies = [
- "base64 0.21.7",
+ "base64",
 ]
 
 [[package]]
@@ -5743,47 +5758,19 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "2.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07ff71d2c147a7b57362cead5e22f772cd52f6ab31cfcd9edcd7f6aeb2a0afbe"
-dependencies = [
- "base64 0.13.1",
- "chrono",
- "hex",
- "indexmap 1.9.3",
- "serde",
- "serde_json",
- "serde_with_macros 2.3.3",
- "time",
-]
-
-[[package]]
-name = "serde_with"
 version = "3.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b0ed1662c5a68664f45b76d18deb0e234aff37207086803165c961eb695e981"
 dependencies = [
- "base64 0.21.7",
+ "base64",
  "chrono",
  "hex",
  "indexmap 1.9.3",
  "indexmap 2.2.1",
  "serde",
  "serde_json",
- "serde_with_macros 3.6.0",
+ "serde_with_macros",
  "time",
-]
-
-[[package]]
-name = "serde_with_macros"
-version = "2.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "881b6f881b17d13214e5d494c939ebab463d01264ce1811e9d4ac3a882e7695f"
-dependencies = [
- "darling",
- "proc-macro2 1.0.78",
- "quote",
- "syn 2.0.48",
 ]
 
 [[package]]
@@ -6624,10 +6611,10 @@ version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d560933a0de61cf715926b9cac824d4c883c2c43142f787595e48280c40a1d0e"
 dependencies = [
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
  "axum",
- "base64 0.21.7",
+ "base64",
  "bytes",
  "h2",
  "http",
@@ -6968,6 +6955,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f00cc9702ca12d3c81455259621e676d0f7251cec66a21e98fe2e9a37db93b2a"
 dependencies = [
  "getrandom",
+ "rand",
 ]
 
 [[package]]

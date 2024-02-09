@@ -76,6 +76,11 @@ tracing-subscriber = { version = "0.3.14", features = ["fmt", "env-filter", "jso
 penumbra-custody = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
 penumbra-view = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
 penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", branch = "main", features = ["box-grpc", "rpc"] }
+penumbra-wallet = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
+penumbra-fee = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
+penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
+penumbra-keys = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
+penumbra-ibc = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
 
 [dependencies.byte-unit]
 version = "4.0.19"
