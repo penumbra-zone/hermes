@@ -50,6 +50,7 @@ moka = { workspace = true, features = ["sync"] }
 num-bigint = { workspace = true, features = ["serde"] }
 num-rational = { workspace = true, features = ["num-bigint", "serde"] }
 once_cell = { workspace = true }
+pbjson-types = { workspace = true }
 penumbra-asset = { workspace = true }
 penumbra-custody = { workspace = true }
 penumbra-fee = { workspace = true }

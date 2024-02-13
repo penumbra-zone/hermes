@@ -2559,6 +2559,7 @@ dependencies = [
  "num-bigint",
  "num-rational",
  "once_cell",
+ "pbjson-types",
  "penumbra-asset",
  "penumbra-custody",
  "penumbra-fee",
