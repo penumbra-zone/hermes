@@ -2,12 +2,13 @@ use http::Uri;
 use ibc_proto::ics23;
 use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
 use once_cell::sync::Lazy;
+use penumbra_proto::core::component::ibc::v1::IbcRelay as ProtoIbcRelay;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use anyhow::Context;
-use futures::FutureExt;
+use futures::{StreamExt, TryStreamExt, FutureExt};
 
 use crate::chain::client::ClientSettings;
 use signature::rand_core::OsRng;
@@ -22,7 +23,6 @@ use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::util::pretty::{
     PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
 };
-use futures::StreamExt;
 use ibc_proto::ibc::core::commitment::v1::MerkleProof as RawMerkleProof;
 use ibc_proto::ibc::core::{
     channel::v1::query_client::QueryClient as IbcChannelQueryClient,
@@ -55,12 +55,12 @@ use penumbra_proto::{
     },
 };
 use penumbra_keys::keys::AddressIndex;
-use penumbra_view::{ViewClient, ViewService};
+use penumbra_view::{ViewClient, ViewServer};
 use penumbra_wallet::plan::Planner;
 use penumbra_fee::FeeTier;
 use penumbra_transaction::memo::MemoPlaintext;
 use penumbra_transaction::gas::GasCost;
-use penumbra_ibc::IbcAction;
+use penumbra_ibc::IbcRelay;
 
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
@@ -84,8 +84,8 @@ pub struct PenumbraChain {
     config: PenumbraConfig,
     rt: Arc<TokioRuntime>,
 
-    view_client: ViewProtocolServiceClient<BoxGrpcService>,
-    custody_client: CustodyProtocolServiceClient<BoxGrpcService>,
+    view_client: ViewServiceClient<BoxGrpcService>,
+    custody_client: CustodyServiceClient<BoxGrpcService>,
 
     ibc_client_grpc_client: IbcClientQueryClient<tonic::transport::Channel>,
     ibc_connection_grpc_client: IbcConnectionQueryClient<tonic::transport::Channel>,
@@ -238,11 +238,11 @@ impl PenumbraChain {
         let gas_prices = self 
             .view_client
             .gas_prices(GasPricesRequest {})
-            .await?
+            .await.unwrap()
             .into_inner()
             .gas_prices
             .expect("gas prices must be available")
-            .try_into()?;
+            .try_into().unwrap();
         // TODO: should this be a config option?
         let fee_tier = FeeTier::default();
 
@@ -268,14 +268,20 @@ impl PenumbraChain {
             MemoPlaintext::new(return_address, tx_memo.clone()).unwrap();
 
         for msg in tracked_msgs.msgs {
-            let ibc_action = IbcAction::from(msg);
+            let raw_ibcrelay_msg = ProtoIbcRelay {
+                raw_action: Some(pbjson_types::Any{
+                    type_url: msg.type_url.clone(),
+                    value: msg.value.clone().into(),
+                }),
+            };
+            let ibc_action = IbcRelay::try_from(raw_ibcrelay_msg).expect("failed to convert to IbcRelay");
             planner.ibc_action(ibc_action);
         }
 
         let plan = planner
             .memo(memo_plaintext).unwrap()
             .plan(
-                self.view_client,
+                &mut self.view_client,
                 AddressIndex::new(0),
             )
             .await
@@ -284,8 +290,8 @@ impl PenumbraChain {
 
         let tx = penumbra_wallet::build_transaction(
             &self.config.kms_config.spend_key.full_viewing_key(),
-            self.view_client,
-            self.custody_client,
+            &mut self.view_client,
+            &mut self.custody_client,
             plan,
         )
         .await
@@ -330,7 +336,7 @@ impl PenumbraChain {
         transaction: penumbra_transaction::Transaction,
     ) -> anyhow::Result<penumbra_transaction::txhash::TransactionId> {
         println!("broadcasting transaction and awaiting confirmation...");
-        let mut rsp = self.view_client.broadcast_transaction(transaction, true).await?;
+        let mut rsp = ViewClient::broadcast_transaction(&mut self.view_client, transaction, true).await?;
 
         let id = (async move {
             while let Some(rsp) = rsp.try_next().await? {
@@ -407,19 +413,19 @@ impl ChainEndpoint for PenumbraChain {
 
         // TODO: pass None until we figure out where to persist view data
         let svc = rt
-            .block_on(ViewService::load_or_initialize(
+            .block_on(ViewServer::load_or_initialize(
                 None::<&str>,
                 fvk,
                 config.grpc_addr.clone().into(),
             ))
             .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
 
-        let svc = ViewProtocolServiceServer::new(svc);
-        let mut view_client = ViewProtocolServiceClient::new(box_grpc_svc::local(svc));
+        let svc = ViewServiceServer::new(svc);
+        let mut view_client = ViewServiceClient::new(box_grpc_svc::local(svc));
 
         let soft_kms = penumbra_custody::soft_kms::SoftKms::new(config.kms_config.clone());
-        let custody_svc = CustodyProtocolServiceServer::new(soft_kms);
-        let custody_client = CustodyProtocolServiceClient::new(box_grpc_svc::local(custody_svc));
+        let custody_svc = CustodyServiceServer::new(soft_kms);
+        let custody_client = CustodyServiceClient::new(box_grpc_svc::local(custody_svc));
 
         tracing::info!("starting view service sync");
 
@@ -591,7 +597,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_clients(
         &self,
-        request: crate::chain::requests::QueryClientStatesRequest,
+        request: QueryClientStatesRequest,
     ) -> Result<Vec<IdentifiedAnyClientState>, Error> {
         crate::time!(
             "query_clients",
@@ -635,7 +641,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_client_state(
         &self,
-        request: crate::chain::requests::QueryClientStateRequest,
+        request: QueryClientStateRequest,
         include_proof: IncludeProof,
     ) -> Result<(AnyClientState, Option<MerkleProof>), Error> {
         let mut client = self.ibc_client_grpc_client.clone();
@@ -675,7 +681,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_consensus_state(
         &self,
-        request: crate::chain::requests::QueryConsensusStateRequest,
+        request: QueryConsensusStateRequest,
         include_proof: IncludeProof,
     ) -> Result<(AnyConsensusState, Option<MerkleProof>), Error> {
         let mut client = self.ibc_client_grpc_client.clone();
