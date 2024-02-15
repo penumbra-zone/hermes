@@ -551,7 +551,6 @@ impl ChainEndpoint for PenumbraChain {
         tracked_msgs: TrackedMsgs,
     ) -> Result<Vec<IbcEventWithHeight>, Error> {
         let runtime = self.rt.clone();
-        let msg_len = tracked_msgs.msgs.len();
         let events = runtime.block_on(self.broadcast_messages(tracked_msgs))?;
 
         Ok(events)
@@ -570,7 +569,18 @@ impl ChainEndpoint for PenumbraChain {
         target: ibc_relayer_types::Height,
         client_state: &AnyClientState,
     ) -> Result<Self::LightBlock, Error> {
-        todo!()
+        crate::time!(
+            "verify_header",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+
+        let now = self.chain_status()?.sync_info.latest_block_time;
+
+        self.tendermint_light_client
+            .verify(trusted, target, client_state, now)
+            .map(|v| v.target)
     }
 
     fn check_misbehaviour(
@@ -578,7 +588,17 @@ impl ChainEndpoint for PenumbraChain {
         update: &ibc_relayer_types::core::ics02_client::events::UpdateClient,
         client_state: &AnyClientState,
     ) -> Result<Option<crate::misbehaviour::MisbehaviourEvidence>, Error> {
-        todo!()
+        crate::time!(
+            "check_misbehaviour",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+
+        let now = self.chain_status()?.sync_info.latest_block_time;
+
+        self.tendermint_light_client
+            .detect_misbehaviour(update, client_state, now)
     }
 
     fn query_balance(
