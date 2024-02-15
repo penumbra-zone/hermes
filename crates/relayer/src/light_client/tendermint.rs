@@ -269,6 +269,24 @@ fn io_for_addr(
 }
 
 impl LightClient {
+    pub fn from_rpc_parameters(
+        chain_id: ChainId,
+        rpc_addr: rpc::Url,
+        rpc_timeout: Duration,
+        peer_id: PeerId,
+        enable_verification: bool,
+    ) -> Result<Self, Error> {
+        let live_io = io_for_addr(&rpc_addr, peer_id, Some(rpc_timeout))?;
+
+        let io = AnyIo::Prod(live_io);
+
+        Ok(Self {
+            chain_id: chain_id.clone(),
+            peer_id,
+            io,
+            enable_verification,
+        })
+    }
     pub fn from_cosmos_sdk_config(
         config: &CosmosSdkConfig,
         peer_id: PeerId,
