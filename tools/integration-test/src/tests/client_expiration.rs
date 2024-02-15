@@ -120,6 +120,7 @@ impl TestOverrides for ExpirationTestOverrides {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.trusting_period = Some(CLIENT_EXPIRY);
                 }
+                ChainConfig::Penumbra(_) => todo!(),
             }
         }
     }

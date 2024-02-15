@@ -209,6 +209,7 @@ impl Runnable for TxUpdateClientCmd {
                     ChainConfig::CosmosSdk(chain_config) => {
                         chain_config.genesis_restart = Some(restart_params)
                     }
+                    ChainConfig::Penumbra(_) => todo!(),
                 },
                 None => {
                     Output::error(format!(
