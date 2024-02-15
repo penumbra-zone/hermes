@@ -180,6 +180,28 @@ fn subscribe(
             let subscription = monitor_tx.subscribe()?;
             Ok(subscription)
         }
+        ChainConfig::Penumbra(config) => {
+            let (event_source, monitor_tx) = match &config.event_source {
+                EventSourceMode::Push { url, batch_delay } => EventSource::websocket(
+                    chain_config.id().clone(),
+                    url.clone(),
+                    compat_mode,
+                    *batch_delay,
+                    rt,
+                ),
+                EventSourceMode::Pull { interval } => EventSource::rpc(
+                    chain_config.id().clone(),
+                    HttpClient::new(config.rpc_addr.clone())?,
+                    *interval,
+                    rt,
+                ),
+            }?;
+
+            thread::spawn(move || event_source.run());
+
+            let subscription = monitor_tx.subscribe()?;
+            Ok(subscription)
+        }
     }
 }
 
@@ -190,11 +212,15 @@ fn detect_compatibility_mode(
     // TODO(erwan): move this to the cosmos sdk endpoint implementation
     let rpc_addr = match config {
         ChainConfig::CosmosSdk(config) => config.rpc_addr.clone(),
+        ChainConfig::Penumbra(config) => config.rpc_addr.clone(),
     };
     let client = HttpClient::new(rpc_addr)?;
     let status = rt.block_on(client.status())?;
     let compat_mode = match config {
         ChainConfig::CosmosSdk(config) => {
+            compat_mode_from_version(&config.compat_mode, status.node_info.version)?.into()
+        }
+        ChainConfig::Penumbra(config) => {
             compat_mode_from_version(&config.compat_mode, status.node_info.version)?.into()
         }
     };

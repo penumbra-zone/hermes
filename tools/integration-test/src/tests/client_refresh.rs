@@ -126,12 +126,14 @@ impl BinaryChainTest for ClientFailsTest {
             chains,
             |config| {
                 {
-                    let ChainConfig::CosmosSdk(config_chain_a) = &mut config.chains[0];
-                    config_chain_a.gas_multiplier = Some(GasMultiplier::unsafe_new(0.8));
+                    if let ChainConfig::CosmosSdk(config_chain_a) = &mut config.chains[0] {
+                        config_chain_a.gas_multiplier = Some(GasMultiplier::unsafe_new(0.8));
+                    }
                 }
 
-                let ChainConfig::CosmosSdk(config_chain_b) = &mut config.chains[1];
-                config_chain_b.gas_multiplier = Some(GasMultiplier::unsafe_new(0.8));
+                if let ChainConfig::CosmosSdk(config_chain_b) = &mut config.chains[1] {
+                    config_chain_b.gas_multiplier = Some(GasMultiplier::unsafe_new(0.8));
+                }
             },
             config,
         )?;

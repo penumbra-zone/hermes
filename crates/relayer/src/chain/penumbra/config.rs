@@ -5,7 +5,10 @@ use penumbra_custody::soft_kms;
 use serde_derive::{Deserialize, Serialize};
 use tendermint_rpc::Url;
 
-use crate::config::{default, types::TrustThreshold, EventSourceMode, PacketFilter, RefreshRate};
+use crate::config::{
+    compat_mode::CompatMode, default, types::TrustThreshold, EventSourceMode, PacketFilter,
+    RefreshRate,
+};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -72,4 +75,5 @@ pub struct PenumbraConfig {
     /// and trusted validator set is sufficient for a commit to be accepted going forward.
     #[serde(default)]
     pub trust_threshold: TrustThreshold,
+    pub compat_mode: Option<CompatMode>,
 }

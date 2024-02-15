@@ -78,6 +78,7 @@ fn get_balance(chain: impl ChainHandle, key_name: Option<String>, denom: Option<
                 let chain_config = chain.config().unwrap_or_else(exit_with_unrecoverable_error);
                 match chain_config {
                     ChainConfig::CosmosSdk(chain_config) => chain_config.key_name,
+                    ChainConfig::Penumbra(_) => todo!(),
                 }
             });
 
@@ -100,6 +101,7 @@ fn get_balances(chain: impl ChainHandle, key_name: Option<String>) {
                 let chain_config = chain.config().unwrap_or_else(exit_with_unrecoverable_error);
                 match chain_config {
                     ChainConfig::CosmosSdk(chain_config) => chain_config.key_name,
+                    ChainConfig::Penumbra(_) => todo!(),
                 }
             });
 
