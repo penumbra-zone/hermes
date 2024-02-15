@@ -1,3 +1,5 @@
+use anyhow::Context;
+use futures::{FutureExt, StreamExt, TryStreamExt};
 use http::Uri;
 use ibc_proto::ics23;
 use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
@@ -7,18 +9,15 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use anyhow::Context;
-use futures::{StreamExt, TryStreamExt, FutureExt};
 
 use crate::chain::client::ClientSettings;
-use signature::rand_core::OsRng;
 use crate::chain::requests::IncludeProof;
 use crate::chain::requests::*;
 use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::consensus_state::AnyConsensusState;
 use crate::event::source::{EventSource, TxEventSourceCmd};
-use crate::event::{IbcEventWithHeight, ibc_event_try_from_abci_event};
+use crate::event::{ibc_event_try_from_abci_event, IbcEventWithHeight};
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::util::pretty::{
     PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
@@ -41,30 +40,29 @@ use ibc_relayer_types::core::ics04_channel::packet::Sequence;
 use ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof;
 use ibc_relayer_types::core::ics24_host::identifier::ClientId;
 use ibc_relayer_types::Height as ICSHeight;
+use penumbra_fee::FeeTier;
+use penumbra_ibc::IbcRelay;
+use penumbra_keys::keys::AddressIndex;
 use penumbra_proto::box_grpc_svc::{self, BoxGrpcService};
 use penumbra_proto::{
     custody::v1::{
-        custody_service_client::CustodyServiceClient,
-        custody_service_server::CustodyServiceServer,
+        custody_service_client::CustodyServiceClient, custody_service_server::CustodyServiceServer,
     },
     view::v1::{
-        GasPricesRequest,
-        view_service_client::ViewServiceClient,
-        view_service_server::ViewServiceServer,
         broadcast_transaction_response::Status as BroadcastStatus,
+        view_service_client::ViewServiceClient, view_service_server::ViewServiceServer,
+        GasPricesRequest,
     },
 };
-use penumbra_keys::keys::AddressIndex;
+use penumbra_transaction::gas::GasCost;
+use penumbra_transaction::memo::MemoPlaintext;
 use penumbra_view::{ViewClient, ViewServer};
 use penumbra_wallet::plan::Planner;
-use penumbra_fee::FeeTier;
-use penumbra_transaction::memo::MemoPlaintext;
-use penumbra_transaction::gas::GasCost;
-use penumbra_ibc::IbcRelay;
+use signature::rand_core::OsRng;
 
 use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
-use tendermint_rpc::{Client as _, HttpClient, endpoint::broadcast::tx_sync::Response as TxResponse};
+use tendermint_rpc::{Client as _, HttpClient};
 use tokio::runtime::Runtime as TokioRuntime;
 use tonic::IntoRequest;
 
@@ -78,7 +76,7 @@ use crate::{
     keyring::Secp256k1KeyPair,
 };
 
-use super::config::PenumbraConfig;
+use super::config::{self, PenumbraConfig};
 
 pub struct PenumbraChain {
     config: PenumbraConfig,
@@ -92,6 +90,7 @@ pub struct PenumbraChain {
     ibc_channel_grpc_client: IbcChannelQueryClient<tonic::transport::Channel>,
 
     tendermint_rpc_client: HttpClient,
+    tendermint_light_client: TmLightClient,
 
     tx_monitor_cmd: Option<TxEventSourceCmd>,
 }
@@ -234,15 +233,20 @@ impl PenumbraChain {
         Ok((begin_block_events, end_block_events))
     }
 
-    async fn broadcast_messages(&mut self, tracked_msgs: TrackedMsgs) -> Result<Vec<IbcEventWithHeight>, Error> {
-        let gas_prices = self 
+    async fn broadcast_messages(
+        &mut self,
+        tracked_msgs: TrackedMsgs,
+    ) -> Result<Vec<IbcEventWithHeight>, Error> {
+        let gas_prices = self
             .view_client
             .gas_prices(GasPricesRequest {})
-            .await.unwrap()
+            .await
+            .unwrap()
             .into_inner()
             .gas_prices
             .expect("gas prices must be available")
-            .try_into().unwrap();
+            .try_into()
+            .unwrap();
         // TODO: should this be a config option?
         let fee_tier = FeeTier::default();
 
@@ -250,11 +254,9 @@ impl PenumbraChain {
         // each tracked message as an IbcRelay message
         let mut planner = Planner::new(OsRng);
 
-        planner
-            .set_gas_prices(gas_prices)
-            .set_fee_tier(fee_tier);
+        planner.set_gas_prices(gas_prices).set_fee_tier(fee_tier);
 
-        let return_address = self 
+        let return_address = self
             .config
             .kms_config
             .spend_key
@@ -264,26 +266,24 @@ impl PenumbraChain {
 
         let tx_memo = "IBC Relay".to_string();
 
-        let memo_plaintext = 
-            MemoPlaintext::new(return_address, tx_memo.clone()).unwrap();
+        let memo_plaintext = MemoPlaintext::new(return_address, tx_memo.clone()).unwrap();
 
         for msg in tracked_msgs.msgs {
             let raw_ibcrelay_msg = ProtoIbcRelay {
-                raw_action: Some(pbjson_types::Any{
+                raw_action: Some(pbjson_types::Any {
                     type_url: msg.type_url.clone(),
                     value: msg.value.clone().into(),
                 }),
             };
-            let ibc_action = IbcRelay::try_from(raw_ibcrelay_msg).expect("failed to convert to IbcRelay");
+            let ibc_action =
+                IbcRelay::try_from(raw_ibcrelay_msg).expect("failed to convert to IbcRelay");
             planner.ibc_action(ibc_action);
         }
 
         let plan = planner
-            .memo(memo_plaintext).unwrap()
-            .plan(
-                &mut self.view_client,
-                AddressIndex::new(0),
-            )
+            .memo(memo_plaintext)
+            .unwrap()
+            .plan(&mut self.view_client, AddressIndex::new(0))
             .await
             .context("can't build send transaction")
             .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
@@ -314,10 +314,14 @@ impl PenumbraChain {
 
         // query the tendermint rpc for the transaction's events
         let tm_tx_hash: tendermint::Hash = txid.0.to_vec().try_into().unwrap();
-        let tm_tx = self.tendermint_rpc_client.tx(tm_tx_hash, false).await.map_err(|e| {
-            tracing::error!("error querying transaction: {}", e);
-            Error::temp_penumbra_error(e.to_string())
-        })?;
+        let tm_tx = self
+            .tendermint_rpc_client
+            .tx(tm_tx_hash, false)
+            .await
+            .map_err(|e| {
+                tracing::error!("error querying transaction: {}", e);
+                Error::temp_penumbra_error(e.to_string())
+            })?;
 
         let height = ICSHeight::new(self.config.id.version(), u64::from(tm_tx.height)).unwrap();
         let events = tm_tx
@@ -336,7 +340,8 @@ impl PenumbraChain {
         transaction: penumbra_transaction::Transaction,
     ) -> anyhow::Result<penumbra_transaction::txhash::TransactionId> {
         println!("broadcasting transaction and awaiting confirmation...");
-        let mut rsp = ViewClient::broadcast_transaction(&mut self.view_client, transaction, true).await?;
+        let mut rsp =
+            ViewClient::broadcast_transaction(&mut self.view_client, transaction, true).await?;
 
         let id = (async move {
             while let Some(rsp) = rsp.try_next().await? {
@@ -409,6 +414,8 @@ impl ChainEndpoint for PenumbraChain {
         let rpc_client = HttpClient::new(config.rpc_addr.clone())
             .map_err(|e| Error::rpc(config.rpc_addr.clone(), e))?;
 
+        let node_info = rt.block_on(fetch_node_info(&rpc_client, &config))?;
+
         let fvk = config.kms_config.spend_key.full_viewing_key();
 
         // TODO: pass None until we figure out where to persist view data
@@ -455,6 +462,14 @@ impl ChainEndpoint for PenumbraChain {
             .block_on(IbcChannelQueryClient::connect(grpc_addr.clone()))
             .map_err(Error::grpc_transport)?;
 
+        let tendermint_light_client = TmLightClient::from_rpc_parameters(
+            config.id.clone(),
+            config.rpc_addr.clone(),
+            config.rpc_timeout.clone(),
+            node_info.id,
+            true,
+        )?;
+
         tracing::info!("ibc grpc query clients connected");
 
         Ok(Self {
@@ -463,6 +478,7 @@ impl ChainEndpoint for PenumbraChain {
             view_client: view_client.clone(),
             custody_client,
             tendermint_rpc_client: rpc_client,
+            tendermint_light_client,
             tx_monitor_cmd: None,
 
             ibc_client_grpc_client,
@@ -756,26 +772,14 @@ impl ChainEndpoint for PenumbraChain {
     fn query_upgraded_client_state(
         &self,
         _request: QueryUpgradedClientStateRequest,
-    ) -> Result<
-        (
-            AnyClientState,
-            MerkleProof,
-        ),
-        Error,
-    > {
+    ) -> Result<(AnyClientState, MerkleProof), Error> {
         todo!()
     }
 
     fn query_upgraded_consensus_state(
         &self,
         _request: QueryUpgradedConsensusStateRequest,
-    ) -> Result<
-        (
-            AnyConsensusState,
-            MerkleProof,
-        ),
-        Error,
-    > {
+    ) -> Result<(AnyConsensusState, MerkleProof), Error> {
         todo!()
     }
 
@@ -1353,8 +1357,6 @@ impl ChainEndpoint for PenumbraChain {
 
         let now = self.chain_status()?.sync_info.latest_block_time;
 
-         
-
         todo!()
 
         // Get the light block at target_height from chain.
@@ -1463,3 +1465,19 @@ fn ics23_spec() -> ics23::ProofSpec {
 /// (as opposed to directly in the root store.)
 pub static IBC_PROOF_SPECS: Lazy<Vec<ics23::ProofSpec>> =
     Lazy::new(|| vec![ics23_spec(), ics23_spec()]);
+
+async fn fetch_node_info(
+    rpc_client: &HttpClient,
+    config: &PenumbraConfig,
+) -> Result<tendermint::node::Info, Error> {
+    crate::time!("fetch_node_info",
+    {
+        "src_chain": config.id.to_string(),
+    });
+
+    rpc_client
+        .status()
+        .await
+        .map(|s| s.node_info)
+        .map_err(|e| Error::rpc(config.rpc_addr.clone(), e))
+}
