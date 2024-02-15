@@ -19,6 +19,7 @@ use crate::consensus_state::AnyConsensusState;
 use crate::event::source::{EventSource, TxEventSourceCmd};
 use crate::event::{ibc_event_try_from_abci_event, IbcEventWithHeight};
 use crate::light_client::tendermint::LightClient as TmLightClient;
+use crate::light_client::LightClient;
 use crate::util::pretty::{
     PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
 };
@@ -1357,18 +1358,14 @@ impl ChainEndpoint for PenumbraChain {
 
         let now = self.chain_status()?.sync_info.latest_block_time;
 
-        todo!()
-
-        // Get the light block at target_height from chain.
-        /*
-        let Verified { target, supporting } = self.light_client.header_and_minimal_set(
+        let Verified { target, supporting } = self.tendermint_light_client.header_and_minimal_set(
             trusted_height,
             target_height,
             client_state,
             now,
         )?;
 
-        Ok((target, supporting))*/
+        Ok((target, supporting))
     }
 
     fn maybe_register_counterparty_payee(
