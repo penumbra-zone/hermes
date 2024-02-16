@@ -132,6 +132,31 @@ impl PenumbraChain {
         Ok(status)
     }
 
+    async fn ibc_events_for_penumbratx(
+        &self,
+        penumbra_tx_id: penumbra_transaction::txhash::TransactionId,
+    ) -> Result<Vec<IbcEventWithHeight>, Error> {
+        let txid = penumbra_tx_id.0.to_vec().try_into().unwrap();
+        let tm_tx = self
+            .tendermint_rpc_client
+            .tx(txid, false)
+            .await
+            .map_err(|e| {
+                tracing::error!("error querying transaction: {}", e);
+                Error::temp_penumbra_error(e.to_string())
+            })?;
+
+        let height = ICSHeight::new(self.config.id.version(), u64::from(tm_tx.height)).unwrap();
+        let events = tm_tx
+            .tx_result
+            .events
+            .iter()
+            .map(|ev| IbcEventWithHeight::new(ibc_event_try_from_abci_event(ev).unwrap(), height))
+            .collect();
+
+        Ok(events)
+    }
+
     async fn query_packets_from_blocks(
         &self,
         request: &QueryPacketEventDataRequest,
@@ -234,10 +259,11 @@ impl PenumbraChain {
         Ok((begin_block_events, end_block_events))
     }
 
-    async fn broadcast_messages(
+    async fn send_messages_in_penumbratx(
         &mut self,
         tracked_msgs: TrackedMsgs,
-    ) -> Result<Vec<IbcEventWithHeight>, Error> {
+        wait_for_commit: bool,
+    ) -> Result<penumbra_transaction::txhash::TransactionId, Error> {
         let gas_prices = self
             .view_client
             .gas_prices(GasPricesRequest {})
@@ -308,37 +334,18 @@ impl PenumbraChain {
             fee
         );
 
-        let txid = self.submit_transaction(tx).await.map_err(|e| {
-            tracing::error!("error submitting transaction: {}", e);
-            Error::temp_penumbra_error(e.to_string())
-        })?;
-
-        // query the tendermint rpc for the transaction's events
-        let tm_tx_hash: tendermint::Hash = txid.0.to_vec().try_into().unwrap();
-        let tm_tx = self
-            .tendermint_rpc_client
-            .tx(tm_tx_hash, false)
+        self.submit_transaction(tx, wait_for_commit)
             .await
             .map_err(|e| {
-                tracing::error!("error querying transaction: {}", e);
+                tracing::error!("error submitting transaction: {}", e);
                 Error::temp_penumbra_error(e.to_string())
-            })?;
-
-        let height = ICSHeight::new(self.config.id.version(), u64::from(tm_tx.height)).unwrap();
-        let events = tm_tx
-            .tx_result
-            .events
-            .iter()
-            .map(|ev| IbcEventWithHeight::new(ibc_event_try_from_abci_event(ev).unwrap(), height))
-            .collect();
-
-        Ok(events)
+            })
     }
 
-    /// Submits a transaction to the network.
     async fn submit_transaction(
         &mut self,
         transaction: penumbra_transaction::Transaction,
+        wait_for_commit: bool,
     ) -> anyhow::Result<penumbra_transaction::txhash::TransactionId> {
         println!("broadcasting transaction and awaiting confirmation...");
         let mut rsp =
@@ -349,23 +356,15 @@ impl PenumbraChain {
                 match rsp.status {
                     Some(status) => match status {
                         BroadcastStatus::BroadcastSuccess(bs) => {
-                            println!(
-                                "transaction broadcast successfully: {}",
-                                penumbra_transaction::txhash::TransactionId::try_from(
-                                    bs.id.expect("detected transaction missing id")
-                                )?
-                            );
+                            if !wait_for_commit {
+                                return Ok(bs
+                                    .id
+                                    .expect("detected transaction missing id")
+                                    .try_into()?);
+                            }
                         }
                         BroadcastStatus::Confirmed(c) => {
                             let id = c.id.expect("detected transaction missing id").try_into()?;
-                            if c.detection_height != 0 {
-                                println!(
-                                    "transaction confirmed and detected: {} @ height {}",
-                                    id, c.detection_height
-                                );
-                            } else {
-                                println!("transaction confirmed and detected: {}", id);
-                            }
                             return Ok(id);
                         }
                     },
@@ -422,7 +421,7 @@ impl ChainEndpoint for PenumbraChain {
         // TODO: pass None until we figure out where to persist view data
         let svc = rt
             .block_on(ViewServer::load_or_initialize(
-                None::<&str>,
+                config.view_service_storage_dir.clone(),
                 fvk,
                 config.grpc_addr.clone().into(),
             ))
@@ -551,7 +550,8 @@ impl ChainEndpoint for PenumbraChain {
         tracked_msgs: TrackedMsgs,
     ) -> Result<Vec<IbcEventWithHeight>, Error> {
         let runtime = self.rt.clone();
-        let events = runtime.block_on(self.broadcast_messages(tracked_msgs))?;
+        let txid = runtime.block_on(self.send_messages_in_penumbratx(tracked_msgs, true))?;
+        let events = runtime.block_on(self.ibc_events_for_penumbratx(txid))?;
 
         Ok(events)
     }
@@ -560,7 +560,27 @@ impl ChainEndpoint for PenumbraChain {
         &mut self,
         tracked_msgs: TrackedMsgs,
     ) -> Result<Vec<tendermint_rpc::endpoint::broadcast::tx_sync::Response>, Error> {
-        todo!()
+        let runtime = self.rt.clone();
+        let txid = runtime.block_on(self.send_messages_in_penumbratx(tracked_msgs, false))?;
+        let tm_txid = txid.0.to_vec().try_into().unwrap();
+        let tm_tx = runtime.block_on(async move {
+            self.tendermint_rpc_client
+                .tx(tm_txid, false)
+                .await
+                .map_err(|e| {
+                    tracing::error!("error querying transaction: {}", e);
+                    Error::temp_penumbra_error(e.to_string())
+                })
+        })?;
+
+        let txsync_response = tendermint_rpc::endpoint::broadcast::tx_sync::Response {
+            code: tm_tx.tx_result.code,
+            data: tm_tx.tx_result.data,
+            log: tm_tx.tx_result.log,
+            hash: tm_tx.hash,
+        };
+
+        Ok(vec![txsync_response])
     }
 
     fn verify_header(
