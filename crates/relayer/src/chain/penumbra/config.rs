@@ -76,4 +76,8 @@ pub struct PenumbraConfig {
     #[serde(default)]
     pub trust_threshold: TrustThreshold,
     pub compat_mode: Option<CompatMode>,
+
+    /// The storage location for the penumbra view service, which tracks private state of the
+    /// relayer's penumbra account.
+    pub view_service_storage_dir: Option<String>,
 }
