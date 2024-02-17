@@ -418,7 +418,6 @@ impl ChainEndpoint for PenumbraChain {
 
         let fvk = config.kms_config.spend_key.full_viewing_key();
 
-        // TODO: pass None until we figure out where to persist view data
         let svc = rt
             .block_on(ViewServer::load_or_initialize(
                 config.view_service_storage_dir.clone(),
