@@ -63,14 +63,6 @@ pub struct PenumbraConfig {
     #[serde(default = "default::client_refresh_rate")]
     pub client_refresh_rate: RefreshRate,
 
-    // These last few need to be last otherwise we run into `ValueAfterTable` error when serializing to TOML
-    /// Key configuration
-    ///
-    /// This is used instead of the Hermes keyring, which doesn't yet handle
-    /// Penumbra-specific key concerns. In the future, we may want to merge
-    /// this with the Hermes keyring, but it's a low-priority item.
-    pub kms_config: soft_kms::Config,
-
     /// The trust threshold defines what fraction of the total voting power of a known
     /// and trusted validator set is sufficient for a commit to be accepted going forward.
     #[serde(default)]
@@ -80,4 +72,12 @@ pub struct PenumbraConfig {
     /// The storage location for the penumbra view service, which tracks private state of the
     /// relayer's penumbra account.
     pub view_service_storage_dir: Option<String>,
+
+    // These last few need to be last otherwise we run into `ValueAfterTable` error when serializing to TOML
+    /// Key configuration
+    ///
+    /// This is used instead of the Hermes keyring, which doesn't yet handle
+    /// Penumbra-specific key concerns. In the future, we may want to merge
+    /// this with the Hermes keyring, but it's a low-priority item.
+    pub kms_config: soft_kms::Config,
 }
