@@ -63,7 +63,7 @@ use penumbra_proto::{
     view::v1::{
         broadcast_transaction_response::Status as BroadcastStatus,
         view_service_client::ViewServiceClient, view_service_server::ViewServiceServer,
-        BalancesRequest, GasPricesRequest,
+        GasPricesRequest,
     },
 };
 use penumbra_transaction::gas::GasCost;
@@ -434,6 +434,35 @@ impl PenumbraChain {
 
         Ok(id)
     }
+
+    async fn query_balance(
+        &self,
+        address_index: AddressIndex,
+        denom: &str,
+    ) -> Result<crate::account::Balance, anyhow::Error> {
+        let mut view_client = self.view_client.lock().await.clone();
+        let assets = ViewClient::assets(&mut view_client).await?;
+        let asset_id = assets
+            .get_unit(denom)
+            .ok_or_else(|| anyhow::anyhow!("denom not found"))?
+            .id();
+
+        let balances =
+            ViewClient::balances(&mut view_client, address_index, Some(asset_id)).await?;
+
+        for (id, amount) in balances {
+            if id != asset_id {
+                continue; // should never happen
+            }
+
+            return Ok(crate::account::Balance {
+                amount: amount.to_string(),
+                denom: denom.to_string(),
+            });
+        }
+
+        Err(anyhow::anyhow!("denom not found"))
+    }
 }
 
 impl ChainEndpoint for PenumbraChain {
@@ -670,37 +699,14 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_balance(
         &self,
-        key_name: Option<&str>,
+        _key_name: Option<&str>,
         denom: Option<&str>,
     ) -> Result<crate::account::Balance, Error> {
-        let mut view_client = self.rt.block_on(self.view_client.lock()).clone();
+        let denom = denom.unwrap_or("upenumbra");
 
-        /* TODO: implement balance query
-        let balances = self
-            .rt
-            .block_on(
-                view_client
-                    .balances(BalancesRequest {
-                        account_filter: None,
-                        asset_id_filter: None,
-                    })
-                    .boxed(),
-            )
-            .map_err(|_| Error::temp_penumbra_error("error querying balances".to_string()))?;
-
-        for balance in balances.next()
-            if balance.denom == "upenumbra" {
-                return Ok(crate::account::Balance {
-                    amount: balance.amount,
-                    denom: balance.denom,
-                });
-            }
-        } */
-
-        Ok(crate::account::Balance {
-            amount: "100000".to_string(),
-            denom: "upenumbra".to_string(),
-        })
+        self.rt
+            .block_on(self.query_balance(AddressIndex::new(0), denom))
+            .map_err(|e| Error::temp_penumbra_error(e.to_string()))
     }
 
     fn query_all_balances(
