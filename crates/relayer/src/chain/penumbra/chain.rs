@@ -10,6 +10,7 @@ use ibc_relayer_types::core::ics24_host::path::{
 };
 use ibc_relayer_types::core::ics24_host::Path;
 use once_cell::sync::Lazy;
+use penumbra_proto::core::app::v1::AppParametersRequest;
 use penumbra_proto::core::component::ibc::v1::IbcRelay as ProtoIbcRelay;
 use penumbra_proto::DomainType as _;
 use std::str::FromStr;
@@ -58,6 +59,7 @@ use penumbra_ibc::IbcRelay;
 use penumbra_keys::keys::AddressIndex;
 use penumbra_proto::box_grpc_svc::{self, BoxGrpcService};
 use penumbra_proto::{
+    core::app::v1::query_service_client::QueryServiceClient as AppQueryClient,
     custody::v1::{
         custody_service_client::CustodyServiceClient, custody_service_server::CustodyServiceServer,
     },
@@ -105,6 +107,8 @@ pub struct PenumbraChain {
     tendermint_light_client: TmLightClient,
 
     tx_monitor_cmd: Option<TxEventSourceCmd>,
+
+    unbonding_period: Duration,
 }
 
 impl PenumbraChain {
@@ -506,6 +510,38 @@ impl ChainEndpoint for PenumbraChain {
         let custody_svc = CustodyServiceServer::new(soft_kms);
         let custody_client = CustodyServiceClient::new(box_grpc_svc::local(custody_svc));
 
+        let grpc_addr = Uri::from_str(&config.grpc_addr.to_string())
+            .map_err(|e| Error::invalid_uri(config.grpc_addr.to_string(), e))?;
+
+        let mut app_query = rt
+            .block_on(AppQueryClient::connect(grpc_addr.clone()))
+            .map_err(Error::grpc_transport)?;
+
+        let app_parameters = rt
+            .block_on(app_query.app_parameters(tonic::Request::new(AppParametersRequest {})))
+            .map_err(|e| Error::grpc_status(e, "app_parameters query".to_owned()))?
+            .into_inner();
+
+        let epoch_duration = app_parameters
+            .clone()
+            .app_parameters
+            .expect("should have app parameters")
+            .sct_params
+            .expect("should have sct parameters")
+            .epoch_duration;
+
+        let unbonding_epochs = app_parameters
+            .app_parameters
+            .expect("should have app parameters")
+            .stake_params
+            .expect("should have stake parameters")
+            .unbonding_epochs;
+
+        // here we assume roughly 5s block time, which is not part of consensus but should be
+        // roughly correct. it would really be better if the ibc protocol gave the client's
+        // trusting period in terms of blocks instead of duration.
+        let unbonding_period = Duration::from_secs(epoch_duration * unbonding_epochs * 5);
+
         tracing::info!("starting view service sync");
 
         let sync_height = rt
@@ -520,9 +556,6 @@ impl ChainEndpoint for PenumbraChain {
             .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
 
         tracing::info!(?sync_height, "view service sync complete");
-
-        let grpc_addr = Uri::from_str(&config.grpc_addr.to_string())
-            .map_err(|e| Error::invalid_uri(config.grpc_addr.to_string(), e))?;
 
         let ibc_client_grpc_client = rt
             .block_on(IbcClientQueryClient::connect(grpc_addr.clone()))
@@ -556,6 +589,8 @@ impl ChainEndpoint for PenumbraChain {
             ibc_client_grpc_client,
             ibc_connection_grpc_client,
             ibc_channel_grpc_client,
+
+            unbonding_period,
         })
     }
 
@@ -1428,12 +1463,7 @@ impl ChainEndpoint for PenumbraChain {
     ) -> Result<Self::ClientState, Error> {
         use ibc_relayer_types::clients::ics07_tendermint::client_state::AllowUpdate;
         let ClientSettings::Tendermint(settings) = settings;
-
-        // two hour duration
-        // TODO what is this?
-        let two_hours = Duration::from_secs(2 * 60 * 60);
-        let unbonding_period = two_hours;
-        let trusting_period_default = 2 * unbonding_period / 3;
+        let trusting_period_default = 2 * self.unbonding_period / 3;
         let trusting_period = settings.trusting_period.unwrap_or(trusting_period_default);
 
         let proof_specs = IBC_PROOF_SPECS.clone();
@@ -1442,7 +1472,7 @@ impl ChainEndpoint for PenumbraChain {
             self.id().clone(),
             settings.trust_threshold,
             trusting_period,
-            unbonding_period,
+            self.unbonding_period,
             settings.max_clock_drift,
             height,
             proof_specs.into(),
