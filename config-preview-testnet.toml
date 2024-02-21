@@ -36,24 +36,18 @@ rpc_timeout = '15s'
 clock_drift = '5s'
 client_refresh_rate = '1/3'
 trust_threshold = { numerator = '1', denominator = '3' }
-kms_config = { spend_key = "XXXXXXXX" }
+kms_config = { spend_key = "XXXXXXX" }
 
 
 [[chains]]
-id = 'mocha-4'
-type = 'CosmosSdk'
-compat_mode = '0.34'
-rpc_addr = 'https://rpc.celestia-mocha.com'
-grpc_addr = 'https://grpc.celestia-mocha.com'
+id = 'penumbra-testnet-deimos-2'
+type = 'Penumbra'
+stub_key_name = 'fake'
+rpc_addr = 'https://rpc.testnet.penumbra.zone'
+grpc_addr = 'https://grpc.testnet.penumbra.zone'
 event_source = { mode = 'pull', interval = '1s' }
 rpc_timeout = '15s'
-account_prefix = 'celestia'                                  # not used
-key_name = 'celestia'
-store_prefix = 'ibc'                                     
-gas_price = { price = 0.12, denom = 'utia' }
-gas_multiplier = 1.1
-clock_drift = '20s'
-max_block_time = '10s'
+clock_drift = '5s'
 client_refresh_rate = '1/3'
-memo_prefix = 'Hello from Penumbra 😎🌘'
 trust_threshold = { numerator = '1', denominator = '3' }
+kms_config = { spend_key = "XXXXXXX" }

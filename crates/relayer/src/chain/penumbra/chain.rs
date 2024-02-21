@@ -1,16 +1,26 @@
 use anyhow::Context;
+use bytes::{Buf, Bytes};
 use futures::{FutureExt, StreamExt, TryStreamExt};
 use http::Uri;
 use ibc_proto::ics23;
 use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
+use ibc_relayer_types::core::ics24_host::path::{
+    AcksPath, ChannelEndsPath, ClientConsensusStatePath, ClientStatePath, CommitmentsPath,
+    ReceiptsPath, SeqRecvsPath,
+};
+use ibc_relayer_types::core::ics24_host::Path;
 use once_cell::sync::Lazy;
 use penumbra_proto::core::component::ibc::v1::IbcRelay as ProtoIbcRelay;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+use tendermint_proto::Protobuf;
+use tracing::info;
 
 use crate::chain::client::ClientSettings;
+use crate::chain::cosmos::query::{abci_query, QueryResponse};
+use crate::chain::endpoint::ChainStatus;
 use crate::chain::requests::IncludeProof;
 use crate::chain::requests::*;
 use crate::chain::tracking::TrackedMsgs;
@@ -18,6 +28,7 @@ use crate::client_state::{AnyClientState, IdentifiedAnyClientState};
 use crate::consensus_state::AnyConsensusState;
 use crate::event::source::{EventSource, TxEventSourceCmd};
 use crate::event::{ibc_event_try_from_abci_event, IbcEventWithHeight};
+use crate::keyring::KeyRing;
 use crate::light_client::tendermint::LightClient as TmLightClient;
 use crate::light_client::LightClient;
 use crate::util::pretty::{
@@ -39,7 +50,7 @@ use ibc_relayer_types::core::ics03_connection::connection::{
 use ibc_relayer_types::core::ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd};
 use ibc_relayer_types::core::ics04_channel::packet::Sequence;
 use ibc_relayer_types::core::ics23_commitment::merkle::MerkleProof;
-use ibc_relayer_types::core::ics24_host::identifier::ClientId;
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 use ibc_relayer_types::Height as ICSHeight;
 use penumbra_fee::FeeTier;
 use penumbra_ibc::IbcRelay;
@@ -52,11 +63,10 @@ use penumbra_proto::{
     view::v1::{
         broadcast_transaction_response::Status as BroadcastStatus,
         view_service_client::ViewServiceClient, view_service_server::ViewServiceServer,
-        GasPricesRequest,
+        BalancesRequest, GasPricesRequest,
     },
 };
 use penumbra_transaction::gas::GasCost;
-use penumbra_transaction::memo::MemoPlaintext;
 use penumbra_view::{ViewClient, ViewServer};
 use penumbra_wallet::plan::Planner;
 use signature::rand_core::OsRng;
@@ -65,6 +75,7 @@ use tendermint::time::Time as TmTime;
 use tendermint_light_client::verifier::types::LightBlock as TmLightBlock;
 use tendermint_rpc::{Client as _, HttpClient};
 use tokio::runtime::Runtime as TokioRuntime;
+use tokio::sync::Mutex;
 use tonic::IntoRequest;
 
 use crate::{
@@ -83,7 +94,7 @@ pub struct PenumbraChain {
     config: PenumbraConfig,
     rt: Arc<TokioRuntime>,
 
-    view_client: ViewServiceClient<BoxGrpcService>,
+    view_client: Mutex<ViewServiceClient<BoxGrpcService>>,
     custody_client: CustodyServiceClient<BoxGrpcService>,
 
     ibc_client_grpc_client: IbcClientQueryClient<tonic::transport::Channel>,
@@ -97,6 +108,27 @@ pub struct PenumbraChain {
 }
 
 impl PenumbraChain {
+    // unfortunately, for some queries, we need to use ABCI queries, since the gRPC query interface
+    // does not support specifying the height.
+    fn rpc_query(
+        &self,
+        data: impl Into<Path>,
+        height_query: QueryHeight,
+        prove: bool,
+    ) -> Result<QueryResponse, Error> {
+        let data_prefixed = format!("ibc-data/{}", data.into());
+
+        let response = self.rt.block_on(abci_query(
+            &self.tendermint_rpc_client,
+            &self.config.rpc_addr,
+            "state/key".to_string(),
+            data_prefixed,
+            height_query.into(),
+            prove,
+        ))?;
+
+        Ok(response)
+    }
     fn init_event_source(&mut self) -> Result<TxEventSourceCmd, Error> {
         crate::time!(
             "init_event_source",
@@ -264,8 +296,8 @@ impl PenumbraChain {
         tracked_msgs: TrackedMsgs,
         wait_for_commit: bool,
     ) -> Result<penumbra_transaction::txhash::TransactionId, Error> {
-        let gas_prices = self
-            .view_client
+        let mut view_client = self.view_client.lock().await.clone();
+        let gas_prices = view_client
             .gas_prices(GasPricesRequest {})
             .await
             .unwrap()
@@ -283,18 +315,6 @@ impl PenumbraChain {
 
         planner.set_gas_prices(gas_prices).set_fee_tier(fee_tier);
 
-        let return_address = self
-            .config
-            .kms_config
-            .spend_key
-            .full_viewing_key()
-            .payment_address(0.into())
-            .0;
-
-        let tx_memo = "IBC Relay".to_string();
-
-        let memo_plaintext = MemoPlaintext::new(return_address, tx_memo.clone()).unwrap();
-
         for msg in tracked_msgs.msgs {
             let raw_ibcrelay_msg = ProtoIbcRelay {
                 raw_action: Some(pbjson_types::Any {
@@ -308,16 +328,13 @@ impl PenumbraChain {
         }
 
         let plan = planner
-            .memo(memo_plaintext)
-            .unwrap()
-            .plan(&mut self.view_client, AddressIndex::new(0))
+            .plan(&mut view_client, AddressIndex::new(0))
             .await
-            .context("can't build send transaction")
             .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
 
         let tx = penumbra_wallet::build_transaction(
             &self.config.kms_config.spend_key.full_viewing_key(),
-            &mut self.view_client,
+            &mut view_client,
             &mut self.custody_client,
             plan,
         )
@@ -334,22 +351,51 @@ impl PenumbraChain {
             fee
         );
 
-        self.submit_transaction(tx, wait_for_commit)
+        let penumbra_txid = self
+            .submit_transaction(tx, wait_for_commit, &mut view_client.clone())
             .await
             .map_err(|e| {
                 tracing::error!("error submitting transaction: {}", e);
                 Error::temp_penumbra_error(e.to_string())
-            })
+            })?;
+
+        // wait for two blocks of confirmation to be sure that the potentially load-balanced endpoints are synced
+        if wait_for_commit {
+            let current_height = self
+                .tendermint_rpc_client
+                .status()
+                .await
+                .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?
+                .sync_info
+                .latest_block_height
+                .value();
+            let mut last_height = current_height;
+
+            while last_height - current_height < 2 {
+                thread::sleep(Duration::from_secs(1));
+                last_height = self
+                    .tendermint_rpc_client
+                    .status()
+                    .await
+                    .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?
+                    .sync_info
+                    .latest_block_height
+                    .value();
+            }
+        }
+
+        Ok(penumbra_txid)
     }
 
     async fn submit_transaction(
         &mut self,
         transaction: penumbra_transaction::Transaction,
         wait_for_commit: bool,
+        view_client: &mut ViewServiceClient<BoxGrpcService>,
     ) -> anyhow::Result<penumbra_transaction::txhash::TransactionId> {
-        println!("broadcasting transaction and awaiting confirmation...");
+        info!("broadcasting penumbra transaction and awaiting confirmation...");
         let mut rsp =
-            ViewClient::broadcast_transaction(&mut self.view_client, transaction, true).await?;
+            ViewClient::broadcast_transaction(view_client, transaction, wait_for_commit).await?;
 
         let id = (async move {
             while let Some(rsp) = rsp.try_next().await? {
@@ -365,6 +411,7 @@ impl PenumbraChain {
                         }
                         BroadcastStatus::Confirmed(c) => {
                             let id = c.id.expect("detected transaction missing id").try_into()?;
+                            info!(id = %id, "penumbra transaction confirmed");
                             return Ok(id);
                         }
                     },
@@ -398,7 +445,7 @@ impl ChainEndpoint for PenumbraChain {
     // Note: this is a placeholder, we won't actually use it.
     type SigningKeyPair = Secp256k1KeyPair;
 
-    fn id(&self) -> &ibc_relayer_types::core::ics24_host::identifier::ChainId {
+    fn id(&self) -> &ChainId {
         &self.config.id
     }
 
@@ -474,7 +521,7 @@ impl ChainEndpoint for PenumbraChain {
         Ok(Self {
             config,
             rt,
-            view_client: view_client.clone(),
+            view_client: Mutex::new(view_client.clone()),
             custody_client,
             tendermint_rpc_client: rpc_client,
             tendermint_light_client,
@@ -491,10 +538,11 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn health_check(&mut self) -> Result<HealthCheck, Error> {
+        let mut view_client = self.rt.block_on(self.view_client.lock()).clone();
         let catching_up = self
             .rt
             .block_on(async {
-                let status = ViewClient::status(&mut self.view_client).await?;
+                let status = ViewClient::status(&mut view_client).await?;
                 Ok(status.catching_up)
             })
             .map_err(|e: anyhow::Error| Error::temp_penumbra_error(e.to_string()))?;
@@ -524,11 +572,11 @@ impl ChainEndpoint for PenumbraChain {
         Ok(subscription)
     }
 
-    fn keybase(&self) -> &crate::keyring::KeyRing<Self::SigningKeyPair> {
+    fn keybase(&self) -> &KeyRing<Self::SigningKeyPair> {
         todo!()
     }
 
-    fn keybase_mut(&mut self) -> &mut crate::keyring::KeyRing<Self::SigningKeyPair> {
+    fn keybase_mut(&mut self) -> &mut KeyRing<Self::SigningKeyPair> {
         todo!()
     }
 
@@ -537,7 +585,7 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn get_key(&self) -> Result<Self::SigningKeyPair, Error> {
-        todo!()
+        Ok(Secp256k1KeyPair::generate())
     }
 
     fn version_specs(&self) -> Result<crate::chain::cosmos::version::Specs, Error> {
@@ -622,10 +670,37 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_balance(
         &self,
-        _key_name: Option<&str>,
-        _denom: Option<&str>,
+        key_name: Option<&str>,
+        denom: Option<&str>,
     ) -> Result<crate::account::Balance, Error> {
-        todo!()
+        let mut view_client = self.rt.block_on(self.view_client.lock()).clone();
+
+        /* TODO: implement balance query
+        let balances = self
+            .rt
+            .block_on(
+                view_client
+                    .balances(BalancesRequest {
+                        account_filter: None,
+                        asset_id_filter: None,
+                    })
+                    .boxed(),
+            )
+            .map_err(|_| Error::temp_penumbra_error("error querying balances".to_string()))?;
+
+        for balance in balances.next()
+            if balance.denom == "upenumbra" {
+                return Ok(crate::account::Balance {
+                    amount: balance.amount,
+                    denom: balance.denom,
+                });
+            }
+        } */
+
+        Ok(crate::account::Balance {
+            amount: "100000".to_string(),
+            denom: "upenumbra".to_string(),
+        })
     }
 
     fn query_all_balances(
@@ -647,8 +722,40 @@ impl ChainEndpoint for PenumbraChain {
         Ok(b"ibc-data".to_vec().try_into().unwrap())
     }
 
-    fn query_application_status(&self) -> Result<crate::chain::endpoint::ChainStatus, Error> {
-        todo!()
+    fn query_application_status(&self) -> Result<ChainStatus, Error> {
+        crate::time!(
+            "query_application_status",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_application_status");
+
+        // We cannot rely on `/status` endpoint to provide details about the latest block.
+        // Instead, we need to pull block height via `/abci_info` and then fetch block
+        // metadata at the given height via `/blockchain` endpoint.
+        let abci_info = self
+            .rt
+            .block_on(self.tendermint_rpc_client.abci_info())
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        // Query `/header` endpoint to pull the latest block that the application committed.
+        let response = self
+            .rt
+            .block_on(
+                self.tendermint_rpc_client
+                    .header(abci_info.last_block_height),
+            )
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        let height = ICSHeight::new(
+            ChainId::chain_version(response.header.chain_id.as_str()),
+            u64::from(abci_info.last_block_height),
+        )
+        .map_err(|_| Error::invalid_height_no_source())?;
+
+        let timestamp = response.header.time.into();
+        Ok(ChainStatus { height, timestamp })
     }
 
     fn query_clients(
@@ -700,37 +807,20 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryClientStateRequest,
         include_proof: IncludeProof,
     ) -> Result<(AnyClientState, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_client_grpc_client.clone();
+        crate::telemetry!(query, self.id(), "query_client_state");
 
-        let mut req = ibc_proto::ibc::core::client::v1::QueryClientStateRequest {
-            client_id: request.client_id.to_string(),
-            // NOTE: height is ignored
-        }
-        .into_request();
-
-        let map = req.metadata_mut();
-        let height_str: String = match request.height {
-            QueryHeight::Latest => 0.to_string(),
-            QueryHeight::Specific(h) => h.to_string(),
-        };
-        map.insert("height", height_str.parse().expect("valid ascii string"));
-
-        let response = self
-            .rt
-            .block_on(client.client_state(req))
-            .map_err(|e| Error::grpc_status(e, "query_client_state".to_owned()))?
-            .into_inner();
-
-        let Some(client_state) = response.client_state else {
-            return Err(Error::empty_response_value());
-        };
-
-        let client_state: AnyClientState = client_state
-            .try_into()
-            .map_err(|_| Error::temp_penumbra_error("couldnt decode AnyClientState".to_string()))?;
+        let res = self.rpc_query(
+            ClientStatePath(request.client_id.clone()),
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
+        let client_state = AnyClientState::decode_vec(&res.value).map_err(Error::decode)?;
 
         match include_proof {
-            IncludeProof::Yes => Ok((client_state, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                Ok((client_state, Some(proof)))
+            }
             IncludeProof::No => Ok((client_state, None)),
         }
     }
@@ -740,36 +830,19 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryConsensusStateRequest,
         include_proof: IncludeProof,
     ) -> Result<(AnyConsensusState, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_client_grpc_client.clone();
+        crate::telemetry!(query, self.id(), "query_consensus_state");
 
-        let mut req = ibc_proto::ibc::core::client::v1::QueryConsensusStateRequest {
-            client_id: request.client_id.to_string(),
-            revision_height: request.consensus_height.revision_height(),
-            revision_number: request.consensus_height.revision_number(),
-            latest_height: false, // TODO?
-        }
-        .into_request();
+        let res = self.rpc_query(
+            ClientConsensusStatePath {
+                client_id: request.client_id.clone(),
+                epoch: request.consensus_height.revision_number(),
+                height: request.consensus_height.revision_height(),
+            },
+            request.query_height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
 
-        let map = req.metadata_mut();
-        let height_str: String = match request.query_height {
-            QueryHeight::Latest => 0.to_string(),
-            QueryHeight::Specific(h) => h.to_string(),
-        };
-        map.insert("height", height_str.parse().expect("valid ascii string"));
-
-        let response = self
-            .rt
-            .block_on(client.consensus_state(req))
-            .map_err(|e| Error::grpc_status(e, "query_consensus_state".to_owned()))?
-            .into_inner();
-
-        let Some(consensus_state) = response.consensus_state else {
-            return Err(Error::empty_response_value());
-        };
-
-        let consensus_state: AnyConsensusState = consensus_state.try_into().map_err(|_| {
-            Error::temp_penumbra_error("couldnt decode AnyConsensusState".to_string())
-        })?;
+        let consensus_state = AnyConsensusState::decode_vec(&res.value).map_err(Error::decode)?;
 
         if !matches!(consensus_state, AnyConsensusState::Tendermint(_)) {
             return Err(Error::consensus_state_type_mismatch(
@@ -779,7 +852,10 @@ impl ChainEndpoint for PenumbraChain {
         }
 
         match include_proof {
-            IncludeProof::Yes => Ok((consensus_state, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                Ok((consensus_state, Some(proof)))
+            }
             IncludeProof::No => Ok((consensus_state, None)),
         }
     }
@@ -1006,29 +1082,21 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryChannelRequest,
         include_proof: IncludeProof,
     ) -> Result<(ChannelEnd, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_channel_grpc_client.clone();
-        let req = ibc_proto::ibc::core::channel::v1::QueryChannelRequest {
-            port_id: request.port_id.to_string(),
-            channel_id: request.channel_id.to_string(),
-        };
+        crate::telemetry!(query, self.id(), "query_channel");
 
-        let request = tonic::Request::new(req);
-        let response = self
-            .rt
-            .block_on(client.channel(request))
-            .map_err(|e| Error::grpc_status(e, "query_channel".to_owned()))?
-            .into_inner();
+        let res = self.rpc_query(
+            ChannelEndsPath(request.port_id, request.channel_id),
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
 
-        let Some(channel_end) = response.channel else {
-            return Err(Error::empty_response_value());
-        };
-
-        let channel_end: ChannelEnd = channel_end
-            .try_into()
-            .map_err(|_| Error::temp_penumbra_error("couldnt decode ChannelEnd".to_string()))?;
+        let channel_end = ChannelEnd::decode_vec(&res.value).map_err(Error::decode)?;
 
         match include_proof {
-            IncludeProof::Yes => Ok((channel_end, Some(decode_merkle_proof(response.proof)?))),
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                Ok((channel_end, Some(proof)))
+            }
             IncludeProof::No => Ok((channel_end, None)),
         }
     }
@@ -1058,26 +1126,23 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryPacketCommitmentRequest,
         include_proof: IncludeProof,
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_channel_grpc_client.clone();
-        let req = ibc_proto::ibc::core::channel::v1::QueryPacketCommitmentRequest {
-            port_id: request.port_id.to_string(),
-            channel_id: request.channel_id.to_string(),
-            sequence: request.sequence.into(),
-        };
-
-        let request = tonic::Request::new(req);
-        let response = self
-            .rt
-            .block_on(client.packet_commitment(request))
-            .map_err(|e| Error::grpc_status(e, "query_packet_commitment".to_owned()))?
-            .into_inner();
+        let res = self.rpc_query(
+            CommitmentsPath {
+                port_id: request.port_id,
+                channel_id: request.channel_id,
+                sequence: request.sequence,
+            },
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
 
         match include_proof {
-            IncludeProof::Yes => Ok((
-                response.commitment,
-                Some(decode_merkle_proof(response.proof)?),
-            )),
-            IncludeProof::No => Ok((response.commitment, None)),
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+
+                Ok((res.value, Some(proof)))
+            }
+            IncludeProof::No => Ok((res.value, None)),
         }
     }
 
@@ -1114,30 +1179,23 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryPacketReceiptRequest,
         include_proof: IncludeProof,
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_channel_grpc_client.clone();
-        let req = ibc_proto::ibc::core::channel::v1::QueryPacketReceiptRequest {
-            port_id: request.port_id.to_string(),
-            channel_id: request.channel_id.to_string(),
-            sequence: request.sequence.into(),
-            // NOTE: height is ignored
-        };
-
-        let request = tonic::Request::new(req);
-        let response = self
-            .rt
-            .block_on(client.packet_receipt(request))
-            .map_err(|e| Error::grpc_status(e, "query_packet_receipt".to_owned()))?
-            .into_inner();
-
-        // TODO: is this right?
-        let value = match response.received {
-            true => vec![1],
-            false => vec![0],
-        };
+        let res = self.rpc_query(
+            ReceiptsPath {
+                port_id: request.port_id,
+                channel_id: request.channel_id,
+                sequence: request.sequence,
+            },
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
 
         match include_proof {
-            IncludeProof::Yes => Ok((value, Some(decode_merkle_proof(response.proof)?))),
-            IncludeProof::No => Ok((value, None)),
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+
+                Ok((res.value, Some(proof)))
+            }
+            IncludeProof::No => Ok((res.value, None)),
         }
     }
 
@@ -1168,27 +1226,23 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryPacketAcknowledgementRequest,
         include_proof: IncludeProof,
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_channel_grpc_client.clone();
-        let req = ibc_proto::ibc::core::channel::v1::QueryPacketAcknowledgementRequest {
-            port_id: request.port_id.to_string(),
-            channel_id: request.channel_id.to_string(),
-            sequence: request.sequence.into(),
-            // NOTE: height is ignored
-        };
-
-        let request = tonic::Request::new(req);
-        let response = self
-            .rt
-            .block_on(client.packet_acknowledgement(request))
-            .map_err(|e| Error::grpc_status(e, "query_packet_acknowledgement".to_owned()))?
-            .into_inner();
+        let res = self.rpc_query(
+            AcksPath {
+                port_id: request.port_id,
+                channel_id: request.channel_id,
+                sequence: request.sequence,
+            },
+            request.height,
+            matches!(include_proof, IncludeProof::Yes),
+        )?;
 
         match include_proof {
-            IncludeProof::Yes => Ok((
-                response.acknowledgement,
-                Some(decode_merkle_proof(response.proof)?),
-            )),
-            IncludeProof::No => Ok((response.acknowledgement, None)),
+            IncludeProof::Yes => {
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+
+                Ok((res.value, Some(proof)))
+            }
+            IncludeProof::No => Ok((res.value, None)),
         }
     }
 
@@ -1245,21 +1299,45 @@ impl ChainEndpoint for PenumbraChain {
         request: QueryNextSequenceReceiveRequest,
         include_proof: IncludeProof,
     ) -> Result<(Sequence, Option<MerkleProof>), Error> {
-        let mut client = self.ibc_channel_grpc_client.clone();
-        let request = tonic::Request::new(request.into());
-
-        let response = self
-            .rt
-            .block_on(client.next_sequence_receive(request))
-            .map_err(|e| Error::grpc_status(e, "query_next_sequence_receive".to_owned()))?
-            .into_inner();
+        crate::time!(
+            "query_next_sequence_receive",
+            {
+                "src_chain": self.config().id().to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "query_next_sequence_receive");
 
         match include_proof {
-            IncludeProof::Yes => Ok((
-                response.next_sequence_receive.into(),
-                Some(decode_merkle_proof(response.proof)?),
-            )),
-            IncludeProof::No => Ok((response.next_sequence_receive.into(), None)),
+            IncludeProof::Yes => {
+                let res = self.rpc_query(
+                    SeqRecvsPath(request.port_id, request.channel_id),
+                    request.height,
+                    true,
+                )?;
+
+                // Note: We expect the return to be a u64 encoded in big-endian. Refer to ibc-go:
+                // https://github.com/cosmos/ibc-go/blob/25767f6bdb5bab2c2a116b41d92d753c93e18121/modules/core/04-channel/client/utils/utils.go#L191
+                if res.value.len() != 8 {
+                    return Err(Error::query("next_sequence_receive".into()));
+                }
+                let seq: Sequence = Bytes::from(res.value).get_u64().into();
+
+                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+
+                Ok((seq, Some(proof)))
+            }
+            IncludeProof::No => {
+                let mut client = self.ibc_channel_grpc_client.clone();
+                let request = tonic::Request::new(request.into());
+
+                let response = self
+                    .rt
+                    .block_on(client.next_sequence_receive(request))
+                    .map_err(|e| Error::grpc_status(e, "query_next_sequence_receive".to_owned()))?
+                    .into_inner();
+
+                Ok((response.next_sequence_receive.into(), None))
+            }
         }
     }
 
@@ -1433,15 +1511,7 @@ impl ChainEndpoint for PenumbraChain {
         todo!()
     }
 
-    fn query_consumer_chains(
-        &self,
-    ) -> Result<
-        Vec<(
-            ibc_relayer_types::core::ics24_host::identifier::ChainId,
-            ClientId,
-        )>,
-        Error,
-    > {
+    fn query_consumer_chains(&self) -> Result<Vec<(ChainId, ClientId)>, Error> {
         todo!()
     }
 }

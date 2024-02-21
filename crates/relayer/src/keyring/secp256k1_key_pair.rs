@@ -12,6 +12,7 @@ use ripemd::Ripemd160;
 use secp256k1::{Message, PublicKey, Secp256k1, SecretKey};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
+use signature::rand_core::OsRng;
 use strum::{EnumIter, IntoEnumIterator};
 
 use super::{
@@ -227,6 +228,19 @@ impl Secp256k1KeyPair {
             address_type,
             account,
         })
+    }
+
+    pub fn generate() -> Self {
+        let s = Secp256k1::new();
+        let (sk1, pk1) = s.generate_keypair(&mut OsRng);
+
+        Secp256k1KeyPair {
+            private_key: sk1,
+            public_key: pk1,
+            address: [0; 20],
+            address_type: Secp256k1AddressType::Cosmos,
+            account: "".to_string(),
+        }
     }
 }
 
