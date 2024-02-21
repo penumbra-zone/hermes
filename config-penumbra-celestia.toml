@@ -26,11 +26,11 @@ host = '127.0.0.1'
 port = 3001
 
 [[chains]]
-id = 'penumbra-testnet-deimos-2-38b9a683'
+id = 'penumbra-testnet-deimos-2'
 type = 'Penumbra'
 stub_key_name = 'fake'
-rpc_addr = 'https://rpc.testnet-preview.penumbra.zone'
-grpc_addr = 'https://grpc.testnet-preview.penumbra.zone'
+rpc_addr = 'https://rpc.testnet.penumbra.zone'
+grpc_addr = 'https://grpc.testnet.penumbra.zone'
 event_source = { mode = 'pull', interval = '1s' }
 rpc_timeout = '15s'
 clock_drift = '5s'
