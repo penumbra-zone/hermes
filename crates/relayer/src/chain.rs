@@ -1,4 +1,5 @@
 pub mod client;
+pub mod client_settings;
 pub mod cosmos;
 pub mod counterparty;
 pub mod endpoint;

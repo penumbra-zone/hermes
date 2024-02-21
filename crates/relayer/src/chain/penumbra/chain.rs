@@ -77,7 +77,7 @@ use crate::{
     keyring::Secp256k1KeyPair,
 };
 
-use super::config::{self, PenumbraConfig};
+use super::config::PenumbraConfig;
 
 pub struct PenumbraChain {
     config: PenumbraConfig,
@@ -533,7 +533,7 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn get_signer(&self) -> Result<ibc_relayer_types::signer::Signer, Error> {
-        todo!()
+        Ok(ibc_relayer_types::signer::Signer::dummy())
     }
 
     fn get_key(&self) -> Result<Self::SigningKeyPair, Error> {
@@ -622,20 +622,20 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_balance(
         &self,
-        key_name: Option<&str>,
-        denom: Option<&str>,
+        _key_name: Option<&str>,
+        _denom: Option<&str>,
     ) -> Result<crate::account::Balance, Error> {
         todo!()
     }
 
     fn query_all_balances(
         &self,
-        key_name: Option<&str>,
+        _key_name: Option<&str>,
     ) -> Result<Vec<crate::account::Balance>, Error> {
         todo!()
     }
 
-    fn query_denom_trace(&self, hash: String) -> Result<crate::denom::DenomTrace, Error> {
+    fn query_denom_trace(&self, _hash: String) -> Result<crate::denom::DenomTrace, Error> {
         todo!()
     }
 
@@ -1025,7 +1025,7 @@ impl ChainEndpoint for PenumbraChain {
 
         let channel_end: ChannelEnd = channel_end
             .try_into()
-            .map_err(|e| Error::temp_penumbra_error("couldnt decode ChannelEnd".to_string()))?;
+            .map_err(|_| Error::temp_penumbra_error("couldnt decode ChannelEnd".to_string()))?;
 
         match include_proof {
             IncludeProof::Yes => Ok((channel_end, Some(decode_merkle_proof(response.proof)?))),
@@ -1409,16 +1409,16 @@ impl ChainEndpoint for PenumbraChain {
 
     fn maybe_register_counterparty_payee(
         &mut self,
-        channel_id: &ibc_relayer_types::core::ics24_host::identifier::ChannelId,
-        port_id: &ibc_relayer_types::core::ics24_host::identifier::PortId,
-        counterparty_payee: &ibc_relayer_types::signer::Signer,
+        _channel_id: &ibc_relayer_types::core::ics24_host::identifier::ChannelId,
+        _port_id: &ibc_relayer_types::core::ics24_host::identifier::PortId,
+        _counterparty_payee: &ibc_relayer_types::signer::Signer,
     ) -> Result<(), Error> {
         todo!()
     }
 
     fn cross_chain_query(
         &self,
-        requests: Vec<CrossChainQueryRequest>,
+        _requests: Vec<CrossChainQueryRequest>,
     ) -> Result<
         Vec<ibc_relayer_types::applications::ics31_icq::response::CrossChainQueryResponse>,
         Error,
@@ -1428,7 +1428,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_incentivized_packet(
         &self,
-        request: ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketRequest,
+        _request: ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketRequest,
     ) -> Result<ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketResponse, Error> {
         todo!()
     }

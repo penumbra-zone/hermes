@@ -736,6 +736,21 @@ impl ChainConfig {
                 .get(channel_id)
                 .map(|seqs| Cow::Borrowed(seqs.as_slice()))
                 .unwrap_or_else(|| Cow::Owned(Vec::new())),
+            Self::Penumbra(config) => todo!(),
+        }
+    }
+
+    pub fn clock_drift(&self) -> Duration {
+        match self {
+            Self::CosmosSdk(config) => config.clock_drift,
+            Self::Penumbra(config) => config.clock_drift,
+        }
+    }
+
+    pub fn trust_threshold(&self) -> TrustThreshold {
+        match self {
+            Self::CosmosSdk(config) => config.trust_threshold,
+            Self::Penumbra(config) => config.trust_threshold,
         }
     }
 }
