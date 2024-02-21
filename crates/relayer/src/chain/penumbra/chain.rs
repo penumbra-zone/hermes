@@ -11,6 +11,7 @@ use ibc_relayer_types::core::ics24_host::path::{
 use ibc_relayer_types::core::ics24_host::Path;
 use once_cell::sync::Lazy;
 use penumbra_proto::core::component::ibc::v1::IbcRelay as ProtoIbcRelay;
+use penumbra_proto::DomainType as _;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
@@ -66,7 +67,6 @@ use penumbra_proto::{
         GasPricesRequest,
     },
 };
-use penumbra_transaction::gas::GasCost;
 use penumbra_view::{ViewClient, ViewServer};
 use penumbra_wallet::plan::Planner;
 use signature::rand_core::OsRng;
@@ -291,11 +291,10 @@ impl PenumbraChain {
         Ok((begin_block_events, end_block_events))
     }
 
-    async fn send_messages_in_penumbratx(
+    async fn build_penumbra_tx(
         &mut self,
         tracked_msgs: TrackedMsgs,
-        wait_for_commit: bool,
-    ) -> Result<penumbra_transaction::txhash::TransactionId, Error> {
+    ) -> Result<penumbra_transaction::Transaction, anyhow::Error> {
         let mut view_client = self.view_client.lock().await.clone();
         let gas_prices = view_client
             .gas_prices(GasPricesRequest {})
@@ -327,29 +326,27 @@ impl PenumbraChain {
             planner.ibc_action(ibc_action);
         }
 
-        let plan = planner
-            .plan(&mut view_client, AddressIndex::new(0))
-            .await
-            .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
+        let plan = planner.plan(&mut view_client, AddressIndex::new(0)).await?;
 
-        let tx = penumbra_wallet::build_transaction(
+        penumbra_wallet::build_transaction(
             &self.config.kms_config.spend_key.full_viewing_key(),
             &mut view_client,
             &mut self.custody_client,
             plan,
         )
         .await
-        .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
+    }
 
-        let gas_cost = tx.gas_cost();
-        let fee = gas_prices.fee(&gas_cost);
-
-        assert!(
-            tx.transaction_parameters().fee.amount() >= fee,
-            "paid fee {} must be greater than minimum fee {}",
-            tx.transaction_parameters().fee.amount(),
-            fee
-        );
+    async fn send_messages_in_penumbratx(
+        &mut self,
+        tracked_msgs: TrackedMsgs,
+        wait_for_commit: bool,
+    ) -> Result<penumbra_transaction::txhash::TransactionId, Error> {
+        let view_client = self.view_client.lock().await.clone();
+        let tx = self.build_penumbra_tx(tracked_msgs).await.map_err(|e| {
+            tracing::error!("error building penumbra transaction: {}", e);
+            Error::temp_penumbra_error(e.to_string())
+        })?;
 
         let penumbra_txid = self
             .submit_transaction(tx, wait_for_commit, &mut view_client.clone())
@@ -637,26 +634,20 @@ impl ChainEndpoint for PenumbraChain {
         tracked_msgs: TrackedMsgs,
     ) -> Result<Vec<tendermint_rpc::endpoint::broadcast::tx_sync::Response>, Error> {
         let runtime = self.rt.clone();
-        let txid = runtime.block_on(self.send_messages_in_penumbratx(tracked_msgs, false))?;
-        let tm_txid = txid.0.to_vec().try_into().unwrap();
-        let tm_tx = runtime.block_on(async move {
-            self.tendermint_rpc_client
-                .tx(tm_txid, false)
-                .await
-                .map_err(|e| {
-                    tracing::error!("error querying transaction: {}", e);
-                    Error::temp_penumbra_error(e.to_string())
-                })
-        })?;
+        let penumbra_tx = runtime
+            .block_on(self.build_penumbra_tx(tracked_msgs.clone()))
+            .map_err(|e| {
+                tracing::error!("error building penumbra transaction: {}", e);
+                Error::temp_penumbra_error(e.to_string())
+            })?;
 
-        let txsync_response = tendermint_rpc::endpoint::broadcast::tx_sync::Response {
-            code: tm_tx.tx_result.code,
-            data: tm_tx.tx_result.data,
-            log: tm_tx.tx_result.log,
-            hash: tm_tx.hash,
-        };
+        let tx_bytes = penumbra_tx.encode_to_vec();
 
-        Ok(vec![txsync_response])
+        let res = runtime
+            .block_on(self.tendermint_rpc_client.broadcast_tx_sync(tx_bytes))
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        Ok(vec![res])
     }
 
     fn verify_header(

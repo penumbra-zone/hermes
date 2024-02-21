@@ -146,6 +146,7 @@ impl EventSource {
         }
 
         let latest_height = latest_height(&self.rpc_client).await?;
+        let latest_height = (latest_height.value() - 1).try_into().unwrap();
 
         let batches = if latest_height > self.last_fetched_height {
             trace!(

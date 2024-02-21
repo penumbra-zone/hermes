@@ -39,6 +39,7 @@ trust_threshold = { numerator = '1', denominator = '3' }
 kms_config = { spend_key = "XXXXXXX" }
 
 
+
 [[chains]]
 id = 'penumbra-testnet-deimos-2'
 type = 'Penumbra'
