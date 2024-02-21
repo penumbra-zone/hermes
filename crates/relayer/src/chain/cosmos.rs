@@ -111,7 +111,6 @@ use self::types::gas::GasConfig;
 use self::version::Specs;
 
 pub mod batch;
-pub mod client;
 pub mod compatibility;
 pub mod config;
 pub mod eip_base_fee;

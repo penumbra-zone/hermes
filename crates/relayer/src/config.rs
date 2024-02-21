@@ -713,6 +713,20 @@ impl ChainConfig {
             Self::Penumbra(config) => config.query_packets_chunk_size = query_packets_chunk_size,
         }
     }
+
+    pub fn clock_drift(&self) -> Duration {
+        match self {
+            Self::CosmosSdk(config) => config.clock_drift,
+            Self::Penumbra(config) => config.clock_drift,
+        }
+    }
+
+    pub fn trust_threshold(&self) -> TrustThreshold {
+        match self {
+            Self::CosmosSdk(config) => config.trust_threshold,
+            Self::Penumbra(config) => config.trust_threshold,
+        }
+    }
 }
 
 // /!\ Update me when adding a new chain type!
