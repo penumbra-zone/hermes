@@ -672,11 +672,10 @@ impl ChainConfig {
         }
     }
 
-    // TODO(extract): needs to be changed to return &str so penumbra can return ""
-    pub fn key_name(&self) -> &String {
+    pub fn key_name(&self) -> &str {
         match self {
             Self::CosmosSdk(config) => &config.key_name,
-            Self::Penumbra(config) => &config.stub_key_name,
+            Self::Penumbra(_) => "",
         }
     }
 
