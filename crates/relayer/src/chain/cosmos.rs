@@ -111,7 +111,6 @@ use self::types::gas::GasConfig;
 use self::version::Specs;
 
 pub mod batch;
-pub mod client;
 pub mod compatibility;
 pub mod config;
 pub mod eip_base_fee;
@@ -2303,7 +2302,7 @@ impl ChainEndpoint for CosmosSdkChain {
     }
 }
 
-fn sort_events_by_sequence(events: &mut [IbcEventWithHeight]) {
+pub fn sort_events_by_sequence(events: &mut [IbcEventWithHeight]) {
     events.sort_by(|a, b| {
         a.event
             .packet()
@@ -2313,7 +2312,7 @@ fn sort_events_by_sequence(events: &mut [IbcEventWithHeight]) {
     });
 }
 
-async fn fetch_node_info(
+pub async fn fetch_node_info(
     rpc_client: &HttpClient,
     config: &config::CosmosSdkConfig,
 ) -> Result<node::Info, Error> {
