@@ -1,15 +1,11 @@
 use ibc_relayer_types::core::{
-    ics23_commitment::merkle::MerkleProof,
-    ics24_host::identifier::ChainId,
+    ics23_commitment::merkle::MerkleProof, ics24_host::identifier::ChainId,
 };
 use ibc_types::DomainType as _;
 use tendermint_rpc::endpoint::broadcast::tx_sync::Response;
 
 use crate::{
-    chain::cosmos::types::tx::{
-        TxStatus,
-        TxSyncResult,
-    },
+    chain::cosmos::types::tx::{TxStatus, TxSyncResult},
     error::Error,
     event::IbcEventWithHeight,
 };

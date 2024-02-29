@@ -189,8 +189,8 @@ impl AstriaEndpoint {
         };
         use astria_sequencer_client::SequencerClientExt as _;
         use ibc_relayer_types::applications::transfer::msgs::ASTRIA_WITHDRAWAL_TYPE_URL;
-        use penumbra_ibc::IbcRelay;
-        use penumbra_proto::core::component::ibc::v1::IbcRelay as RawIbcRelay;
+        use penumbra_ibc_astria::IbcRelay;
+        use penumbra_proto_astria::core::component::ibc::v1alpha1::IbcRelay as RawIbcRelay;
 
         let msg_len = tracked_msgs.msgs.len();
         let mut actions: Vec<Action> = Vec::with_capacity(msg_len);
