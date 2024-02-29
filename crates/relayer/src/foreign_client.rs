@@ -4,14 +4,8 @@
 //! i.e. they are *foreign* to the relayer. In contrast, the term "local client"
 //! refers to light clients running *locally* as part of the relayer.
 
-use core::{
-    fmt,
-    time::Duration,
-};
-use std::{
-    thread,
-    time::Instant,
-};
+use core::{fmt, time::Duration};
+use std::{thread, time::Instant};
 
 use flex_error::define_error;
 use ibc_proto::google::protobuf::Any;
@@ -22,69 +16,36 @@ use ibc_relayer_types::{
             client_state::ClientState,
             error::Error as ClientError,
             events::UpdateClient,
-            header::{
-                AnyHeader,
-                Header,
-            },
+            header::{AnyHeader, Header},
             msgs::{
-                create_client::MsgCreateClient,
-                misbehaviour::MsgSubmitMisbehaviour,
-                update_client::MsgUpdateClient,
-                upgrade_client::MsgUpgradeClient,
+                create_client::MsgCreateClient, misbehaviour::MsgSubmitMisbehaviour,
+                update_client::MsgUpdateClient, upgrade_client::MsgUpgradeClient,
             },
             trust_threshold::TrustThreshold,
         },
-        ics24_host::identifier::{
-            ChainId,
-            ClientId,
-        },
+        ics24_host::identifier::{ChainId, ClientId},
     },
     downcast,
-    events::{
-        IbcEvent,
-        IbcEventType,
-        WithBlockDataType,
-    },
-    timestamp::{
-        Timestamp,
-        TimestampOverflowError,
-    },
+    events::{IbcEvent, IbcEventType, WithBlockDataType},
+    timestamp::{Timestamp, TimestampOverflowError},
     tx_msg::Msg,
     Height,
 };
 use itertools::Itertools;
-use tracing::{
-    debug,
-    error,
-    info,
-    instrument,
-    trace,
-    warn,
-};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::{
-    chain::{
-        client::ClientSettings,
-        handle::ChainHandle,
-        requests::*,
-        tracking::TrackedMsgs,
-    },
+    chain::{client::ClientSettings, handle::ChainHandle, requests::*, tracking::TrackedMsgs},
     client_state::AnyClientState,
     config::ChainConfig,
     consensus_state::AnyConsensusState,
     error::Error as RelayerError,
     event::IbcEventWithHeight,
-    misbehaviour::{
-        AnyMisbehaviour,
-        MisbehaviourEvidence,
-    },
+    misbehaviour::{AnyMisbehaviour, MisbehaviourEvidence},
     telemetry,
     util::{
         collate::CollatedIterExt,
-        pretty::{
-            PrettyDuration,
-            PrettySlice,
-        },
+        pretty::{PrettyDuration, PrettySlice},
     },
 };
 
@@ -948,9 +909,12 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
             )
         })?;
 
+        // TODO(extract): needs to be a method on ChainConfig to highlight
+        // that it's common behavior.
         let refresh_rate = match src_config {
             ChainConfig::CosmosSdk(config) => config.client_refresh_rate,
             ChainConfig::Astria(config) => config.client_refresh_rate,
+            ChainConfig::Penumbra(config) => config.client_refresh_rate,
         };
 
         let refresh_period = client_state
@@ -1797,6 +1761,7 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
         let is_ccv_consumer_chain = match chain_config {
             ChainConfig::CosmosSdk(config) => config.ccv_consumer_chain,
             ChainConfig::Astria(config) => config.ccv_consumer_chain,
+            ChainConfig::Penumbra(_) => false,
         };
 
         let mut msgs = vec![];

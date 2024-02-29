@@ -6,15 +6,10 @@ use tokio::runtime::Runtime as TokioRuntime;
 
 use crate::{
     chain::{
-        astria::AstriaEndpoint,
-        cosmos::CosmosSdkChain,
-        handle::ChainHandle,
-        runtime::ChainRuntime,
+        astria::AstriaEndpoint, cosmos::CosmosSdkChain, handle::ChainHandle,
+        penumbra::chain::PenumbraChain, runtime::ChainRuntime,
     },
-    config::{
-        ChainConfig,
-        Config,
-    },
+    config::{ChainConfig, Config},
     error::Error as RelayerError,
 };
 
@@ -90,6 +85,7 @@ pub fn spawn_chain_runtime_with_config<Handle: ChainHandle>(
     let handle = match config {
         ChainConfig::CosmosSdk(_) => ChainRuntime::<CosmosSdkChain>::spawn(config, rt),
         ChainConfig::Astria(_) => ChainRuntime::<AstriaEndpoint>::spawn(config, rt),
+        ChainConfig::Penumbra(_) => ChainRuntime::<PenumbraChain>::spawn(config, rt),
     }
     .map_err(SpawnError::relayer)?;
 

@@ -3,13 +3,9 @@ use std::path::PathBuf;
 
 use byte_unit::Byte;
 use ibc_relayer_types::core::{
-    ics23_commitment::specs::ProofSpecs,
-    ics24_host::identifier::ChainId,
+    ics23_commitment::specs::ProofSpecs, ics24_host::identifier::ChainId,
 };
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 use tendermint_rpc::Url;
 
 use crate::{
@@ -18,19 +14,10 @@ use crate::{
         self,
         compat_mode::CompatMode,
         default,
+        dynamic_gas::DynamicGasPrice,
         gas_multiplier::GasMultiplier,
-        types::{
-            MaxMsgNum,
-            MaxTxSize,
-            Memo,
-            TrustThreshold,
-        },
-        AddressType,
-        EventSourceMode,
-        ExtensionOption,
-        GasPrice,
-        GenesisRestart,
-        PacketFilter,
+        types::{MaxMsgNum, MaxTxSize, Memo, TrustThreshold},
+        AddressType, EventSourceMode, ExtensionOption, GasPrice, GenesisRestart, PacketFilter,
         RefreshRate,
     },
     keyring::Store,
@@ -150,6 +137,9 @@ pub struct CosmosSdkConfig {
 
     #[serde(default)]
     pub packet_filter: PacketFilter,
+
+    #[serde(default)]
+    pub dynamic_gas_price: DynamicGasPrice,
 
     #[serde(default)]
     pub address_type: AddressType,

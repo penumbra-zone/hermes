@@ -1,53 +1,25 @@
 use core::any::Any;
 
-use bip39::{
-    Language,
-    Mnemonic,
-    Seed,
-};
+use bip39::{Language, Mnemonic, Seed};
 use bitcoin::{
-    bip32::{
-        ChildNumber,
-        DerivationPath,
-        Xpriv,
-        Xpub,
-    },
+    bip32::{ChildNumber, DerivationPath, Xpriv, Xpub},
     network::Network,
 };
 use digest::Digest;
-use generic_array::{
-    typenum::U32,
-    GenericArray,
-};
+use generic_array::{typenum::U32, GenericArray};
 use hdpath::StandardHDPath;
 use ripemd::Ripemd160;
-use secp256k1::{
-    Message,
-    PublicKey,
-    Secp256k1,
-    SecretKey,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use secp256k1::{Message, PublicKey, Secp256k1, SecretKey};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
-use strum::{
-    EnumIter,
-    IntoEnumIterator,
-};
+use signature::rand_core::OsRng;
+use strum::{EnumIter, IntoEnumIterator};
 
 use super::{
     errors::Error,
-    key_utils::{
-        decode_bech32,
-        encode_bech32,
-        keccak256_hash,
-    },
+    key_utils::{decode_bech32, encode_bech32, keccak256_hash},
     pub_key::EncodedPubKey,
-    KeyFile,
-    KeyType,
-    SigningKeyPair,
+    KeyFile, KeyType, SigningKeyPair,
 };
 use crate::config::AddressType;
 
@@ -260,6 +232,19 @@ impl Secp256k1KeyPair {
             address_type,
             account,
         })
+    }
+
+    pub fn generate() -> Self {
+        let s = Secp256k1::new();
+        let (sk1, pk1) = s.generate_keypair(&mut OsRng);
+
+        Secp256k1KeyPair {
+            private_key: sk1,
+            public_key: pk1,
+            address: [0; 20],
+            address_type: Secp256k1AddressType::Cosmos,
+            account: "".to_string(),
+        }
     }
 }
 

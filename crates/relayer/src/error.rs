@@ -2,76 +2,45 @@
 
 use core::time::Duration;
 
-use flex_error::{
-    define_error,
-    DisplayOnly,
-    TraceError,
-};
+use flex_error::{define_error, DisplayOnly, TraceError};
 use http::uri::InvalidUri;
 use humantime::format_duration;
 use ibc_relayer_types::{
     applications::{
-        ics29_fee::error::Error as FeeError,
-        ics31_icq::error::Error as CrossChainQueryError,
+        ics29_fee::error::Error as FeeError, ics31_icq::error::Error as CrossChainQueryError,
     },
     clients::ics07_tendermint::error as tendermint_error,
     core::{
-        ics02_client::{
-            client_type::ClientType,
-            error as client_error,
-        },
+        ics02_client::{client_type::ClientType, error as client_error},
         ics03_connection::error as connection_error,
         ics23_commitment::error as commitment_error,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ConnectionId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ConnectionId},
     },
     proofs::ProofError,
 };
-use prost::{
-    DecodeError,
-    EncodeError,
-};
+use prost::{DecodeError, EncodeError};
 use regex::Regex;
-use tendermint::{
-    abci,
-    Error as TendermintError,
-};
+use tendermint::{abci, Error as TendermintError};
 use tendermint_light_client::{
     builder::error::Error as LightClientBuilderError,
     components::io::IoError as LightClientIoError,
-    errors::{
-        Error as LightClientError,
-        ErrorDetail as LightClientErrorDetail,
-    },
+    errors::{Error as LightClientError, ErrorDetail as LightClientErrorDetail},
 };
 use tendermint_proto::Error as TendermintProtoError;
 use tendermint_rpc::{
-    endpoint::{
-        abci_query::AbciQuery,
-        broadcast::tx_sync::Response as TxSyncResponse,
-    },
+    endpoint::{abci_query::AbciQuery, broadcast::tx_sync::Response as TxSyncResponse},
     Error as TendermintRpcError,
 };
 use tonic::{
-    metadata::errors::InvalidMetadataValue,
-    transport::Error as TransportError,
+    metadata::errors::InvalidMetadataValue, transport::Error as TransportError,
     Status as GrpcStatus,
 };
 
 use crate::{
-    chain::cosmos::{
-        version,
-        BLOCK_MAX_BYTES_MAX_FRACTION,
-    },
+    chain::cosmos::{version, BLOCK_MAX_BYTES_MAX_FRACTION},
     config::Error as ConfigError,
     event::source,
-    keyring::{
-        errors::Error as KeyringError,
-        KeyType,
-    },
+    keyring::{errors::Error as KeyringError, KeyType},
     sdk_error::SdkError,
 };
 
@@ -630,6 +599,42 @@ define_error! {
             source: Box<dyn std::error::Error + Send + Sync>,
         }
             |e| { format!("other error: {}", e.source) },
+        HttpRequest
+            [ TraceError<reqwest::Error> ]
+            |_| { "HTTP request error" },
+
+        HttpResponse
+            { status: reqwest::StatusCode }
+            |e| { format!("HTTP response error with status code {}", e.status) },
+
+        HttpResponseBody
+            [ TraceError<reqwest::Error> ]
+            |_| { "HTTP response body error" },
+
+        JsonDeserialize
+            [ TraceError<serde_json::Error> ]
+            |_| { "JSON deserialization error" },
+
+        JsonField
+            { field: String }
+            |e| { format!("Missing or invalid JSON field: {}", e.field) },
+
+        ParseFloat
+            [ TraceError<std::num::ParseFloatError> ]
+            |_| { "Error parsing float" },
+
+        ParseInt
+            [ TraceError<std::num::ParseIntError> ]
+            |_| { "Error parsing integer" },
+
+        Base64Decode
+            [ TraceError<subtle_encoding::Error> ]
+            |_| { "Error decoding base64-encoded data" },
+
+        // TODO: replace with finer error variants later
+        TempPenumbraError
+            { detail: String }
+            |e| { format!("penumbra error: {}", e.detail) },
     }
 }
 

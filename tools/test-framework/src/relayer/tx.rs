@@ -1,30 +1,18 @@
-use core::{
-    str::FromStr,
-    time::Duration,
-};
+use core::{str::FromStr, time::Duration};
 
 use http::uri::Uri;
 use ibc_proto::cosmos::tx::v1beta1::Fee;
 use ibc_relayer::{
     chain::cosmos::{
         gas::calculate_fee,
-        types::{
-            config::TxConfig,
-            gas::GasConfig,
-        },
+        types::{config::TxConfig, gas::GasConfig},
     },
-    config::{
-        AddressType,
-        GasPrice,
-    },
+    config::{AddressType, GasPrice},
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tendermint_rpc::Url;
 
-use crate::error::{
-    handle_generic_error,
-    Error,
-};
+use crate::error::{handle_generic_error, Error};
 
 pub fn gas_config_for_test(native_token: String) -> GasConfig {
     let max_gas = 3000000;
@@ -56,6 +44,11 @@ pub fn gas_config_for_test(native_token: String) -> GasConfig {
         gas_price,
         max_fee,
         fee_granter,
+        dynamic_gas_price: DynamicGasPrice {
+            enabled: false,
+            multiplier: 1.0,
+            max: 0.6,
+        },
     }
 }
 

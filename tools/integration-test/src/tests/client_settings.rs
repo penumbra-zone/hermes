@@ -41,6 +41,7 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_a.trusting_period = Some(Duration::from_secs(120_000));
                 chain_config_a.trust_threshold = TrustThreshold::new(13, 23).unwrap();
             }
+            ChainConfig::Penumbra(_) => todo!(),
         }
 
         match &mut config.chains[1] {
@@ -50,6 +51,7 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_b.trusting_period = Some(Duration::from_secs(340_000));
                 chain_config_b.trust_threshold = TrustThreshold::TWO_THIRDS;
             }
+            ChainConfig::Penumbra(_) => todo!(),
         }
     }
 }

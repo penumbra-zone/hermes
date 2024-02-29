@@ -1,27 +1,10 @@
-use std::{
-    collections::HashSet,
-    path::PathBuf,
-};
+use std::{collections::HashSet, path::PathBuf};
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use ibc_relayer::config::{
-    store,
-    ChainConfig,
-    Config,
-};
-use tracing::{
-    info,
-    warn,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::config::{store, ChainConfig, Config};
+use tracing::{info, warn};
 
-use crate::{
-    chain_registry::get_configs,
-    conclude::Output,
-};
+use crate::{chain_registry::get_configs, conclude::Output};
 
 fn find_key(chain_config: &ChainConfig) -> Option<String> {
     let keys = chain_config.list_keys().ok()?;
@@ -38,7 +21,7 @@ fn find_key(chain_config: &ChainConfig) -> Option<String> {
 /// If a is specified then it will be used without verifying that it exists.
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]
 #[clap(
-    override_usage = "hermes config auto [OPTIONS] --output <PATH> --chains <CHAIN_NAME:OPTIONAL_KEY_NAME>"
+    override_usage = "hermes config auto [OPTIONS] --output <PATH> --chain <CHAIN1_NAME:OPTIONAL_KEY_NAME> --chain <CHAIN2_NAME:OPTIONAL_KEY_NAME>"
 )]
 pub struct AutoCmd {
     #[clap(
@@ -52,11 +35,14 @@ pub struct AutoCmd {
 
     #[clap(
         long = "chains",
+        alias = "chain",
         required = true,
         multiple = true,
         value_name = "CHAIN_NAME:OPTIONAL_KEY_NAME",
         help_heading = "REQUIRED",
-        help = "Names of the chains to include in the config. Every chain must be in the chain registry."
+        help = "Names of the chains to include in the configuration, together with an optional key name. \
+                Either repeat this argument for every chain or pass a space-separated list of chains. \
+                Every chain must be found in the chain registry."
     )]
     chain_names: Vec<String>,
 
@@ -162,23 +148,22 @@ impl Runnable for AutoCmd {
         };
 
         match store(&config, &self.path) {
+            Ok(_) if missing_chains_set.is_empty() => {
+                Output::success_msg(format!(
+                    "Config file written successfully at '{}'",
+                    self.path.display()
+                ))
+                .exit()
+            },
             Ok(_) => {
-                if missing_chains_set.is_empty() {
-                    Output::success_msg(format!(
-                        "Config file written successfully at '{}'",
-                        self.path.display()
-                    ))
-                    .exit()
-                } else {
-                    Output::success_msg(format!(
-                        "Config file written successfully at '{}'.
-                        However, configurations for the following chains were not able to be generated: {:?}",
-                        self.path.display(),
-                        missing_chains_set,
-                    ))
-                    .exit()
-                }
-            }
+                Output::success_msg(format!(
+                    "Config file written successfully at '{}'. \
+                    However, configurations for the following chains were not able to be generated: {}",
+                    self.path.display(),
+                    missing_chains_set.iter().join(", "),
+                ))
+                .exit()
+            },
             Err(e) => Output::error(format!(
                 "An error occurred while attempting to write the config file: {}",
                 e

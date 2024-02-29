@@ -41,6 +41,7 @@ impl TestOverrides for FilterIncentivizedFeesRelayerTest {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.packet_filter = packet_filter.clone();
                 }
+                ChainConfig::Penumbra(_) => todo!(),
             }
         }
     }
@@ -193,6 +194,7 @@ impl TestOverrides for FilterByChannelIncentivizedFeesRelayerTest {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.packet_filter = packet_filter.clone();
                 }
+                ChainConfig::Penumbra(_) => todo!(),
             }
         }
     }

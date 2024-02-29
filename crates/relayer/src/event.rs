@@ -1,53 +1,29 @@
-use core::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use core::fmt::{Display, Error as FmtError, Formatter};
 
 use ibc_relayer_types::{
     applications::{
-        ics29_fee::events::{
-            DistributeFeePacket,
-            IncentivizedPacket,
-        },
+        ics29_fee::events::{DistributeFeePacket, IncentivizedPacket},
         ics31_icq::events::CrossChainQueryPacket,
     },
     core::{
         ics02_client::{
             error::Error as ClientError,
-            events::{
-                self as client_events,
-                Attributes as ClientAttributes,
-                HEADER_ATTRIBUTE_KEY,
-            },
-            header::{
-                decode_header,
-                AnyHeader,
-            },
+            events::{self as client_events, Attributes as ClientAttributes, HEADER_ATTRIBUTE_KEY},
+            header::{decode_header, AnyHeader},
             height::HeightErrorDetail,
         },
         ics03_connection::{
             error::Error as ConnectionError,
-            events::{
-                self as connection_events,
-                Attributes as ConnectionAttributes,
-            },
+            events::{self as connection_events, Attributes as ConnectionAttributes},
         },
         ics04_channel::{
             error::Error as ChannelError,
-            events::{
-                self as channel_events,
-                Attributes as ChannelAttributes,
-            },
+            events::{self as channel_events, Attributes as ChannelAttributes},
             packet::Packet,
             timeout::TimeoutHeight,
         },
     },
-    events::{
-        Error as IbcEventError,
-        IbcEvent,
-        IbcEventType,
-    },
+    events::{Error as IbcEventError, IbcEvent, IbcEventType},
     Height,
 };
 use serde::Serialize;
@@ -487,21 +463,21 @@ pub fn parse_timeout_height(s: &str) -> Result<TimeoutHeight, ChannelError> {
 
 #[cfg(test)]
 mod tests {
-    use ibc_proto::{
-        google::protobuf::Any,
-        Protobuf,
-    };
+    use ibc_proto::{google::protobuf::Any, Protobuf};
     use ibc_relayer_types::{
         clients::ics07_tendermint::header::test_util::get_dummy_ics07_header,
         core::{
-            ics02_client::header::{
-                decode_header,
-                AnyHeader,
+            ics02_client::header::{decode_header, AnyHeader},
+            ics03_connection::events::{
+                self as connection_events, Attributes as ConnectionAttributes,
             },
-            ics04_channel::packet::Sequence,
+            ics04_channel::events::{self as channel_events, Attributes as ChannelAttributes},
         },
-        timestamp::Timestamp,
+        events::IbcEvent,
     };
+    use tendermint::abci::Event as AbciEvent;
+
+    use super::ibc_event_try_from_abci_event;
 
     #[test]
     fn extract_header() {

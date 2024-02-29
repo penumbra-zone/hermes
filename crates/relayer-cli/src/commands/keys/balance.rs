@@ -1,24 +1,13 @@
 use std::fmt::Write;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    config::ChainConfig,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::{chain::handle::ChainHandle, config::ChainConfig};
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 
 use crate::{
     application::app_config,
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        json,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, json, Output},
 };
 
 /// The data structure that represents the arguments when invoking the `keys balance` CLI command.
@@ -89,6 +78,7 @@ fn get_balance(chain: impl ChainHandle, key_name: Option<String>, denom: Option<
                 match chain_config {
                     ChainConfig::CosmosSdk(chain_config) => chain_config.key_name,
                     ChainConfig::Astria(chain_config) => chain_config.key_name,
+                    ChainConfig::Penumbra(_) => todo!(),
                 }
             });
 
@@ -112,6 +102,7 @@ fn get_balances(chain: impl ChainHandle, key_name: Option<String>) {
                 match chain_config {
                     ChainConfig::CosmosSdk(chain_config) => chain_config.key_name,
                     ChainConfig::Astria(chain_config) => chain_config.key_name,
+                    ChainConfig::Penumbra(_) => todo!(),
                 }
             });
 

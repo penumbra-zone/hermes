@@ -1,6 +1,7 @@
 //! Relayer configuration
 
 pub mod compat_mode;
+pub mod dynamic_gas;
 pub mod error;
 pub mod filter;
 pub mod gas_multiplier;
@@ -11,21 +12,11 @@ pub mod types;
 use alloc::collections::BTreeMap;
 use core::{
     cmp::Ordering,
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
     time::Duration,
 };
-use std::{
-    fs,
-    fs::File,
-    io::Write,
-    ops::Range,
-    path::Path,
-};
+use std::{fs, fs::File, io::Write, ops::Range, path::Path};
 
 use byte_unit::Byte;
 pub use error::Error;
@@ -34,40 +25,22 @@ use ibc_proto::google::protobuf::Any;
 use ibc_relayer_types::{
     core::{
         ics23_commitment::specs::ProofSpecs,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     timestamp::ZERO_DURATION,
 };
 pub use refresh_rate::RefreshRate;
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 use tendermint::block::Height as BlockHeight;
-use tendermint_rpc::{
-    Url,
-    WebSocketClientUrl,
-};
+use tendermint_rpc::{Url, WebSocketClientUrl};
 
 pub use crate::config::Error as ConfigError;
 use crate::{
-    chain::cosmos::config::CosmosSdkConfig,
-    config::types::{
-        ics20_field_size_limit::Ics20FieldSizeLimit,
-        TrustThreshold,
-    },
+    chain::{cosmos::config::CosmosSdkConfig, penumbra::config::PenumbraConfig},
+    config::types::{ics20_field_size_limit::Ics20FieldSizeLimit, TrustThreshold},
     error::Error as RelayerError,
     extension_options::ExtensionOptionDynamicFeeTx,
-    keyring,
-    keyring::{
-        AnySigningKeyPair,
-        KeyRing,
-        Store,
-    },
+    keyring::{self, AnySigningKeyPair, KeyRing, Store},
 };
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -343,6 +316,8 @@ impl Config {
                 ChainConfig::Astria(config) => {
                     config.validate().map_err(Into::<Diagnostic<Error>>::into)?;
                 }
+                // TODO: define a PenumbraConfig::validate
+                ChainConfig::Penumbra(_) => { /* no-op, for now */ }
             }
         }
 
@@ -651,12 +626,18 @@ pub enum EventSourceMode {
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+// NOTE: To work around a limitation of serde, which does not allow
+// to specify a default variant if not tag is present, we use
+// a custom Deserializer impl.
+//
+// IMPORTANT: Do not forget to update the `Deserializer` impl
+// below when adding a new chain type.
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum ChainConfig {
     CosmosSdk(CosmosSdkConfig),
     Astria(CosmosSdkConfig), // TODO: if the config is the cometbft config, it's the same
+    Penumbra(PenumbraConfig),
 }
 
 impl ChainConfig {
@@ -664,6 +645,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => &config.id,
             Self::Astria(config) => &config.id,
+            Self::Penumbra(config) => &config.id,
         }
     }
 
@@ -671,6 +653,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => &config.rpc_addr,
             Self::Astria(config) => &config.rpc_addr,
+            Self::Penumbra(config) => &config.rpc_addr,
         }
     }
 
@@ -678,6 +661,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => &config.packet_filter,
             Self::Astria(config) => &config.packet_filter,
+            Self::Penumbra(config) => &config.packet_filter,
         }
     }
 
@@ -685,13 +669,15 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.max_block_time,
             Self::Astria(config) => config.max_block_time,
+            Self::Penumbra(config) => config.max_block_time,
         }
     }
 
-    pub fn key_name(&self) -> &String {
+    pub fn key_name(&self) -> &str {
         match self {
             Self::CosmosSdk(config) => &config.key_name,
             Self::Astria(config) => &config.key_name,
+            Self::Penumbra(_) => "",
         }
     }
 
@@ -699,6 +685,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.key_name = key_name,
             Self::Astria(config) => config.key_name = key_name,
+            Self::Penumbra(_) => { /* no-op */ }
         }
     }
 
@@ -730,6 +717,7 @@ impl ChainConfig {
                     .map(|(key_name, keys)| (key_name, keys.into()))
                     .collect()
             }
+            ChainConfig::Penumbra(_) => vec![],
         };
 
         Ok(keys)
@@ -739,6 +727,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.clear_interval,
             Self::Astria(config) => config.clear_interval,
+            Self::Penumbra(config) => config.clear_interval,
         }
     }
 
@@ -746,6 +735,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.max_grpc_decoding_size,
             Self::Astria(config) => config.max_grpc_decoding_size,
+            Self::Penumbra(config) => todo!(),
         }
     }
 
@@ -753,6 +743,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => &config.proof_specs,
             Self::Astria(config) => &config.proof_specs,
+            Self::Penumbra(config) => todo!(),
         }
     }
 
@@ -760,6 +751,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => &config.event_source,
             Self::Astria(config) => &config.event_source,
+            Self::Penumbra(config) => &config.event_source,
         }
     }
 
@@ -767,6 +759,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.query_packets_chunk_size,
             Self::Astria(config) => config.query_packets_chunk_size,
+            Self::Penumbra(config) => config.query_packets_chunk_size,
         }
     }
 
@@ -774,6 +767,66 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.query_packets_chunk_size = query_packets_chunk_size,
             Self::Astria(config) => config.query_packets_chunk_size = query_packets_chunk_size,
+            Self::Penumbra(config) => config.query_packets_chunk_size = query_packets_chunk_size,
+        }
+    }
+
+    pub fn clock_drift(&self) -> Duration {
+        match self {
+            Self::CosmosSdk(config) => config.clock_drift,
+            Self::Astria(config) => config.clock_drift,
+            Self::Penumbra(config) => config.clock_drift,
+        }
+    }
+
+    pub fn trust_threshold(&self) -> TrustThreshold {
+        match self {
+            Self::CosmosSdk(config) => config.trust_threshold,
+            Self::Astria(config) => config.trust_threshold,
+            Self::Penumbra(config) => config.trust_threshold,
+        }
+    }
+}
+
+// /!\ Update me when adding a new chain type!
+impl<'de> Deserialize<'de> for ChainConfig {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut value = serde_json::Value::deserialize(deserializer)?;
+
+        // Remove the `type` key from the TOML value in order for deserialization to work,
+        // otherwise it would fail with: `unknown field `type`.
+        let type_value = value
+            .as_object_mut()
+            .ok_or_else(|| serde::de::Error::custom("invalid chain config, must be a table"))?
+            .remove("type")
+            .unwrap_or_else(|| serde_json::json!("CosmosSdk"));
+
+        let type_str = type_value
+            .as_str()
+            .ok_or_else(|| serde::de::Error::custom("invalid chain type, must be a string"))?;
+
+        match type_str {
+            "CosmosSdk" => CosmosSdkConfig::deserialize(value)
+                .map(Self::CosmosSdk)
+                .map_err(|e| serde::de::Error::custom(format!("invalid CosmosSdk config: {e}"))),
+            "Penumbra" => PenumbraConfig::deserialize(value)
+                .map(Self::Penumbra)
+                .map_err(|e| serde::de::Error::custom(format!("invalid Penumbra config: {e}"))),
+            "Astria" => CosmosSdkConfig::deserialize(value)
+                .map(Self::Astria)
+                .map_err(|e| {
+                    serde::de::Error::custom(format!("invalid Astria CosmosSdk config: {e}"))
+                }),
+
+            //
+            // <-- Add new chain types here -->
+            //
+            chain_type => Err(serde::de::Error::custom(format!(
+                "unknown chain type: {chain_type}",
+            ))),
         }
     }
 }
@@ -853,11 +906,7 @@ mod tests {
 
     use test_log::test;
 
-    use super::{
-        load,
-        parse_gas_prices,
-        store_writer,
-    };
+    use super::{load, parse_gas_prices, store_writer};
     use crate::config::GasPrice;
 
     #[test]
@@ -916,6 +965,25 @@ mod tests {
         );
 
         assert!(load(path).is_err());
+    }
+
+    #[test]
+    fn parse_default_chain_type() {
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/config/fixtures/relayer_conf_example_default_chain_type.toml"
+        );
+
+        let config = load(path).expect("could not parse config");
+
+        match config.chains[0] {
+            super::ChainConfig::CosmosSdk(_) => {
+                // all good
+            }
+            _ => {
+                panic!("expected CosmosSdk chain type as default");
+            }
+        }
     }
 
     #[test]
