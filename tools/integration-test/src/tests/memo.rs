@@ -4,18 +4,11 @@
 //! You can find a more thorough walkthrough of this test at
 //! `tools/test-framework/src/docs/walkthroughs/memo.rs`.
 
-use ibc_relayer::config::{
-    types::Memo,
-    ChainConfig,
-    Config,
-};
+use ibc_relayer::config::{types::Memo, ChainConfig, Config};
 use ibc_test_framework::{
     ibc::denom::derive_ibc_denom,
     prelude::*,
-    util::random::{
-        random_string,
-        random_u128_range,
-    },
+    util::random::{random_string, random_u128_range},
 };
 use serde_json as json;
 
@@ -38,6 +31,7 @@ impl TestOverrides for MemoTest {
                     chain_config.memo_prefix = self.memo.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }

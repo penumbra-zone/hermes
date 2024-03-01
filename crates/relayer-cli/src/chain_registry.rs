@@ -17,6 +17,7 @@ use ibc_relayer::{
     chain::cosmos::config::CosmosSdkConfig,
     config::{
         default,
+        dynamic_gas::DynamicGasPrice,
         filter::{FilterPattern, PacketFilter},
         gas_multiplier::GasMultiplier,
         types::{MaxMsgNum, MaxTxSize, Memo, TrustThreshold},

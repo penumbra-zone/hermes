@@ -735,7 +735,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => config.max_grpc_decoding_size,
             Self::Astria(config) => config.max_grpc_decoding_size,
-            Self::Penumbra(config) => todo!(),
+            Self::Penumbra(_config) => todo!(),
         }
     }
 
@@ -743,7 +743,7 @@ impl ChainConfig {
         match self {
             Self::CosmosSdk(config) => &config.proof_specs,
             Self::Astria(config) => &config.proof_specs,
-            Self::Penumbra(config) => todo!(),
+            Self::Penumbra(_config) => todo!(),
         }
     }
 

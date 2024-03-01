@@ -1,11 +1,7 @@
 use std::time::Duration;
 
 use ibc_relayer::{
-    chain::requests::{
-        IncludeProof,
-        QueryClientStateRequest,
-        QueryHeight,
-    },
+    chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
     client_state::AnyClientState,
     config::ChainConfig,
     foreign_client::CreateOptions,
@@ -42,6 +38,7 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_a.trust_threshold = TrustThreshold::new(13, 23).unwrap();
             }
             ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Astria(_) => todo!(),
         }
 
         match &mut config.chains[1] {
@@ -52,6 +49,7 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_b.trust_threshold = TrustThreshold::TWO_THIRDS;
             }
             ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Astria(_) => todo!(),
         }
     }
 }

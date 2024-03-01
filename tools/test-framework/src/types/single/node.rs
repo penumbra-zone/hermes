@@ -8,8 +8,9 @@ use std::sync::{Arc, RwLock};
 use eyre::{eyre, Report as Error};
 use ibc_relayer::{
     chain::cosmos::config::CosmosSdkConfig,
-    config,
-    config::{compat_mode::CompatMode, gas_multiplier::GasMultiplier},
+    config::{
+        self, compat_mode::CompatMode, dynamic_gas::DynamicGasPrice, gas_multiplier::GasMultiplier,
+    },
     keyring::Store,
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;

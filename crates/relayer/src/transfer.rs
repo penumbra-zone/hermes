@@ -1,53 +1,27 @@
 use core::time::Duration;
-use std::{
-    ops::Add,
-    str::FromStr,
-};
+use std::{ops::Add, str::FromStr};
 
-use flex_error::{
-    define_error,
-    DetailOnly,
-};
-use ibc_proto::{
-    cosmos::base::v1beta1::Coin,
-    google::protobuf::Any,
-};
+use flex_error::{define_error, DetailOnly};
+use ibc_proto::{cosmos::base::v1beta1::Coin, google::protobuf::Any};
 use ibc_relayer_types::{
     applications::transfer::{
         error::Error as Ics20Error,
-        msgs::{
-            transfer::MsgTransfer,
-            ASTRIA_WITHDRAWAL_TYPE_URL,
-        },
+        msgs::{transfer::MsgTransfer, ASTRIA_WITHDRAWAL_TYPE_URL},
         Amount,
     },
     core::{
         ics04_channel::timeout::TimeoutHeight,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     events::IbcEvent,
-    signer::{
-        Signer,
-        SignerError,
-    },
-    timestamp::{
-        Timestamp,
-        TimestampOverflowError,
-    },
+    signer::{Signer, SignerError},
+    timestamp::{Timestamp, TimestampOverflowError},
     tx_msg::Msg,
 };
 use prost::Message;
 
 use crate::{
-    chain::{
-        endpoint::ChainStatus,
-        handle::ChainHandle,
-        tracking::TrackedMsgs,
-    },
+    chain::{endpoint::ChainStatus, handle::ChainHandle, tracking::TrackedMsgs},
     error::Error,
     event::IbcEventWithHeight,
 };
@@ -209,7 +183,7 @@ fn build_transfer_message_astria(
 
     let msg = astria_core::generated::sequencer::v1alpha1::Ics20Withdrawal {
         source_channel: src_channel_id.to_string(),
-        denom: denom,
+        denom,
         amount: Some(
             u128::try_from(amount.0)
                 .expect("amount can fit into u128")

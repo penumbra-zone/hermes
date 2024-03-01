@@ -7,7 +7,7 @@ use ibc_relayer::{
         gas::calculate_fee,
         types::{config::TxConfig, gas::GasConfig},
     },
-    config::{AddressType, GasPrice},
+    config::{dynamic_gas::DynamicGasPrice, AddressType, GasPrice},
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tendermint_rpc::Url;

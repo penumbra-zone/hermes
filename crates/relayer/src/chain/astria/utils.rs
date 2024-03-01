@@ -17,9 +17,7 @@ pub(crate) fn decode_merkle_proof(proof_bytes: Vec<u8>) -> Result<MerkleProof, E
         IbcTypesMerkleProof::decode::<bytes::Bytes>(proof_bytes.into())
             .map_err(|e| Error::other_with_string(e.to_string()))?;
     let proof_proto = proof.to_proto();
-    proof_proto
-        .try_into()
-        .map_err(|e| Error::other(Box::new(e)))
+    Ok(proof_proto.into())
 }
 
 pub(crate) fn response_to_tx_sync_result(

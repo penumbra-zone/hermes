@@ -333,7 +333,7 @@ impl PenumbraChain {
         let plan = planner.plan(&mut view_client, AddressIndex::new(0)).await?;
 
         penumbra_wallet::build_transaction(
-            &self.config.kms_config.spend_key.full_viewing_key(),
+            self.config.kms_config.spend_key.full_viewing_key(),
             &mut view_client,
             &mut self.custody_client,
             plan,
@@ -404,10 +404,7 @@ impl PenumbraChain {
                     Some(status) => match status {
                         BroadcastStatus::BroadcastSuccess(bs) => {
                             if !wait_for_commit {
-                                return Ok(bs
-                                    .id
-                                    .expect("detected transaction missing id")
-                                    .try_into()?);
+                                return bs.id.expect("detected transaction missing id").try_into();
                             }
                         }
                         BroadcastStatus::Confirmed(c) => {
@@ -570,7 +567,7 @@ impl ChainEndpoint for PenumbraChain {
         let tendermint_light_client = TmLightClient::from_rpc_parameters(
             config.id.clone(),
             config.rpc_addr.clone(),
-            config.rpc_timeout.clone(),
+            config.rpc_timeout,
             node_info.id,
             true,
         )?;

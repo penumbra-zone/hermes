@@ -1,14 +1,8 @@
 use std::{
-    fs::{
-        File,
-        OpenOptions,
-    },
+    fs::{File, OpenOptions},
     path::Path,
     sync::{
-        atomic::{
-            AtomicUsize,
-            Ordering::Relaxed,
-        },
+        atomic::{AtomicUsize, Ordering::Relaxed},
         Mutex,
     },
 };
@@ -108,7 +102,6 @@ impl Drop for Timer {
 
 pub fn open_or_create_profile_file(file_name: &Path) {
     let file = OpenOptions::new()
-        .write(true)
         .append(true)
         .create(true)
         .open(file_name)
