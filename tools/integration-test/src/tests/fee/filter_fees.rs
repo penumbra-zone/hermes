@@ -33,6 +33,7 @@ impl TestOverrides for FilterIncentivizedFeesRelayerTest {
                     chain_config.packet_filter = packet_filter.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }
@@ -186,6 +187,7 @@ impl TestOverrides for FilterByChannelIncentivizedFeesRelayerTest {
                     chain_config.packet_filter = packet_filter.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }
