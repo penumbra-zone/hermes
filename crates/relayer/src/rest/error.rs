@@ -1,12 +1,5 @@
-use ibc_relayer_types::core::ics24_host::{
-    error::ValidationErrorDetail,
-    identifier::ChainId,
-};
-use serde::ser::{
-    Serialize,
-    SerializeMap,
-    Serializer,
-};
+use ibc_relayer_types::core::ics24_host::{error::ValidationErrorDetail, identifier::ChainId};
+use serde::ser::{Serialize, SerializeMap, Serializer};
 use thiserror::Error;
 
 #[derive(Error, Debug)]

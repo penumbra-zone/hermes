@@ -1,17 +1,8 @@
-use ibc_proto::{
-    ibc::mock::Misbehaviour as RawMisbehaviour,
-    Protobuf,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use ibc_proto::{ibc::mock::Misbehaviour as RawMisbehaviour, Protobuf};
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::{
-        ics02_client::error::Error,
-        ics24_host::identifier::ClientId,
-    },
+    core::{ics02_client::error::Error, ics24_host::identifier::ClientId},
     mock::header::MockHeader,
     Height,
 };

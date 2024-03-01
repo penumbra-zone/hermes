@@ -2,36 +2,17 @@ use ibc_relayer_types::core::{
     ics03_connection::connection::IdentifiedConnectionEnd,
     ics04_channel::channel::State as ChannelState,
 };
-use tracing::{
-    error,
-    info,
-};
+use tracing::{error, info};
 
 use super::{
-    scan::{
-        ChainScan,
-        ChainsScan,
-        ChannelScan,
-        ClientScan,
-        ConnectionScan,
-    },
+    scan::{ChainScan, ChainsScan, ChannelScan, ClientScan, ConnectionScan},
     Error,
 };
 use crate::{
-    chain::{
-        counterparty::connection_state_on_destination,
-        handle::ChainHandle,
-    },
+    chain::{counterparty::connection_state_on_destination, handle::ChainHandle},
     client_state::IdentifiedAnyClientState,
     config::Config,
-    object::{
-        Channel,
-        Client,
-        Connection,
-        Object,
-        Packet,
-        Wallet,
-    },
+    object::{Channel, Client, Connection, Object, Packet, Wallet},
     registry::Registry,
     supervisor::error::Error as SupervisorError,
     telemetry,

@@ -1,82 +1,44 @@
 use core::time::Duration;
 use std::{
     borrow::BorrowMut,
-    sync::{
-        Arc,
-        Mutex,
-    },
+    sync::{Arc, Mutex},
 };
 
 use crossbeam_channel::Receiver;
 use ibc_proto::ibc::{
-    apps::fee::v1::{
-        IdentifiedPacketFees,
-        QueryIncentivizedPacketRequest,
-    },
+    apps::fee::v1::{IdentifiedPacketFees, QueryIncentivizedPacketRequest},
     core::channel::v1::PacketId,
 };
 use ibc_relayer_types::{
     applications::{
         ics29_fee::events::IncentivizedPacket,
-        transfer::{
-            Amount,
-            Coin,
-            RawCoin,
-        },
+        transfer::{Amount, Coin, RawCoin},
     },
-    core::ics04_channel::{
-        events::WriteAcknowledgement,
-        packet::Sequence,
-    },
-    events::{
-        IbcEvent,
-        IbcEventType,
-    },
+    core::ics04_channel::{events::WriteAcknowledgement, packet::Sequence},
+    events::{IbcEvent, IbcEventType},
     Height,
 };
 use itertools::Itertools;
 use moka::sync::Cache;
-use tracing::{
-    debug,
-    error,
-    error_span,
-    info,
-    trace,
-    warn,
-};
+use tracing::{debug, error, error_span, info, trace, warn};
 #[cfg(feature = "telemetry")]
 use {
     ibc_relayer_types::core::ics24_host::identifier::ChannelId,
     ibc_relayer_types::core::ics24_host::identifier::PortId,
 };
 
-use super::{
-    error::RunError,
-    WorkerCmd,
-};
+use super::{error::RunError, WorkerCmd};
 use crate::{
     chain::handle::ChainHandle,
     config::filter::FeePolicy,
     event::source::EventBatch,
     foreign_client::HasExpiredOrFrozenError,
-    link::{
-        error::LinkError,
-        Link,
-        Resubmit,
-    },
+    link::{error::LinkError, Link, Resubmit},
     object::Packet,
     telemetry,
     util::{
-        lock::{
-            LockExt,
-            RwArc,
-        },
-        task::{
-            spawn_background_task,
-            Next,
-            TaskError,
-            TaskHandle,
-        },
+        lock::{LockExt, RwArc},
+        task::{spawn_background_task, Next, TaskError, TaskHandle},
     },
 };
 

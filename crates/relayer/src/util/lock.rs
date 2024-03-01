@@ -1,9 +1,4 @@
-use std::sync::{
-    Arc,
-    RwLock,
-    RwLockReadGuard,
-    RwLockWriteGuard,
-};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub type RwArc<T> = Arc<RwLock<T>>;
 

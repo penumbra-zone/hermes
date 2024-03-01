@@ -3,35 +3,20 @@ use std::thread;
 
 use ibc_proto::google::protobuf::Any;
 use tendermint::abci::Code;
-use tendermint_rpc::{
-    endpoint::broadcast::tx_sync::Response,
-    HttpClient,
-};
-use tracing::{
-    debug,
-    error,
-    instrument,
-    warn,
-};
+use tendermint_rpc::{endpoint::broadcast::tx_sync::Response, HttpClient};
+use tracing::{debug, error, instrument, warn};
 
 use crate::{
     chain::cosmos::{
         query::account::refresh_account,
         tx::estimate_fee_and_send_tx,
-        types::{
-            account::Account,
-            config::TxConfig,
-        },
+        types::{account::Account, config::TxConfig},
     },
     config::types::Memo,
     error::Error,
-    keyring::{
-        Secp256k1KeyPair,
-        SigningKeyPair,
-    },
+    keyring::{Secp256k1KeyPair, SigningKeyPair},
     sdk_error::sdk_error_from_tx_sync_error_code,
-    telemetry,
-    time,
+    telemetry, time,
 };
 
 // Delay in milliseconds before retrying in the case of account sequence mismatch.

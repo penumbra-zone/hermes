@@ -1,47 +1,25 @@
 use core::time::Duration;
 
 use abscissa_core::{
-    clap::Parser,
-    config::Override,
-    Command,
-    FrameworkError,
-    FrameworkErrorKind,
-    Runnable,
+    clap::Parser, config::Override, Command, FrameworkError, FrameworkErrorKind, Runnable,
 };
 use eyre::eyre;
 use ibc_relayer::{
     chain::handle::ChainHandle,
     config::Config,
-    transfer::{
-        build_transfer_messages,
-        send_messages,
-        TransferOptions,
-    },
+    transfer::{build_transfer_messages, send_messages, TransferOptions},
 };
 use ibc_relayer_types::{
     applications::{
         ics29_fee::msgs::pay_packet::build_pay_packet_message,
-        transfer::{
-            Amount,
-            Coin,
-        },
+        transfer::{Amount, Coin},
     },
-    core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    },
+    core::ics24_host::identifier::{ChainId, ChannelId, PortId},
 };
 
 use crate::{
-    cli_utils::{
-        check_can_send_on_channel,
-        ChainHandlePair,
-    },
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    cli_utils::{check_can_send_on_channel, ChainHandlePair},
+    conclude::{exit_with_unrecoverable_error, Output},
     prelude::*,
 };
 
@@ -331,11 +309,7 @@ mod tests {
     use abscissa_core::clap::Parser;
     use ibc_relayer_types::{
         applications::transfer::Amount,
-        core::ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        core::ics24_host::identifier::{ChainId, ChannelId, PortId},
     };
 
     use super::FeeTransferCmd;

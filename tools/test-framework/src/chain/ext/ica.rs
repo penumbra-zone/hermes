@@ -1,28 +1,17 @@
-use ibc_relayer::chain::{
-    handle::ChainHandle,
-    tracking::TrackedMsgs,
-};
+use ibc_relayer::chain::{handle::ChainHandle, tracking::TrackedMsgs};
 use ibc_relayer_types::{
     applications::ics27_ica::msgs::register::MsgRegisterInterchainAccount,
-    core::ics04_channel::version::Version,
-    events::IbcEvent,
-    tx_msg::Msg,
+    core::ics04_channel::version::Version, events::IbcEvent, tx_msg::Msg,
 };
 
 use crate::{
     chain::{
-        cli::ica::{
-            query_interchain_account,
-            register_interchain_account_cli,
-        },
+        cli::ica::{query_interchain_account, register_interchain_account_cli},
         driver::ChainDriver,
     },
     error::Error,
     prelude::*,
-    types::{
-        tagged::*,
-        wallet::WalletAddress,
-    },
+    types::{tagged::*, wallet::WalletAddress},
 };
 
 pub trait InterchainAccountMethodsExt<Chain> {

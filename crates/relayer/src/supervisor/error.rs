@@ -1,18 +1,11 @@
 use flex_error::define_error;
 use ibc_relayer_types::core::{
     ics03_connection::connection::Counterparty,
-    ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        ConnectionId,
-        PortId,
-    },
+    ics24_host::identifier::{ChainId, ChannelId, ConnectionId, PortId},
 };
 
 use crate::{
-    error::Error as RelayerError,
-    spawn::SpawnError,
-    supervisor::scan::Error as ScanError,
+    error::Error as RelayerError, spawn::SpawnError, supervisor::scan::Error as ScanError,
 };
 
 define_error! {

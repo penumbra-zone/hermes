@@ -16,31 +16,22 @@ use ibc_relayer_types::mock::client_state::MockClientState;
 use ibc_relayer_types::mock::client_state::MOCK_CLIENT_STATE_TYPE_URL;
 use ibc_relayer_types::{
     clients::ics07_tendermint::client_state::{
-        ClientState as TmClientState,
-        UpgradeOptions as TmUpgradeOptions,
+        ClientState as TmClientState, UpgradeOptions as TmUpgradeOptions,
         TENDERMINT_CLIENT_STATE_TYPE_URL,
     },
     core::{
         ics02_client::{
-            client_state::ClientState,
-            client_type::ClientType,
-            error::Error,
+            client_state::ClientState, client_type::ClientType, error::Error,
             trust_threshold::TrustThreshold,
         },
         ics24_host::{
             error::ValidationError,
-            identifier::{
-                ChainId,
-                ClientId,
-            },
+            identifier::{ChainId, ClientId},
         },
     },
     Height,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type")]

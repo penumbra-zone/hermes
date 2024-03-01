@@ -7,30 +7,17 @@ use ibc_relayer_types::{
 };
 
 use crate::{
-    chain::{
-        driver::ChainDriver,
-        tagged::TaggedChainDriverExt,
-    },
+    chain::{driver::ChainDriver, tagged::TaggedChainDriverExt},
     error::Error,
     ibc::token::TaggedTokenRef,
     relayer::fee::{
-        ibc_token_transfer_with_fee,
-        pay_packet_fee,
-        query_counterparty_payee,
-        query_incentivized_packets,
-        register_counterparty_payee,
-        register_payee,
+        ibc_token_transfer_with_fee, pay_packet_fee, query_counterparty_payee,
+        query_incentivized_packets, register_counterparty_payee, register_payee,
     },
     types::{
-        id::{
-            TaggedChannelIdRef,
-            TaggedPortIdRef,
-        },
+        id::{TaggedChannelIdRef, TaggedPortIdRef},
         tagged::*,
-        wallet::{
-            Wallet,
-            WalletAddress,
-        },
+        wallet::{Wallet, WalletAddress},
     },
 };
 

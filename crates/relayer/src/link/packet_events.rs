@@ -1,26 +1,13 @@
 //! Utility methods for querying packet event data.
 
-use ibc_relayer_types::{
-    core::ics04_channel::packet::Sequence,
-    events::WithBlockDataType,
-    Height,
-};
+use ibc_relayer_types::{core::ics04_channel::packet::Sequence, events::WithBlockDataType, Height};
 use itertools::Itertools;
-use tracing::{
-    info,
-    span,
-    warn,
-    Level,
-};
+use tracing::{info, span, warn, Level};
 
 use crate::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            Qualified,
-            QueryHeight,
-            QueryPacketEventDataRequest,
-        },
+        requests::{Qualified, QueryHeight, QueryPacketEventDataRequest},
     },
     error::Error,
     event::IbcEventWithHeight,

@@ -1,25 +1,11 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use ibc_relayer::chain::{
-    handle::ChainHandle,
-    requests::QueryChannelClientStateRequest,
-};
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChainId,
-    ChannelId,
-    PortId,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::chain::{handle::ChainHandle, requests::QueryChannelClientStateRequest};
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 
 use crate::{
     application::app_config,
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
 };
 
 /// The data structure that represents the arguments when invoking the `query channel client` CLI command.
@@ -80,11 +66,7 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 
     use super::QueryChannelClientCmd;
 

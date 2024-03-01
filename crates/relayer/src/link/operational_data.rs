@@ -1,44 +1,21 @@
-use core::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use core::fmt::{Display, Error as FmtError, Formatter};
 use std::{
     ops::Add,
-    time::{
-        Duration,
-        Instant,
-    },
+    time::{Duration, Instant},
 };
 
 use ibc_proto::google::protobuf::Any;
-use ibc_relayer_types::{
-    core::ics02_client::client_state::ClientState,
-    Height,
-};
-use tracing::{
-    debug,
-    info,
-};
+use ibc_relayer_types::{core::ics02_client::client_state::ClientState, Height};
+use tracing::{debug, info};
 
 use crate::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryClientStateRequest,
-            QueryHeight,
-        },
-        tracking::{
-            TrackedMsgs,
-            TrackingId,
-        },
+        requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
+        tracking::{TrackedMsgs, TrackingId},
     },
     event::IbcEventWithHeight,
-    link::{
-        error::LinkError,
-        RelayPath,
-    },
+    link::{error::LinkError, RelayPath},
 };
 
 /// The chain that the events associated with a piece of [`OperationalData`] are bound for.

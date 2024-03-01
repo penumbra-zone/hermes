@@ -2,10 +2,7 @@ use tendermint::Version;
 use tendermint_rpc::client::CompatMode as TmCompatMode;
 use tracing::warn;
 
-use crate::{
-    config::compat_mode::CompatMode,
-    error::Error,
-};
+use crate::{config::compat_mode::CompatMode, error::Error};
 
 /// This is a wrapper around tendermint-rs CompatMode::from_version() method.
 ///

@@ -1,40 +1,17 @@
-use core::{
-    convert::Infallible,
-    time::Duration,
-};
+use core::{convert::Infallible, time::Duration};
 
 use crossbeam_channel::Receiver;
-use ibc_relayer_types::{
-    core::ics02_client::events::UpdateClient,
-    events::IbcEvent,
-};
-use retry::{
-    delay::Fibonacci,
-    retry_with_index,
-};
-use tracing::{
-    debug,
-    debug_span,
-    error_span,
-    trace,
-    warn,
-};
+use ibc_relayer_types::{core::ics02_client::events::UpdateClient, events::IbcEvent};
+use retry::{delay::Fibonacci, retry_with_index};
+use tracing::{debug, debug_span, error_span, trace, warn};
 
 use super::WorkerCmd;
 use crate::{
     chain::handle::ChainHandle,
-    foreign_client::{
-        ForeignClient,
-        MisbehaviourResults,
-    },
+    foreign_client::{ForeignClient, MisbehaviourResults},
     util::{
         retry::clamp_total,
-        task::{
-            spawn_background_task,
-            Next,
-            TaskError,
-            TaskHandle,
-        },
+        task::{spawn_background_task, Next, TaskError, TaskHandle},
     },
 };
 

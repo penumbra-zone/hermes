@@ -18,8 +18,7 @@ use ibc_relayer_types::{
             pay_packet::build_pay_packet_message,
             pay_packet_async::build_pay_packet_fee_async_message,
             register_payee::{
-                build_register_counterparty_payee_message,
-                build_register_payee_message,
+                build_register_counterparty_payee_message, build_register_payee_message,
             },
         },
         packet_fee::IdentifiedPacketFees,
@@ -29,28 +28,13 @@ use ibc_relayer_types::{
 use tendermint_rpc::HttpClient;
 
 use crate::{
-    error::{
-        handle_generic_error,
-        Error,
-    },
-    ibc::token::{
-        TaggedTokenExt,
-        TaggedTokenRef,
-    },
+    error::{handle_generic_error, Error},
+    ibc::token::{TaggedTokenExt, TaggedTokenRef},
     relayer::transfer::build_transfer_message,
     types::{
-        id::{
-            TaggedChannelIdRef,
-            TaggedPortIdRef,
-        },
-        tagged::{
-            DualTagged,
-            MonoTagged,
-        },
-        wallet::{
-            Wallet,
-            WalletAddress,
-        },
+        id::{TaggedChannelIdRef, TaggedPortIdRef},
+        tagged::{DualTagged, MonoTagged},
+        wallet::{Wallet, WalletAddress},
     },
 };
 

@@ -12,42 +12,26 @@ use crate::{
     bootstrap::nary::channel::bootstrap_channels_with_connections,
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
             chain::RelayerConfigOverride,
-            channel::{
-                BinaryChannelTest,
-                ChannelOrderOverride,
-            },
+            channel::{BinaryChannelTest, ChannelOrderOverride},
             connection::ConnectionDelayOverride,
-            node::{
-                NodeConfigOverride,
-                NodeGenesisOverride,
-            },
+            node::{NodeConfigOverride, NodeGenesisOverride},
         },
         nary::{
             chain::RunNaryChainTest,
-            connection::{
-                NaryConnectionTest,
-                RunNaryConnectionTest,
-            },
+            connection::{NaryConnectionTest, RunNaryConnectionTest},
             node::run_nary_node_test,
         },
-        supervisor::{
-            RunWithSupervisor,
-            SupervisorOverride,
-        },
+        supervisor::{RunWithSupervisor, SupervisorOverride},
     },
     relayer::driver::RelayerDriver,
     types::{
         config::TestConfig,
         env::write_env,
         nary::{
-            chains::NaryConnectedChains,
-            channel::ConnectedChannels,
+            chains::NaryConnectedChains, channel::ConnectedChannels,
             connection::ConnectedConnections,
         },
     },

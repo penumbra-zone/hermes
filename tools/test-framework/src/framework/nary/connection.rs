@@ -11,41 +11,23 @@ use crate::{
     bootstrap::nary::connection::bootstrap_connections,
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
             chain::RelayerConfigOverride,
-            connection::{
-                BinaryConnectionTest,
-                ConnectionDelayOverride,
-            },
-            node::{
-                NodeConfigOverride,
-                NodeGenesisOverride,
-            },
+            connection::{BinaryConnectionTest, ConnectionDelayOverride},
+            node::{NodeConfigOverride, NodeGenesisOverride},
         },
         nary::{
-            chain::{
-                NaryChainTest,
-                RunNaryChainTest,
-            },
+            chain::{NaryChainTest, RunNaryChainTest},
             node::run_nary_node_test,
         },
-        supervisor::{
-            RunWithSupervisor,
-            SupervisorOverride,
-        },
+        supervisor::{RunWithSupervisor, SupervisorOverride},
     },
     relayer::driver::RelayerDriver,
     types::{
         config::TestConfig,
         env::write_env,
-        nary::{
-            chains::NaryConnectedChains,
-            connection::ConnectedConnections,
-        },
+        nary::{chains::NaryConnectedChains, connection::ConnectedConnections},
     },
     util::suspend::hang_on_error,
 };

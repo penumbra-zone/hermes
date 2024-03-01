@@ -2,39 +2,19 @@
 //! Contains struct to perform a health check on a gRPC/WebSocket endpoint and
 //! to retrieve the `max_block_size` from a RPC endpoint.
 
-use std::{
-    fmt::Debug,
-    str::FromStr,
-};
+use std::{fmt::Debug, str::FromStr};
 
 use async_trait::async_trait;
-use futures::{
-    stream::FuturesUnordered,
-    StreamExt,
-};
+use futures::{stream::FuturesUnordered, StreamExt};
 use http::Uri;
 use ibc_proto::cosmos::bank::v1beta1::query_client::QueryClient;
-use tendermint_rpc::{
-    Client,
-    SubscriptionClient,
-    Url,
-    WebSocketClient,
-};
-use tokio::time::{
-    timeout,
-    Duration,
-};
-use tracing::{
-    debug,
-    info,
-};
+use tendermint_rpc::{Client, SubscriptionClient, Url, WebSocketClient};
+use tokio::time::{timeout, Duration};
+use tracing::{debug, info};
 
 use crate::{
     error::RegistryError,
-    formatter::{
-        SimpleWebSocketFormatter,
-        UriFormatter,
-    },
+    formatter::{SimpleWebSocketFormatter, UriFormatter},
 };
 
 /// `QueryTypes` represents the basic types required to query a node

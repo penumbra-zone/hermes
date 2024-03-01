@@ -1,18 +1,12 @@
 use ibc_relayer_types::{
     applications::ics29_fee::events::DistributionType,
-    core::{
-        ics02_client::height::Height,
-        ics24_host::identifier::ChainId,
-    },
+    core::{ics02_client::height::Height, ics24_host::identifier::ChainId},
     events::IbcEvent,
 };
 use tendermint::abci;
 
 use crate::{
-    event::{
-        ibc_event_try_from_abci_event,
-        IbcEventWithHeight,
-    },
+    event::{ibc_event_try_from_abci_event, IbcEventWithHeight},
     telemetry,
 };
 

@@ -1,11 +1,5 @@
-use bech32::{
-    FromBase32,
-    ToBase32,
-};
-use tiny_keccak::{
-    Hasher,
-    Keccak,
-};
+use bech32::{FromBase32, ToBase32};
+use tiny_keccak::{Hasher, Keccak};
 
 use super::errors::Error;
 

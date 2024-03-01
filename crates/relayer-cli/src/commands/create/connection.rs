@@ -1,36 +1,19 @@
 use core::time::Duration;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryClientStateRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
     },
     connection::Connection,
     foreign_client::ForeignClient,
 };
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChainId,
-    ClientId,
-};
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 
 use crate::{
-    cli_utils::{
-        spawn_chain_runtime,
-        ChainHandlePair,
-    },
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    cli_utils::{spawn_chain_runtime, ChainHandlePair},
+    conclude::{exit_with_unrecoverable_error, Output},
     prelude::*,
 };
 
@@ -200,10 +183,7 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 
     use super::CreateConnectionCommand;
 

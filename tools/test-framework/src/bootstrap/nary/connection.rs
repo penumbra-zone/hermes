@@ -2,32 +2,17 @@
    Functions for bootstrapping N-ary number of connections.
 */
 
-use core::{
-    convert::TryInto,
-    time::Duration,
-};
+use core::{convert::TryInto, time::Duration};
 
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    foreign_client::ForeignClient,
-};
+use ibc_relayer::{chain::handle::ChainHandle, foreign_client::ForeignClient};
 
 use crate::{
-    bootstrap::binary::connection::{
-        bootstrap_connection,
-        BootstrapConnectionOptions,
-    },
+    bootstrap::binary::connection::{bootstrap_connection, BootstrapConnectionOptions},
     error::Error,
     types::{
-        binary::{
-            connection::ConnectedConnection,
-            foreign_client::ForeignClientPair,
-        },
+        binary::{connection::ConnectedConnection, foreign_client::ForeignClientPair},
         nary::{
-            connection::{
-                ConnectedConnections,
-                DynamicConnectedConnections,
-            },
+            connection::{ConnectedConnections, DynamicConnectedConnections},
             foreign_client::ForeignClientPairs,
         },
     },

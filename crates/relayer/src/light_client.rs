@@ -1,15 +1,10 @@
 pub mod io;
 pub mod tendermint;
 
-use ibc_relayer_types::{
-    core::ics02_client::events::UpdateClient,
-    Height,
-};
+use ibc_relayer_types::{core::ics02_client::events::UpdateClient, Height};
 
 use crate::{
-    chain::endpoint::ChainEndpoint,
-    client_state::AnyClientState,
-    error,
+    chain::endpoint::ChainEndpoint, client_state::AnyClientState, error,
     misbehaviour::MisbehaviourEvidence,
 };
 

@@ -1,15 +1,11 @@
 use ibc_proto::{
-    ibc::core::channel::v1::MsgChannelCloseConfirm as RawMsgChannelCloseConfirm,
-    Protobuf,
+    ibc::core::channel::v1::MsgChannelCloseConfirm as RawMsgChannelCloseConfirm, Protobuf,
 };
 
 use crate::{
     core::{
         ics04_channel::error::Error,
-        ics24_host::identifier::{
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChannelId, PortId},
     },
     proofs::Proofs,
     signer::Signer,
@@ -101,19 +97,12 @@ impl From<MsgChannelCloseConfirm> for RawMsgChannelCloseConfirm {
 pub mod test_util {
 
     use ibc_proto::ibc::core::{
-        channel::v1::MsgChannelCloseConfirm as RawMsgChannelCloseConfirm,
-        client::v1::Height,
+        channel::v1::MsgChannelCloseConfirm as RawMsgChannelCloseConfirm, client::v1::Height,
     };
 
     use crate::{
-        core::ics24_host::identifier::{
-            ChannelId,
-            PortId,
-        },
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        core::ics24_host::identifier::{ChannelId, PortId},
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
 
     /// Returns a dummy `RawMsgChannelCloseConfirm`, for testing only!
@@ -135,13 +124,11 @@ pub mod test_util {
 mod tests {
 
     use ibc_proto::ibc::core::{
-        channel::v1::MsgChannelCloseConfirm as RawMsgChannelCloseConfirm,
-        client::v1::Height,
+        channel::v1::MsgChannelCloseConfirm as RawMsgChannelCloseConfirm, client::v1::Height,
     };
 
     use crate::core::ics04_channel::msgs::chan_close_confirm::{
-        test_util::get_dummy_raw_msg_chan_close_confirm,
-        MsgChannelCloseConfirm,
+        test_util::get_dummy_raw_msg_chan_close_confirm, MsgChannelCloseConfirm,
     };
 
     #[test]

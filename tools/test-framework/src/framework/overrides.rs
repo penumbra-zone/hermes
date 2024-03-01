@@ -5,42 +5,23 @@
 use core::time::Duration;
 
 use ibc_relayer::{
-    config::{
-        default::connection_delay as default_connection_delay,
-        Config,
-    },
+    config::{default::connection_delay as default_connection_delay, Config},
     foreign_client::CreateOptions as ClientOptions,
 };
 use ibc_relayer_types::core::{
-    ics04_channel::{
-        channel::Ordering,
-        version::Version,
-    },
+    ics04_channel::{channel::Ordering, version::Version},
     ics24_host::identifier::PortId,
 };
 
 use crate::{
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
-            chain::{
-                ClientOptionsOverride,
-                RelayerConfigOverride,
-            },
-            channel::{
-                ChannelOrderOverride,
-                ChannelVersionOverride,
-                PortsOverride,
-            },
+            chain::{ClientOptionsOverride, RelayerConfigOverride},
+            channel::{ChannelOrderOverride, ChannelVersionOverride, PortsOverride},
             connection::ConnectionDelayOverride,
-            node::{
-                NodeConfigOverride,
-                NodeGenesisOverride,
-            },
+            node::{NodeConfigOverride, NodeGenesisOverride},
         },
         nary::channel::PortsOverride as NaryPortsOverride,
         supervisor::SupervisorOverride,

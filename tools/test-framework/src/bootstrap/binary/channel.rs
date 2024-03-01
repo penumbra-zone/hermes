@@ -2,39 +2,22 @@
     Helper functions for bootstrapping a channel between two chains.
 */
 
-use eyre::{
-    eyre,
-    Report as Error,
-};
+use eyre::{eyre, Report as Error};
 use ibc_relayer::{
     chain::handle::ChainHandle,
-    channel::{
-        Channel,
-        ChannelSide,
-    },
+    channel::{Channel, ChannelSide},
 };
 use ibc_relayer_types::core::{
-    ics04_channel::{
-        channel::Ordering,
-        version::Version,
-    },
+    ics04_channel::{channel::Ordering, version::Version},
     ics24_host::identifier::PortId,
 };
-use tracing::{
-    debug,
-    info,
-};
+use tracing::{debug, info};
 
-use super::connection::{
-    bootstrap_connection,
-    BootstrapConnectionOptions,
-};
+use super::connection::{bootstrap_connection, BootstrapConnectionOptions};
 use crate::{
     types::{
         binary::{
-            chains::ConnectedChains,
-            channel::ConnectedChannel,
-            connection::ConnectedConnection,
+            chains::ConnectedChains, channel::ConnectedChannel, connection::ConnectedConnection,
             foreign_client::ForeignClientPair,
         },
         id::TaggedPortIdRef,

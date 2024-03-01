@@ -1,27 +1,14 @@
 use std::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     hash::Hash,
     num::ParseIntError,
-    ops::{
-        Add,
-        Sub,
-    },
+    ops::{Add, Sub},
     str::FromStr,
     time::Duration,
 };
 
-use flex_error::{
-    define_error,
-    TraceError,
-};
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use flex_error::{define_error, TraceError};
+use serde_derive::{Deserialize, Serialize};
 use tendermint::Time;
 use time::OffsetDateTime;
 
@@ -254,11 +241,7 @@ mod tests {
     use test_log::test;
     use time::OffsetDateTime;
 
-    use super::{
-        Expiry,
-        Timestamp,
-        ZERO_DURATION,
-    };
+    use super::{Expiry, Timestamp, ZERO_DURATION};
 
     #[test]
     fn test_timestamp_comparisons() {

@@ -1,20 +1,11 @@
 use ibc_proto::{
     google::protobuf::Any,
-    ibc::applications::fee::v1::{
-        Fee as ProtoFee,
-        MsgPayPacketFee,
-    },
+    ibc::applications::fee::v1::{Fee as ProtoFee, MsgPayPacketFee},
 };
 
 use crate::{
-    applications::{
-        ics29_fee::error::Error,
-        transfer::coin::RawCoin,
-    },
-    core::ics24_host::identifier::{
-        ChannelId,
-        PortId,
-    },
+    applications::{ics29_fee::error::Error, transfer::coin::RawCoin},
+    core::ics24_host::identifier::{ChannelId, PortId},
     signer::Signer,
     tx_msg::encode_message,
 };

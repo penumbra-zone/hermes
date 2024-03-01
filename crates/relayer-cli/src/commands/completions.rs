@@ -1,9 +1,6 @@
 use std::io;
 
-use abscissa_core::{
-    clap::Parser,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Runnable};
 use clap::IntoApp;
 use clap_complete::Shell;
 

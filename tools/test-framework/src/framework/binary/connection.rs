@@ -10,40 +10,21 @@ use ibc_relayer::chain::handle::ChainHandle;
 use tracing::info;
 
 use crate::{
-    bootstrap::binary::connection::{
-        bootstrap_connection,
-        BootstrapConnectionOptions,
-    },
+    bootstrap::binary::connection::{bootstrap_connection, BootstrapConnectionOptions},
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
             chain::{
-                BinaryChainTest,
-                ClientOptionsOverride,
-                RelayerConfigOverride,
-                RunBinaryChainTest,
+                BinaryChainTest, ClientOptionsOverride, RelayerConfigOverride, RunBinaryChainTest,
             },
-            node::{
-                run_binary_node_test,
-                NodeConfigOverride,
-                NodeGenesisOverride,
-            },
+            node::{run_binary_node_test, NodeConfigOverride, NodeGenesisOverride},
         },
-        supervisor::{
-            RunWithSupervisor,
-            SupervisorOverride,
-        },
+        supervisor::{RunWithSupervisor, SupervisorOverride},
     },
     relayer::driver::RelayerDriver,
     types::{
-        binary::{
-            chains::ConnectedChains,
-            connection::ConnectedConnection,
-        },
+        binary::{chains::ConnectedChains, connection::ConnectedConnection},
         config::TestConfig,
         env::write_env,
     },

@@ -1,8 +1,5 @@
 use alloc::collections::VecDeque;
-use std::sync::{
-    Arc,
-    RwLock,
-};
+use std::sync::{Arc, RwLock};
 
 use crate::util::lock::LockExt;
 

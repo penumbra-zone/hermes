@@ -8,19 +8,12 @@ use ibc_relayer::{
     chain::handle::CountingAndCachingChainHandle,
     config::Config,
     registry::SharedRegistry,
-    supervisor::{
-        spawn_supervisor,
-        SupervisorHandle,
-        SupervisorOptions,
-    },
+    supervisor::{spawn_supervisor, SupervisorHandle, SupervisorOptions},
 };
 
 use crate::{
     error::Error,
-    types::env::{
-        EnvWriter,
-        ExportEnv,
-    },
+    types::env::{EnvWriter, ExportEnv},
     util::suspend::hang_on_error,
 };
 

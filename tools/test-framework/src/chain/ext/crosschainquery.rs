@@ -6,11 +6,7 @@ use serde_json as json;
 use crate::{
     chain::cli::query::query_cross_chain_query,
     error::Error,
-    prelude::{
-        assert_eventually_succeed,
-        handle_generic_error,
-        ChainDriver,
-    },
+    prelude::{assert_eventually_succeed, handle_generic_error, ChainDriver},
     types::tagged::MonoTagged,
 };
 

@@ -5,23 +5,15 @@ use ibc_relayer_types::mock::misbehaviour::Misbehaviour as MockMisbehaviour;
 use ibc_relayer_types::mock::misbehaviour::MOCK_MISBEHAVIOUR_TYPE_URL;
 use ibc_relayer_types::{
     clients::ics07_tendermint::misbehaviour::{
-        Misbehaviour as TmMisbehaviour,
-        TENDERMINT_MISBEHAVIOR_TYPE_URL,
+        Misbehaviour as TmMisbehaviour, TENDERMINT_MISBEHAVIOR_TYPE_URL,
     },
     core::{
-        ics02_client::{
-            error::Error,
-            header::AnyHeader,
-            misbehaviour::Misbehaviour,
-        },
+        ics02_client::{error::Error, header::AnyHeader, misbehaviour::Misbehaviour},
         ics24_host::identifier::ClientId,
     },
     Height,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 use tendermint_proto::Protobuf;
 
 #[derive(Clone, Debug, PartialEq, Eq)]

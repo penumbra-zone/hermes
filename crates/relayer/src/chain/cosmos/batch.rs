@@ -1,16 +1,9 @@
 use core::mem;
 
 use ibc_proto::google::protobuf::Any;
-use ibc_relayer_types::{
-    core::ics24_host::identifier::ChainId,
-    events::IbcEvent,
-    Height,
-};
+use ibc_relayer_types::{core::ics24_host::identifier::ChainId, events::IbcEvent, Height};
 use prost::Message;
-use tendermint_rpc::{
-    endpoint::broadcast::tx_sync::Response,
-    HttpClient,
-};
+use tendermint_rpc::{endpoint::broadcast::tx_sync::Response, HttpClient};
 use tracing::debug;
 
 use crate::{
@@ -21,10 +14,7 @@ use crate::{
         types::{
             account::Account,
             config::TxConfig,
-            tx::{
-                TxStatus,
-                TxSyncResult,
-            },
+            tx::{TxStatus, TxSyncResult},
         },
         wait::wait_for_block_commits,
     },
@@ -340,27 +330,13 @@ mod tests {
             encode::sign_and_encode_tx,
             gas::gas_amount_to_fee,
             types::{
-                account::{
-                    Account,
-                    AccountAddress,
-                    AccountNumber,
-                    AccountSequence,
-                },
+                account::{Account, AccountAddress, AccountNumber, AccountSequence},
                 config::TxConfig,
             },
         },
         config,
-        config::types::{
-            MaxMsgNum,
-            MaxTxSize,
-            Memo,
-        },
-        keyring::{
-            self,
-            KeyRing,
-            Secp256k1KeyPair,
-            SigningKeyPair,
-        },
+        config::types::{MaxMsgNum, MaxTxSize, Memo},
+        keyring::{self, KeyRing, Secp256k1KeyPair, SigningKeyPair},
     };
 
     const COSMOS_HD_PATH: &str = "m/44'/118'/0'/0/0";

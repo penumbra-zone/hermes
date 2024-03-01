@@ -1,36 +1,16 @@
 use core::time::Duration;
 
 use crossbeam_channel::Receiver;
-use tracing::{
-    debug,
-    error_span,
-};
+use tracing::{debug, error_span};
 
-use super::{
-    error::RunError,
-    WorkerCmd,
-};
+use super::{error::RunError, WorkerCmd};
 use crate::{
-    chain::handle::{
-        ChainHandle,
-        ChainHandlePair,
-    },
-    channel::{
-        channel_handshake_retry,
-        Channel as RelayChannel,
-    },
+    chain::handle::{ChainHandle, ChainHandlePair},
+    channel::{channel_handshake_retry, Channel as RelayChannel},
     object::Channel,
     util::{
-        retry::{
-            retry_with_index,
-            RetryResult,
-        },
-        task::{
-            spawn_background_task,
-            Next,
-            TaskError,
-            TaskHandle,
-        },
+        retry::{retry_with_index, RetryResult},
+        task::{spawn_background_task, Next, TaskError, TaskHandle},
     },
 };
 

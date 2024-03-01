@@ -2,32 +2,19 @@ use alloc::collections::BTreeMap as HashMap;
 use core::convert::TryFrom;
 
 use ibc_relayer_types::{
-    applications::{
-        ics29_fee::events::DistributionType,
-        ics31_icq::events::CrossChainQueryPacket,
-    },
+    applications::{ics29_fee::events::DistributionType, ics31_icq::events::CrossChainQueryPacket},
     core::{
-        ics02_client::{
-            events as ClientEvents,
-            height::Height,
-        },
+        ics02_client::{events as ClientEvents, height::Height},
         ics04_channel::events as ChannelEvents,
         ics24_host::identifier::ChainId,
     },
     events::IbcEvent,
 };
-use tendermint_rpc::event::{
-    Event as RpcEvent,
-    EventData as RpcEventData,
-};
+use tendermint_rpc::event::{Event as RpcEvent, EventData as RpcEventData};
 
 use crate::{
     chain::cosmos::types::events::channel::RawObject,
-    event::{
-        ibc_event_try_from_abci_event,
-        source::queries,
-        IbcEventWithHeight,
-    },
+    event::{ibc_event_try_from_abci_event, source::queries, IbcEventWithHeight},
     telemetry,
 };
 

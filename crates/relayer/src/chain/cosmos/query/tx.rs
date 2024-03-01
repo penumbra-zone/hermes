@@ -1,51 +1,29 @@
 use ibc_relayer_types::{
     core::{
         ics02_client::height::Height,
-        ics04_channel::packet::{
-            Packet,
-            Sequence,
-        },
+        ics04_channel::packet::{Packet, Sequence},
         ics24_host::identifier::ChainId,
     },
     events::IbcEvent,
     Height as ICSHeight,
 };
-use tendermint::{
-    abci::Event,
-    Hash as TxHash,
-};
-use tendermint_rpc::{
-    endpoint::tx::Response as TxResponse,
-    Client,
-    HttpClient,
-    Order,
-    Url,
-};
+use tendermint::{abci::Event, Hash as TxHash};
+use tendermint_rpc::{endpoint::tx::Response as TxResponse, Client, HttpClient, Order, Url};
 use tracing::warn;
 
 use crate::{
     chain::{
         cosmos::{
-            query::{
-                header_query,
-                packet_query,
-                tx_hash_query,
-            },
+            query::{header_query, packet_query, tx_hash_query},
             types::events,
         },
         requests::{
-            QueryClientEventRequest,
-            QueryHeight,
-            QueryPacketEventDataRequest,
-            QueryTxHash,
+            QueryClientEventRequest, QueryHeight, QueryPacketEventDataRequest, QueryTxHash,
             QueryTxRequest,
         },
     },
     error::Error,
-    event::{
-        ibc_event_try_from_abci_event,
-        IbcEventWithHeight,
-    },
+    event::{ibc_event_try_from_abci_event, IbcEventWithHeight},
 };
 
 /// This function queries transactions for events matching certain criteria.

@@ -1,19 +1,10 @@
 use ibc_relayer::{
-    chain::counterparty::{
-        channel_on_destination,
-        pending_packet_summary,
-    },
-    link::{
-        Link,
-        LinkParameters,
-    },
+    chain::counterparty::{channel_on_destination, pending_packet_summary},
+    link::{Link, LinkParameters},
 };
 use ibc_test_framework::{
     prelude::*,
-    relayer::{
-        channel::query_identified_channel_end,
-        connection::query_identified_connection_end,
-    },
+    relayer::{channel::query_identified_channel_end, connection::query_identified_connection_end},
     util::random::random_u128_range,
 };
 

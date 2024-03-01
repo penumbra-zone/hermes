@@ -1,11 +1,5 @@
-use serde::ser::{
-    Serialize,
-    Serializer,
-};
-use subtle_encoding::{
-    Encoding,
-    Hex,
-};
+use serde::ser::{Serialize, Serializer};
+use subtle_encoding::{Encoding, Hex};
 
 pub fn ser_hex_upper<S, T>(data: T, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -18,17 +12,9 @@ where
 
 pub mod serde_string {
 
-    use core::{
-        fmt::Display,
-        str::FromStr,
-    };
+    use core::{fmt::Display, str::FromStr};
 
-    use serde::{
-        de,
-        Deserialize,
-        Deserializer,
-        Serializer,
-    };
+    use serde::{de, Deserialize, Deserializer, Serializer};
 
     pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
     where

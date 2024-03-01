@@ -1,19 +1,10 @@
 use std::fmt::Display;
 
-use ibc_proto::{
-    ibc::core::connection::v1::Version as RawVersion,
-    Protobuf,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use ibc_proto::{ibc::core::connection::v1::Version as RawVersion, Protobuf};
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::{
-        ics03_connection::error::Error,
-        ics04_channel::channel::Ordering,
-    },
+    core::{ics03_connection::error::Error, ics04_channel::channel::Ordering},
     utils::pretty::PrettySlice,
 };
 
@@ -124,11 +115,7 @@ mod tests {
 
     use crate::core::ics03_connection::{
         error::Error,
-        version::{
-            get_compatible_versions,
-            pick_version,
-            Version,
-        },
+        version::{get_compatible_versions, pick_version, Version},
     };
 
     fn good_versions() -> Vec<RawVersion> {

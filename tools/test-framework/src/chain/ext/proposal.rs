@@ -1,26 +1,14 @@
 use eyre::eyre;
 use http::Uri;
 use ibc_proto::{
-    cosmos::gov::v1beta1::{
-        query_client::QueryClient,
-        QueryProposalRequest,
-    },
-    ibc::core::client::v1::{
-        MsgIbcSoftwareUpgrade,
-        UpgradeProposal,
-    },
+    cosmos::gov::v1beta1::{query_client::QueryClient, QueryProposalRequest},
+    ibc::core::client::v1::{MsgIbcSoftwareUpgrade, UpgradeProposal},
 };
-use ibc_relayer::{
-    config::default::max_grpc_decoding_size,
-    error::Error as RelayerError,
-};
+use ibc_relayer::{config::default::max_grpc_decoding_size, error::Error as RelayerError};
 use prost::Message;
 
 use crate::{
-    chain::{
-        cli::upgrade::vote_proposal,
-        driver::ChainDriver,
-    },
+    chain::{cli::upgrade::vote_proposal, driver::ChainDriver},
     error::Error,
     prelude::handle_generic_error,
     types::tagged::*,

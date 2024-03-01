@@ -2,8 +2,7 @@ use alloc::sync::Arc;
 use core::convert::TryFrom;
 
 use ibc_proto::ibc::apps::fee::v1::{
-    QueryIncentivizedPacketRequest,
-    QueryIncentivizedPacketResponse,
+    QueryIncentivizedPacketRequest, QueryIncentivizedPacketResponse,
 };
 use ibc_relayer_types::{
     applications::ics31_icq::response::CrossChainQueryResponse,
@@ -12,51 +11,23 @@ use ibc_relayer_types::{
             client_state::ClientState,
             consensus_state::ConsensusState,
             events::UpdateClient,
-            header::{
-                AnyHeader,
-                Header,
-            },
+            header::{AnyHeader, Header},
         },
         ics03_connection::{
-            connection::{
-                ConnectionEnd,
-                IdentifiedConnectionEnd,
-                State,
-            },
-            version::{
-                get_compatible_versions,
-                Version,
-            },
+            connection::{ConnectionEnd, IdentifiedConnectionEnd, State},
+            version::{get_compatible_versions, Version},
         },
         ics04_channel::{
-            channel::{
-                ChannelEnd,
-                IdentifiedChannelEnd,
-            },
-            packet::{
-                PacketMsgType,
-                Sequence,
-            },
+            channel::{ChannelEnd, IdentifiedChannelEnd},
+            packet::{PacketMsgType, Sequence},
         },
         ics23_commitment::{
-            commitment::{
-                CommitmentPrefix,
-                CommitmentProofBytes,
-            },
+            commitment::{CommitmentPrefix, CommitmentProofBytes},
             merkle::MerkleProof,
         },
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
     },
-    proofs::{
-        ConsensusProof,
-        Proofs,
-    },
+    proofs::{ConsensusProof, Proofs},
     signer::Signer,
     timestamp::Timestamp,
     Height as ICSHeight,
@@ -67,27 +38,17 @@ use tokio::runtime::Runtime as TokioRuntime;
 use crate::{
     account::Balance,
     chain::{
-        client::ClientSettings,
-        cosmos::version::Specs,
-        handle::Subscription,
-        requests::*,
+        client::ClientSettings, cosmos::version::Specs, handle::Subscription, requests::*,
         tracking::TrackedMsgs,
     },
-    client_state::{
-        AnyClientState,
-        IdentifiedAnyClientState,
-    },
+    client_state::{AnyClientState, IdentifiedAnyClientState},
     config::ChainConfig,
     connection::ConnectionMsgType,
     consensus_state::AnyConsensusState,
     denom::DenomTrace,
     error::Error,
     event::IbcEventWithHeight,
-    keyring::{
-        AnySigningKeyPair,
-        KeyRing,
-        SigningKeyPairSized,
-    },
+    keyring::{AnySigningKeyPair, KeyRing, SigningKeyPairSized},
     misbehaviour::MisbehaviourEvidence,
 };
 

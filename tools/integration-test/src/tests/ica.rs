@@ -1,16 +1,11 @@
-use std::{
-    collections::HashMap,
-    str::FromStr,
-};
+use std::{collections::HashMap, str::FromStr};
 
 use ibc_test_framework::{
     chain::ext::ica::register_interchain_account,
     ibc::denom::Denom,
     prelude::*,
     relayer::channel::{
-        assert_eventually_channel_closed,
-        assert_eventually_channel_established,
-        query_channel_end,
+        assert_eventually_channel_closed, assert_eventually_channel_established, query_channel_end,
     },
 };
 

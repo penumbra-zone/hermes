@@ -1,17 +1,7 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use tracing::{
-    info,
-    Level,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use tracing::{info, Level};
 
-use crate::{
-    prelude::app_config,
-    tracing_handle::send_command,
-};
+use crate::{prelude::app_config, tracing_handle::send_command};
 
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]
 pub struct SetLogLevelCmd {

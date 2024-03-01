@@ -1,15 +1,9 @@
-use flex_error::{
-    define_error,
-    TraceError,
-};
+use flex_error::{define_error, TraceError};
 use prost::EncodeError;
 
 use crate::{
     applications::transfer::error::Error as TransferError,
-    core::{
-        ics04_channel::error::Error as ChannelError,
-        ics24_host::error::ValidationError,
-    },
+    core::{ics04_channel::error::Error as ChannelError, ics24_host::error::ValidationError},
     signer::SignerError,
 };
 

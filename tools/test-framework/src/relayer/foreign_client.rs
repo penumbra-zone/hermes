@@ -2,16 +2,10 @@
    Definition for extension trait methods for [`ForeignClient`]
 */
 
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    foreign_client::ForeignClient,
-};
+use ibc_relayer::{chain::handle::ChainHandle, foreign_client::ForeignClient};
 
 use crate::types::{
-    id::{
-        TaggedChainId,
-        TaggedClientIdRef,
-    },
+    id::{TaggedChainId, TaggedClientIdRef},
     tagged::*,
 };
 

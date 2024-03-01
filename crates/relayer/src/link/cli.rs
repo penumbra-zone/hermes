@@ -2,33 +2,21 @@ use std::{
     convert::TryInto,
     ops::RangeInclusive,
     thread,
-    time::{
-        Duration,
-        Instant,
-    },
+    time::{Duration, Instant},
 };
 
 use ibc_relayer_types::{
     core::ics04_channel::packet::Sequence,
     events::IbcEvent,
-    utils::pretty::{
-        PrettyDuration,
-        PrettySlice,
-    },
+    utils::pretty::{PrettyDuration, PrettySlice},
     Height,
 };
 use itertools::Itertools;
-use tracing::{
-    error_span,
-    info,
-};
+use tracing::{error_span, info};
 
 use crate::{
     chain::{
-        counterparty::{
-            unreceived_acknowledgements,
-            unreceived_packets,
-        },
+        counterparty::{unreceived_acknowledgements, unreceived_packets},
         handle::ChainHandle,
         requests::Qualified,
         tracking::TrackingId,
@@ -37,18 +25,12 @@ use crate::{
     event::IbcEventWithHeight,
     link::{
         error::LinkError,
-        operational_data::{
-            OperationalData,
-            TrackedEvents,
-        },
+        operational_data::{OperationalData, TrackedEvents},
         packet_events::{
-            query_packet_events_with,
-            query_send_packet_events,
-            query_write_ack_events,
+            query_packet_events_with, query_send_packet_events, query_write_ack_events,
         },
         relay_sender::SyncSender,
-        Link,
-        RelayPath,
+        Link, RelayPath,
     },
     path::PathIdentifiers,
     util::collate::CollatedIterExt as _,

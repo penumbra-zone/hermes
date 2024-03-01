@@ -3,12 +3,7 @@
 use core::fmt;
 
 use ibc_relayer_types::core::ics23_commitment::specs::ProofSpecs;
-use serde::{
-    de,
-    ser,
-    Deserializer,
-    Serializer,
-};
+use serde::{de, ser, Deserializer, Serializer};
 
 pub fn serialize<S: Serializer>(
     proof_specs: &Option<ProofSpecs>,

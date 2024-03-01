@@ -6,54 +6,28 @@
 
 use ibc_relayer::chain::handle::ChainHandle;
 use ibc_relayer_types::core::{
-    ics04_channel::{
-        channel::Ordering,
-        version::Version,
-    },
+    ics04_channel::{channel::Ordering, version::Version},
     ics24_host::identifier::PortId,
 };
 use tracing::info;
 
 use crate::{
-    bootstrap::binary::channel::{
-        bootstrap_channel_with_connection,
-        BootstrapChannelOptions,
-    },
+    bootstrap::binary::channel::{bootstrap_channel_with_connection, BootstrapChannelOptions},
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
-            chain::{
-                ClientOptionsOverride,
-                RelayerConfigOverride,
-                RunBinaryChainTest,
-            },
-            connection::{
-                BinaryConnectionTest,
-                ConnectionDelayOverride,
-                RunBinaryConnectionTest,
-            },
+            chain::{ClientOptionsOverride, RelayerConfigOverride, RunBinaryChainTest},
+            connection::{BinaryConnectionTest, ConnectionDelayOverride, RunBinaryConnectionTest},
             ics::run_binary_interchain_security_node_test,
-            node::{
-                run_binary_node_test,
-                NodeConfigOverride,
-                NodeGenesisOverride,
-            },
+            node::{run_binary_node_test, NodeConfigOverride, NodeGenesisOverride},
         },
-        supervisor::{
-            RunWithSupervisor,
-            SupervisorOverride,
-        },
+        supervisor::{RunWithSupervisor, SupervisorOverride},
     },
     relayer::driver::RelayerDriver,
     types::{
         binary::{
-            chains::ConnectedChains,
-            channel::ConnectedChannel,
-            connection::ConnectedConnection,
+            chains::ConnectedChains, channel::ConnectedChannel, connection::ConnectedConnection,
         },
         config::TestConfig,
         env::write_env,

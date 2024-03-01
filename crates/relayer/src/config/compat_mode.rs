@@ -1,18 +1,9 @@
 use core::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };
 
-use serde::{
-    Deserialize,
-    Deserializer,
-    Serialize,
-    Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tendermint_rpc::client::CompatMode as TmCompatMode;
 
 use crate::config::Error;

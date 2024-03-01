@@ -1,17 +1,12 @@
 use std::time::Duration;
 
 use ibc_proto::{
-    ibc::core::connection::v1::MsgConnectionOpenInit as RawMsgConnectionOpenInit,
-    Protobuf,
+    ibc::core::connection::v1::MsgConnectionOpenInit as RawMsgConnectionOpenInit, Protobuf,
 };
 
 use crate::{
     core::{
-        ics03_connection::{
-            connection::Counterparty,
-            error::Error,
-            version::Version,
-        },
+        ics03_connection::{connection::Counterparty, error::Error, version::Version},
         ics24_host::identifier::ClientId,
     },
     signer::Signer,
@@ -85,8 +80,7 @@ pub mod test_util {
         core::{
             ics03_connection::{
                 msgs::{
-                    conn_open_init::MsgConnectionOpenInit,
-                    test_util::get_dummy_raw_counterparty,
+                    conn_open_init::MsgConnectionOpenInit, test_util::get_dummy_raw_counterparty,
                 },
                 version::Version,
             },
@@ -120,8 +114,7 @@ pub mod test_util {
 mod tests {
 
     use ibc_proto::ibc::core::connection::v1::{
-        Counterparty as RawCounterparty,
-        MsgConnectionOpenInit as RawMsgConnectionOpenInit,
+        Counterparty as RawCounterparty, MsgConnectionOpenInit as RawMsgConnectionOpenInit,
     };
     use test_log::test;
 

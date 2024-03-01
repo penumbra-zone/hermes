@@ -2,21 +2,10 @@ use std::io;
 
 use ibc_relayer::config::TracingServerConfig;
 use tokio::{
-    io::{
-        AsyncBufReadExt,
-        AsyncReadExt,
-        AsyncWriteExt,
-        BufReader,
-    },
-    net::{
-        TcpListener,
-        TcpStream,
-    },
+    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
+    net::{TcpListener, TcpStream},
 };
-use tracing_subscriber::{
-    filter,
-    reload::Handle,
-};
+use tracing_subscriber::{filter, reload::Handle};
 
 pub type ReloadHandle<S> = Handle<filter::EnvFilter, S>;
 

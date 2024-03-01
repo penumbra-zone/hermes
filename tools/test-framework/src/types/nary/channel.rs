@@ -5,24 +5,15 @@
 use core::convert::TryFrom;
 
 use eyre::eyre;
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    channel::Channel,
-};
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChannelId,
-    PortId,
-};
+use ibc_relayer::{chain::handle::ChainHandle, channel::Channel};
+use ibc_relayer_types::core::ics24_host::identifier::{ChannelId, PortId};
 
 use super::aliases::NthChainHandle;
 use crate::{
     error::Error,
     types::{
         binary::channel::ConnectedChannel,
-        env::{
-            EnvWriter,
-            ExportEnv,
-        },
+        env::{EnvWriter, ExportEnv},
         tagged::*,
     },
     util::array::try_into_nested_array,

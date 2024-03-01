@@ -1,31 +1,15 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
-    chain::{
-        counterparty::unreceived_packets,
-        handle::BaseChainHandle,
-    },
+    chain::{counterparty::unreceived_packets, handle::BaseChainHandle},
     path::PathIdentifiers,
     util::collate::CollatedIterExt,
 };
 use ibc_relayer_types::core::{
     ics04_channel::packet::Sequence,
-    ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    },
+    ics24_host::identifier::{ChainId, ChannelId, PortId},
 };
 
-use crate::{
-    cli_utils::spawn_chain_counterparty,
-    conclude::Output,
-    error::Error,
-    prelude::*,
-};
+use crate::{cli_utils::spawn_chain_counterparty, conclude::Output, error::Error, prelude::*};
 
 /// This command does the following:
 /// 1. queries the chain to get its counterparty chain, channel and port identifiers (needed in 2)
@@ -106,11 +90,7 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 
     use super::QueryPendingSendsCmd;
 

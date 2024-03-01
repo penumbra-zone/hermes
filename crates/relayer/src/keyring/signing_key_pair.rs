@@ -1,15 +1,9 @@
 use core::any::Any;
 
 use hdpath::StandardHDPath;
-use serde::{
-    de::DeserializeOwned,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Serialize};
 
-use super::{
-    errors::Error,
-    KeyType,
-};
+use super::{errors::Error, KeyType};
 use crate::config::AddressType;
 
 pub trait SigningKeyPair {

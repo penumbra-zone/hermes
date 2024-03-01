@@ -1,15 +1,8 @@
-use flex_error::{
-    define_error,
-    TraceError,
-};
+use flex_error::{define_error, TraceError};
 
 use crate::{
     applications::transfer,
-    core::{
-        ics02_client,
-        ics03_connection,
-        ics04_channel,
-    },
+    core::{ics02_client, ics03_connection, ics04_channel},
 };
 
 define_error! {

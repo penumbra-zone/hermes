@@ -14,10 +14,7 @@ use std::thread;
 
 use ibc_relayer::config::ChainConfig;
 use ibc_relayer_types::bigint::U256;
-use ibc_test_framework::{
-    chain::ext::fee_grant::FeeGrantMethodsExt,
-    prelude::*,
-};
+use ibc_test_framework::{chain::ext::fee_grant::FeeGrantMethodsExt, prelude::*};
 
 #[test]
 fn test_fee_grant() -> Result<(), Error> {

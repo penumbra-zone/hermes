@@ -1,34 +1,13 @@
-use ibc_proto::{
-    google::protobuf::Any,
-    Protobuf,
-};
+use ibc_proto::{google::protobuf::Any, Protobuf};
 
 use crate::core::{
-    ics02_client::msgs::{
-        create_client,
-        update_client,
-        upgrade_client,
-        ClientMsg,
-    },
+    ics02_client::msgs::{create_client, update_client, upgrade_client, ClientMsg},
     ics03_connection::msgs::{
-        conn_open_ack,
-        conn_open_confirm,
-        conn_open_init,
-        conn_open_try,
-        ConnectionMsg,
+        conn_open_ack, conn_open_confirm, conn_open_init, conn_open_try, ConnectionMsg,
     },
     ics04_channel::msgs::{
-        acknowledgement,
-        chan_close_confirm,
-        chan_close_init,
-        chan_open_ack,
-        chan_open_confirm,
-        chan_open_init,
-        chan_open_try,
-        recv_packet,
-        timeout,
-        timeout_on_close,
-        ChannelMsg,
+        acknowledgement, chan_close_confirm, chan_close_init, chan_open_ack, chan_open_confirm,
+        chan_open_init, chan_open_try, recv_packet, timeout, timeout_on_close, ChannelMsg,
         PacketMsg,
     },
     ics26_routing::error::Error,

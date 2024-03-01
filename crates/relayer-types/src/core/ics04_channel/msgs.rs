@@ -2,15 +2,10 @@
 //! as packets.
 
 use crate::core::ics04_channel::msgs::{
-    acknowledgement::MsgAcknowledgement,
-    chan_close_confirm::MsgChannelCloseConfirm,
-    chan_close_init::MsgChannelCloseInit,
-    chan_open_ack::MsgChannelOpenAck,
-    chan_open_confirm::MsgChannelOpenConfirm,
-    chan_open_init::MsgChannelOpenInit,
-    chan_open_try::MsgChannelOpenTry,
-    recv_packet::MsgRecvPacket,
-    timeout::MsgTimeout,
+    acknowledgement::MsgAcknowledgement, chan_close_confirm::MsgChannelCloseConfirm,
+    chan_close_init::MsgChannelCloseInit, chan_open_ack::MsgChannelOpenAck,
+    chan_open_confirm::MsgChannelOpenConfirm, chan_open_init::MsgChannelOpenInit,
+    chan_open_try::MsgChannelOpenTry, recv_packet::MsgRecvPacket, timeout::MsgTimeout,
     timeout_on_close::MsgTimeoutOnClose,
 };
 

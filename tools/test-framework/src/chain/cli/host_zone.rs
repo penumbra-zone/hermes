@@ -1,7 +1,4 @@
-use crate::{
-    chain::exec::simple_exec,
-    error::Error,
-};
+use crate::{chain::exec::simple_exec, error::Error};
 
 pub fn register_host_zone(
     chain_id: &str,

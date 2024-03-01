@@ -2,51 +2,27 @@
    Functions for bootstrapping N-ary number of channels.
 */
 
-use core::{
-    convert::TryInto,
-    time::Duration,
-};
+use core::{convert::TryInto, time::Duration};
 
 use ibc_relayer::chain::handle::ChainHandle;
-use ibc_relayer_types::core::{
-    ics04_channel::channel::Ordering,
-    ics24_host::identifier::PortId,
-};
+use ibc_relayer_types::core::{ics04_channel::channel::Ordering, ics24_host::identifier::PortId};
 
 use crate::{
     bootstrap::{
-        binary::channel::{
-            bootstrap_channel_with_connection,
-            BootstrapChannelOptions,
-        },
+        binary::channel::{bootstrap_channel_with_connection, BootstrapChannelOptions},
         nary::connection::bootstrap_connections_dynamic,
     },
-    error::{
-        handle_generic_error,
-        Error,
-    },
+    error::{handle_generic_error, Error},
     types::{
         binary::channel::ConnectedChannel,
         nary::{
-            chains::{
-                DynamicConnectedChains,
-                NaryConnectedChains,
-            },
-            channel::{
-                ConnectedChannels,
-                DynamicConnectedChannels,
-            },
-            connection::{
-                ConnectedConnections,
-                DynamicConnectedConnections,
-            },
+            chains::{DynamicConnectedChains, NaryConnectedChains},
+            channel::{ConnectedChannels, DynamicConnectedChannels},
+            connection::{ConnectedConnections, DynamicConnectedConnections},
         },
         tagged::*,
     },
-    util::array::{
-        assert_same_dimension,
-        into_nested_vec,
-    },
+    util::array::{assert_same_dimension, into_nested_vec},
 };
 
 /**

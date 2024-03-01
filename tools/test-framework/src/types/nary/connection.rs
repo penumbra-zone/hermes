@@ -13,16 +13,10 @@ use crate::{
     error::Error,
     types::{
         binary::connection::ConnectedConnection,
-        env::{
-            EnvWriter,
-            ExportEnv,
-        },
+        env::{EnvWriter, ExportEnv},
         tagged::*,
     },
-    util::array::{
-        into_nested_vec,
-        try_into_nested_array,
-    },
+    util::array::{into_nested_vec, try_into_nested_array},
 };
 
 /**

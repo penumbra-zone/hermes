@@ -2,28 +2,16 @@
 
 use std::io::Error as IoError;
 
-use flex_error::{
-    define_error,
-    DisplayError,
-};
+use flex_error::{define_error, DisplayError};
 use ibc_relayer::{
-    channel::ChannelError,
-    connection::ConnectionError,
-    error::Error as RelayerError,
-    foreign_client::ForeignClientError,
-    keyring::errors::Error as KeyRingError,
-    link::error::LinkError,
-    spawn::SpawnError,
-    supervisor::Error as SupervisorError,
-    transfer::TransferError,
-    upgrade_chain::UpgradeChainError,
+    channel::ChannelError, connection::ConnectionError, error::Error as RelayerError,
+    foreign_client::ForeignClientError, keyring::errors::Error as KeyRingError,
+    link::error::LinkError, spawn::SpawnError, supervisor::Error as SupervisorError,
+    transfer::TransferError, upgrade_chain::UpgradeChainError,
 };
 use ibc_relayer_types::{
     applications::ics29_fee::error::Error as FeeError,
-    core::{
-        ics04_channel::channel::IdentifiedChannelEnd,
-        ics24_host::identifier::ChainId,
-    },
+    core::{ics04_channel::channel::IdentifiedChannelEnd, ics24_host::identifier::ChainId},
     signer::SignerError,
 };
 use tendermint::Error as TendermintError;

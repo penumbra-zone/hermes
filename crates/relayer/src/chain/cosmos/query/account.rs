@@ -1,17 +1,12 @@
 use http::uri::Uri;
 use ibc_proto::cosmos::auth::v1beta1::{
-    query_client::QueryClient,
-    BaseAccount,
-    EthAccount,
-    QueryAccountRequest,
+    query_client::QueryClient, BaseAccount, EthAccount, QueryAccountRequest,
 };
 use prost::Message;
 use tracing::info;
 
 use crate::{
-    chain::cosmos::types::account::Account,
-    config::default::max_grpc_decoding_size,
-    error::Error,
+    chain::cosmos::types::account::Account, config::default::max_grpc_decoding_size, error::Error,
 };
 
 /// Get a `&mut Account` from an `&mut Option<Account>` if it is `Some(Account)`.

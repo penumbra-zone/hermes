@@ -13,10 +13,8 @@
 //! `signer` which is specific to Cosmos-SDK.
 
 use crate::core::ics03_connection::msgs::{
-    conn_open_ack::MsgConnectionOpenAck,
-    conn_open_confirm::MsgConnectionOpenConfirm,
-    conn_open_init::MsgConnectionOpenInit,
-    conn_open_try::MsgConnectionOpenTry,
+    conn_open_ack::MsgConnectionOpenAck, conn_open_confirm::MsgConnectionOpenConfirm,
+    conn_open_init::MsgConnectionOpenInit, conn_open_try::MsgConnectionOpenTry,
 };
 
 pub mod conn_open_ack;
@@ -37,14 +35,10 @@ pub enum ConnectionMsg {
 pub mod test_util {
 
     use ibc_proto::ibc::core::{
-        commitment::v1::MerklePrefix,
-        connection::v1::Counterparty as RawCounterparty,
+        commitment::v1::MerklePrefix, connection::v1::Counterparty as RawCounterparty,
     };
 
-    use crate::core::ics24_host::identifier::{
-        ClientId,
-        ConnectionId,
-    };
+    use crate::core::ics24_host::identifier::{ClientId, ConnectionId};
 
     pub fn get_dummy_raw_counterparty() -> RawCounterparty {
         RawCounterparty {

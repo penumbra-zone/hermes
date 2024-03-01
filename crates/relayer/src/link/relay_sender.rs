@@ -1,26 +1,13 @@
-use core::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use core::fmt::{Display, Error as FmtError, Formatter};
 
 use ibc_relayer_types::events::IbcEvent;
 use tendermint_rpc::endpoint::broadcast::tx_sync;
 use tracing::info;
 
 use crate::{
-    chain::{
-        handle::ChainHandle,
-        tracking::TrackedMsgs,
-    },
-    link::{
-        error::LinkError,
-        RelaySummary,
-    },
-    util::pretty::{
-        PrettyCode,
-        PrettyEvents,
-    },
+    chain::{handle::ChainHandle, tracking::TrackedMsgs},
+    link::{error::LinkError, RelaySummary},
+    util::pretty::{PrettyCode, PrettyEvents},
 };
 
 pub trait SubmitReply {

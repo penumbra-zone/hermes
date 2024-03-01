@@ -1,29 +1,15 @@
-use core::ops::{
-    Add,
-    Sub,
-};
+use core::ops::{Add, Sub};
 
 use ibc_relayer_types::applications::transfer::{
     amount::Amount,
-    coin::{
-        Coin,
-        RawCoin,
-    },
+    coin::{Coin, RawCoin},
 };
 
 use crate::{
     error::Error,
-    ibc::denom::{
-        derive_ibc_denom,
-        Denom,
-        TaggedDenom,
-        TaggedDenomRef,
-    },
+    ibc::denom::{derive_ibc_denom, Denom, TaggedDenom, TaggedDenomRef},
     types::{
-        id::{
-            TaggedChannelIdRef,
-            TaggedPortIdRef,
-        },
+        id::{TaggedChannelIdRef, TaggedPortIdRef},
         tagged::MonoTagged,
     },
 };

@@ -1,7 +1,4 @@
-use flex_error::{
-    define_error,
-    TraceError,
-};
+use flex_error::{define_error, TraceError};
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tracing_subscriber::filter::ParseError;
 

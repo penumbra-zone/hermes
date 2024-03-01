@@ -25,15 +25,9 @@
     ```
 */
 
-use std::{
-    env,
-    path::PathBuf,
-};
+use std::{env, path::PathBuf};
 
-use ibc_relayer::{
-    config::ChainConfig,
-    keyring::Store,
-};
+use ibc_relayer::{config::ChainConfig, keyring::Store};
 use ibc_relayer_types::core::ics04_channel::version::Version;
 use ibc_test_framework::prelude::*;
 

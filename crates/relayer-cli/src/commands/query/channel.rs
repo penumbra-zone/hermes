@@ -1,34 +1,19 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::chain::{
     handle::ChainHandle,
-    requests::{
-        IncludeProof,
-        QueryChannelRequest,
-        QueryHeight,
-    },
+    requests::{IncludeProof, QueryChannelRequest, QueryHeight},
 };
 use ibc_relayer_types::{
     core::{
         ics04_channel::channel::State,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     Height,
 };
 
 use crate::{
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
     prelude::*,
 };
 
@@ -112,11 +97,7 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 
     use super::QueryChannelEndCmd;
 

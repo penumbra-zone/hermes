@@ -4,44 +4,27 @@
 */
 
 use ibc_relayer::{
-    chain::handle::ChainHandle,
-    config::Config,
-    foreign_client::CreateOptions as ClientOptions,
+    chain::handle::ChainHandle, config::Config, foreign_client::CreateOptions as ClientOptions,
 };
 use tracing::info;
 
 use crate::{
-    bootstrap::binary::chain::{
-        bootstrap_chains_with_full_nodes,
-        BootstrapClientOptions,
-    },
+    bootstrap::binary::chain::{bootstrap_chains_with_full_nodes, BootstrapClientOptions},
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
             ics::InterchainSecurityChainTest,
             node::{
-                run_binary_node_test,
-                run_single_node_test,
-                BinaryNodeTest,
-                NodeConfigOverride,
+                run_binary_node_test, run_single_node_test, BinaryNodeTest, NodeConfigOverride,
                 NodeGenesisOverride,
             },
         },
-        supervisor::{
-            RunWithSupervisor,
-            SupervisorOverride,
-        },
+        supervisor::{RunWithSupervisor, SupervisorOverride},
     },
     relayer::driver::RelayerDriver,
     types::{
-        binary::chains::{
-            ConnectedChains,
-            DropChainHandle,
-        },
+        binary::chains::{ConnectedChains, DropChainHandle},
         config::TestConfig,
         env::write_env,
         single::node::FullNode,

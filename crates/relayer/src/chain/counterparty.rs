@@ -3,60 +3,33 @@ use std::collections::HashSet;
 use ibc_relayer_types::{
     core::{
         ics03_connection::connection::{
-            ConnectionEnd,
-            IdentifiedConnectionEnd,
-            State as ConnectionState,
+            ConnectionEnd, IdentifiedConnectionEnd, State as ConnectionState,
         },
         ics04_channel::{
-            channel::{
-                IdentifiedChannelEnd,
-                State,
-            },
+            channel::{IdentifiedChannelEnd, State},
             packet::Sequence,
         },
         ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortChannelId,
-            PortId,
+            ChainId, ChannelId, ClientId, ConnectionId, PortChannelId, PortId,
         },
     },
     Height,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use tracing::{
-    error,
-    trace,
-};
+use serde::{Deserialize, Serialize};
+use tracing::{error, trace};
 
 use super::{
     handle::ChainHandle,
     requests::{
-        IncludeProof,
-        PageRequest,
-        QueryChannelRequest,
-        QueryClientConnectionsRequest,
-        QueryClientStateRequest,
-        QueryConnectionChannelsRequest,
-        QueryConnectionRequest,
-        QueryPacketAcknowledgementsRequest,
-        QueryPacketCommitmentsRequest,
-        QueryUnreceivedAcksRequest,
-        QueryUnreceivedPacketsRequest,
+        IncludeProof, PageRequest, QueryChannelRequest, QueryClientConnectionsRequest,
+        QueryClientStateRequest, QueryConnectionChannelsRequest, QueryConnectionRequest,
+        QueryPacketAcknowledgementsRequest, QueryPacketCommitmentsRequest,
+        QueryUnreceivedAcksRequest, QueryUnreceivedPacketsRequest,
     },
 };
 use crate::{
-    chain::requests::QueryHeight,
-    channel::ChannelError,
-    client_state::IdentifiedAnyClientState,
-    path::PathIdentifiers,
-    supervisor::Error,
-    telemetry,
+    chain::requests::QueryHeight, channel::ChannelError, client_state::IdentifiedAnyClientState,
+    path::PathIdentifiers, supervisor::Error, telemetry,
 };
 
 pub fn counterparty_chain_from_connection(

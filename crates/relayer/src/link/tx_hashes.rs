@@ -1,8 +1,4 @@
-use core::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use core::fmt::{Display, Error as FmtError, Formatter};
 
 use tendermint::Hash as TxHash;
 

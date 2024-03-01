@@ -6,32 +6,19 @@ use alloc::sync::Arc;
 use core::time::Duration;
 
 use eyre::eyre;
-use ibc_relayer::{
-    chain::cosmos::types::config::TxConfig,
-    config::compat_mode::CompatMode,
-};
+use ibc_relayer::{chain::cosmos::types::config::TxConfig, config::compat_mode::CompatMode};
 use ibc_relayer_types::{
-    applications::transfer::amount::Amount,
-    core::ics24_host::identifier::ChainId,
+    applications::transfer::amount::Amount, core::ics24_host::identifier::ChainId,
 };
 use tokio::runtime::Runtime;
 
 use crate::{
-    chain::{
-        chain_type::ChainType,
-        cli::query::query_balance,
-    },
+    chain::{chain_type::ChainType, cli::query::query_balance},
     error::Error,
-    ibc::{
-        denom::Denom,
-        token::Token,
-    },
+    ibc::{denom::Denom, token::Token},
     relayer::tx::new_tx_config_for_test,
     types::{
-        env::{
-            EnvWriter,
-            ExportEnv,
-        },
+        env::{EnvWriter, ExportEnv},
         wallet::WalletAddress,
     },
     util::retry::assert_eventually_succeed,

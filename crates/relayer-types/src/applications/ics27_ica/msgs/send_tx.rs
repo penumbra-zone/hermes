@@ -1,21 +1,11 @@
 use ibc_proto::{
-    ibc::applications::interchain_accounts::controller::v1::MsgSendTx as RawMsgSendTx,
-    Protobuf,
+    ibc::applications::interchain_accounts::controller::v1::MsgSendTx as RawMsgSendTx, Protobuf,
 };
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 
 use crate::{
-    applications::ics27_ica::{
-        error::Error,
-        packet_data::InterchainAccountPacketData,
-    },
-    core::ics24_host::{
-        error::ValidationError,
-        identifier::ConnectionId,
-    },
+    applications::ics27_ica::{error::Error, packet_data::InterchainAccountPacketData},
+    core::ics24_host::{error::ValidationError, identifier::ConnectionId},
     signer::Signer,
     timestamp::Timestamp,
     tx_msg::Msg,

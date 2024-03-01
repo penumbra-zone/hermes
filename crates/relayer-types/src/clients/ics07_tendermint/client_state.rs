@@ -1,8 +1,5 @@
 use std::{
-    convert::{
-        TryFrom,
-        TryInto,
-    },
+    convert::{TryFrom, TryInto},
     time::Duration,
 };
 
@@ -15,31 +12,20 @@ use ibc_proto::{
     Protobuf,
 };
 use prost::Message;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 use tendermint_light_client_verifier::options::Options;
 
 use crate::{
-    clients::ics07_tendermint::{
-        error::Error,
-        header::Header as TmHeader,
-    },
+    clients::ics07_tendermint::{error::Error, header::Header as TmHeader},
     core::{
         ics02_client::{
-            client_state::ClientState as Ics2ClientState,
-            client_type::ClientType,
-            error::Error as Ics02Error,
-            trust_threshold::TrustThreshold,
+            client_state::ClientState as Ics2ClientState, client_type::ClientType,
+            error::Error as Ics02Error, trust_threshold::TrustThreshold,
         },
         ics23_commitment::specs::ProofSpecs,
         ics24_host::identifier::ChainId,
     },
-    timestamp::{
-        Timestamp,
-        ZERO_DURATION,
-    },
+    timestamp::{Timestamp, ZERO_DURATION},
     Height,
 };
 
@@ -388,20 +374,13 @@ mod tests {
     use test_log::test;
 
     use crate::{
-        clients::ics07_tendermint::client_state::{
-            AllowUpdate,
-            ClientState,
-        },
+        clients::ics07_tendermint::client_state::{AllowUpdate, ClientState},
         core::{
-            ics02_client::trust_threshold::TrustThreshold,
-            ics23_commitment::specs::ProofSpecs,
+            ics02_client::trust_threshold::TrustThreshold, ics23_commitment::specs::ProofSpecs,
             ics24_host::identifier::ChainId,
         },
         test::test_serialization_roundtrip,
-        timestamp::{
-            Timestamp,
-            ZERO_DURATION,
-        },
+        timestamp::{Timestamp, ZERO_DURATION},
         Height,
     };
 
@@ -700,14 +679,8 @@ pub mod test_util {
     use tendermint::block::Header;
 
     use crate::{
-        clients::ics07_tendermint::client_state::{
-            AllowUpdate,
-            ClientState,
-        },
-        core::{
-            ics02_client::height::Height,
-            ics24_host::identifier::ChainId,
-        },
+        clients::ics07_tendermint::client_state::{AllowUpdate, ClientState},
+        core::{ics02_client::height::Height, ics24_host::identifier::ChainId},
     };
 
     pub fn get_dummy_tendermint_client_state(tm_header: Header) -> ClientState {

@@ -2,10 +2,7 @@
    Helper functions for bootstrapping a single full node.
 */
 use core::time::Duration;
-use std::sync::{
-    Arc,
-    RwLock,
-};
+use std::sync::{Arc, RwLock};
 
 use eyre::eyre;
 use toml;
@@ -13,27 +10,16 @@ use tracing::info;
 
 use crate::{
     chain::{
-        builder::ChainBuilder,
-        config,
-        driver::ChainDriver,
+        builder::ChainBuilder, config, driver::ChainDriver,
         ext::bootstrap::ChainBootstrapMethodsExt,
     },
     error::Error,
-    ibc::{
-        denom::Denom,
-        token::Token,
-    },
+    ibc::{denom::Denom, token::Token},
     types::{
         single::node::FullNode,
-        wallet::{
-            TestWallets,
-            Wallet,
-        },
+        wallet::{TestWallets, Wallet},
     },
-    util::random::{
-        random_u128_range,
-        random_u32,
-    },
+    util::random::{random_u128_range, random_u32},
 };
 
 /**

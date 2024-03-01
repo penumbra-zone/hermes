@@ -1,10 +1,7 @@
 use crate::{
     chain::cli::fee_grant::feegrant_grant,
     error::Error,
-    prelude::{
-        ChainDriver,
-        TaggedTokenRef,
-    },
+    prelude::{ChainDriver, TaggedTokenRef},
     types::tagged::MonoTagged,
 };
 pub trait FeeGrantMethodsExt<Chain> {

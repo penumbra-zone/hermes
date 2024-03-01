@@ -1,23 +1,13 @@
 use alloc::collections::btree_map::BTreeMap as HashMap;
 use core::fmt::Write;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use ibc_relayer::config::{
-    ChainConfig,
-    Config,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::config::{ChainConfig, Config};
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 
 use crate::{
     application::app_config,
-    conclude::{
-        json,
-        Output,
-    },
+    conclude::{json, Output},
 };
 
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]

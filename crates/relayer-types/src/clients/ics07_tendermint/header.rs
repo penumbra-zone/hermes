@@ -1,39 +1,21 @@
-use std::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use std::fmt::{Display, Error as FmtError, Formatter};
 
 use bytes::Buf;
 use ibc_proto::{
-    google::protobuf::Any,
-    ibc::lightclients::tendermint::v1::Header as RawHeader,
-    Protobuf,
+    google::protobuf::Any, ibc::lightclients::tendermint::v1::Header as RawHeader, Protobuf,
 };
 use prost::Message;
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
-use tendermint::{
-    block::signed_header::SignedHeader,
-    validator::Set as ValidatorSet,
-};
+use serde_derive::{Deserialize, Serialize};
+use tendermint::{block::signed_header::SignedHeader, validator::Set as ValidatorSet};
 
 use crate::{
     clients::ics07_tendermint::error::Error,
     core::{
-        ics02_client::{
-            client_type::ClientType,
-            error::Error as Ics02Error,
-        },
+        ics02_client::{client_type::ClientType, error::Error as Ics02Error},
         ics24_host::identifier::ChainId,
     },
     timestamp::Timestamp,
-    utils::pretty::{
-        PrettySignedHeader,
-        PrettyValidatorSet,
-    },
+    utils::pretty::{PrettySignedHeader, PrettyValidatorSet},
     Height,
 };
 
@@ -173,17 +155,11 @@ pub mod test_util {
     use subtle_encoding::hex;
     use tendermint::{
         block::signed_header::SignedHeader,
-        validator::{
-            Info as ValidatorInfo,
-            Set as ValidatorSet,
-        },
+        validator::{Info as ValidatorInfo, Set as ValidatorSet},
         PublicKey,
     };
 
-    use crate::{
-        clients::ics07_tendermint::header::Header,
-        Height,
-    };
+    use crate::{clients::ics07_tendermint::header::Header, Height};
 
     pub fn get_dummy_tendermint_header() -> tendermint::block::Header {
         serde_json::from_str::<SignedHeader>(include_str!(

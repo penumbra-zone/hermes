@@ -1,17 +1,9 @@
 use std::{
-    fmt::{
-        Debug,
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Debug, Display, Error as FmtError, Formatter},
     time::Duration,
 };
 
-use tendermint::{
-    block::signed_header::SignedHeader,
-    validator::Set as ValidatorSet,
-};
+use tendermint::{block::signed_header::SignedHeader, validator::Set as ValidatorSet};
 
 pub struct PrettyDuration<'a>(pub &'a Duration);
 
@@ -89,10 +81,7 @@ impl<'a, T: Display> Display for PrettySlice<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        string::String,
-        vec,
-    };
+    use std::{string::String, vec};
 
     use super::*;
 

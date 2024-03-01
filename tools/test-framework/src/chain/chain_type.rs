@@ -5,10 +5,7 @@ use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 
 use crate::{
     error::Error,
-    util::random::{
-        random_u32,
-        random_unused_tcp_port,
-    },
+    util::random::{random_u32, random_unused_tcp_port},
 };
 
 const COSMOS_HD_PATH: &str = "m/44'/118'/0'/0/0";

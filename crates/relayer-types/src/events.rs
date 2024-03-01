@@ -1,54 +1,31 @@
 use std::{
     borrow::Cow,
     convert::TryFrom,
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };
 
-use flex_error::{
-    define_error,
-    TraceError,
-};
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use flex_error::{define_error, TraceError};
+use serde_derive::{Deserialize, Serialize};
 use tendermint::abci;
 
 use crate::{
     applications::{
         ics29_fee::{
             error::Error as FeeError,
-            events::{
-                DistributeFeePacket,
-                IncentivizedPacket,
-            },
+            events::{DistributeFeePacket, IncentivizedPacket},
         },
-        ics31_icq::{
-            error::Error as QueryPacketError,
-            events::CrossChainQueryPacket,
-        },
+        ics31_icq::{error::Error as QueryPacketError, events::CrossChainQueryPacket},
     },
     core::{
-        ics02_client::{
-            error as client_error,
-            events as ClientEvents,
-            events::NewBlock,
-        },
+        ics02_client::{error as client_error, events as ClientEvents, events::NewBlock},
         ics03_connection::{
-            error as connection_error,
-            events as ConnectionEvents,
+            error as connection_error, events as ConnectionEvents,
             events::Attributes as ConnectionAttributes,
         },
         ics04_channel::{
-            error as channel_error,
-            events as ChannelEvents,
-            events::Attributes as ChannelAttributes,
-            packet::Packet,
+            error as channel_error, events as ChannelEvents,
+            events::Attributes as ChannelAttributes, packet::Packet,
         },
         ics24_host::error::ValidationError,
     },

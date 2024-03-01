@@ -1,31 +1,18 @@
 use ibc_proto::{
-    cosmos::tx::v1beta1::{
-        Fee,
-        Tx,
-    },
+    cosmos::tx::v1beta1::{Fee, Tx},
     google::protobuf::Any,
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tendermint_rpc::Url;
 use tonic::codegen::http::Uri;
-use tracing::{
-    debug,
-    error,
-    span,
-    warn,
-    Level,
-};
+use tracing::{debug, error, span, warn, Level};
 
 use crate::{
     chain::cosmos::{
         encode::sign_tx,
         gas::gas_amount_to_fee,
         simulate::send_tx_simulate,
-        types::{
-            account::Account,
-            config::TxConfig,
-            gas::GasConfig,
-        },
+        types::{account::Account, config::TxConfig, gas::GasConfig},
     },
     config::types::Memo,
     error::Error,

@@ -1,8 +1,5 @@
 use crate::{
-    chain::{
-        cli::version::major_version,
-        driver::ChainDriver,
-    },
+    chain::{cli::version::major_version, driver::ChainDriver},
     error::Error,
     types::tagged::*,
 };

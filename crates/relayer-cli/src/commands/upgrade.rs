@@ -1,15 +1,8 @@
 //! `upgrade` subcommand
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 
-use crate::commands::tx::client::{
-    TxUpgradeClientCmd,
-    TxUpgradeClientsCmd,
-};
+use crate::commands::tx::client::{TxUpgradeClientCmd, TxUpgradeClientsCmd};
 
 #[derive(Command, Debug, Parser, Runnable)]
 pub enum UpgradeCmds {

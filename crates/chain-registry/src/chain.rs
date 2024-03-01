@@ -3,10 +3,7 @@
 use std::path::PathBuf;
 
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 use crate::fetchable::Fetchable;
 
@@ -166,10 +163,7 @@ impl Fetchable for ChainData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        constants::ALL_CHAINS,
-        error::RegistryError,
-    };
+    use crate::{constants::ALL_CHAINS, error::RegistryError};
 
     #[tokio::test]
     #[ignore]

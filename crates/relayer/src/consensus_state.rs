@@ -14,24 +14,16 @@ use ibc_relayer_types::mock::consensus_state::MockConsensusState;
 use ibc_relayer_types::mock::consensus_state::MOCK_CONSENSUS_STATE_TYPE_URL;
 use ibc_relayer_types::{
     clients::ics07_tendermint::consensus_state::{
-        ConsensusState as TmConsensusState,
-        TENDERMINT_CONSENSUS_STATE_TYPE_URL,
+        ConsensusState as TmConsensusState, TENDERMINT_CONSENSUS_STATE_TYPE_URL,
     },
     core::{
-        ics02_client::{
-            client_type::ClientType,
-            consensus_state::ConsensusState,
-            error::Error,
-        },
+        ics02_client::{client_type::ClientType, consensus_state::ConsensusState, error::Error},
         ics23_commitment::commitment::CommitmentRoot,
     },
     timestamp::Timestamp,
     Height,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type")]

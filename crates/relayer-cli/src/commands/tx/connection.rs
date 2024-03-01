@@ -1,30 +1,14 @@
 #![allow(clippy::redundant_closure_call)]
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use ibc_relayer::connection::{
-    Connection,
-    ConnectionSide,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::connection::{Connection, ConnectionSide};
 use ibc_relayer_types::{
-    core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-        ConnectionId,
-    },
+    core::ics24_host::identifier::{ChainId, ClientId, ConnectionId},
     events::IbcEvent,
     timestamp::ZERO_DURATION,
 };
 
-use crate::{
-    cli_utils::ChainHandlePair,
-    conclude::Output,
-    error::Error,
-    prelude::*,
-};
+use crate::{cli_utils::ChainHandlePair, conclude::Output, error::Error, prelude::*};
 
 macro_rules! conn_open_cmd {
     ($dbg_string:literal, $func:ident, $self:expr, $conn:expr) => {
@@ -361,18 +345,9 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-        ConnectionId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId, ConnectionId};
 
-    use super::{
-        TxConnAckCmd,
-        TxConnConfirmCmd,
-        TxConnInitCmd,
-        TxConnTryCmd,
-    };
+    use super::{TxConnAckCmd, TxConnConfirmCmd, TxConnInitCmd, TxConnTryCmd};
 
     #[test]
     fn test_conn_init() {

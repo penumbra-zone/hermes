@@ -2,21 +2,12 @@
    Type definitions for channel connected between two chains.
 */
 
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    channel::Channel,
-};
+use ibc_relayer::{chain::handle::ChainHandle, channel::Channel};
 
 use super::connection::ConnectedConnection;
 use crate::types::{
-    env::{
-        EnvWriter,
-        ExportEnv,
-    },
-    id::{
-        TaggedChannelId,
-        TaggedPortId,
-    },
+    env::{EnvWriter, ExportEnv},
+    id::{TaggedChannelId, TaggedPortId},
 };
 
 /**

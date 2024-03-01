@@ -3,37 +3,22 @@ use core::time::Duration;
 use ibc_relayer_types::core::{
     ics02_client::height::Height,
     ics04_channel::packet::Packet,
-    ics24_host::identifier::{
-        ChannelId,
-        PortId,
-    },
+    ics24_host::identifier::{ChannelId, PortId},
 };
 
 use crate::{
     chain::{
-        cli::transfer::{
-            local_transfer_token,
-            transfer_from_chain,
-        },
+        cli::transfer::{local_transfer_token, transfer_from_chain},
         driver::ChainDriver,
         tagged::TaggedChainDriverExt,
     },
     error::Error,
     ibc::token::TaggedTokenRef,
-    relayer::transfer::{
-        batched_ibc_token_transfer,
-        ibc_token_transfer,
-    },
+    relayer::transfer::{batched_ibc_token_transfer, ibc_token_transfer},
     types::{
-        id::{
-            TaggedChannelIdRef,
-            TaggedPortIdRef,
-        },
+        id::{TaggedChannelIdRef, TaggedPortIdRef},
         tagged::*,
-        wallet::{
-            Wallet,
-            WalletAddress,
-        },
+        wallet::{Wallet, WalletAddress},
     },
 };
 

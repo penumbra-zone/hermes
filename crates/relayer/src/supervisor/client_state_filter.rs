@@ -5,27 +5,15 @@ use ibc_relayer_types::core::{
     ics02_client::trust_threshold::TrustThreshold,
     ics03_connection::connection::ConnectionEnd,
     ics04_channel::error::Error as ChannelError,
-    ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        ClientId,
-        ConnectionId,
-        PortId,
-    },
+    ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
 };
-use tracing::{
-    debug,
-    trace,
-};
+use tracing::{debug, trace};
 
 use crate::{
     chain::{
         handle::ChainHandle,
         requests::{
-            IncludeProof,
-            QueryChannelRequest,
-            QueryClientStateRequest,
-            QueryConnectionRequest,
+            IncludeProof, QueryChannelRequest, QueryClientStateRequest, QueryConnectionRequest,
             QueryHeight,
         },
     },

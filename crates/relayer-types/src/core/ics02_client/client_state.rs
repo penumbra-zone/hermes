@@ -1,17 +1,11 @@
 use core::fmt::Debug;
 use std::{
-    marker::{
-        Send,
-        Sync,
-    },
+    marker::{Send, Sync},
     time::Duration,
 };
 
 use crate::{
-    core::{
-        ics02_client::client_type::ClientType,
-        ics24_host::identifier::ChainId,
-    },
+    core::{ics02_client::client_type::ClientType, ics24_host::identifier::ChainId},
     Height,
 };
 

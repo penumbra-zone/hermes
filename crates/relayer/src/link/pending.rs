@@ -1,41 +1,22 @@
-use core::{
-    iter::Iterator,
-    time::Duration,
-};
+use core::{iter::Iterator, time::Duration};
 use std::time::Instant;
 
 use ibc_relayer_types::{
-    core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    },
+    core::ics24_host::identifier::{ChainId, ChannelId, PortId},
     events::IbcEvent,
 };
-use tracing::{
-    debug,
-    error,
-    trace,
-    trace_span,
-};
+use tracing::{debug, error, trace, trace_span};
 
 use crate::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            QueryTxHash,
-            QueryTxRequest,
-        },
+        requests::{QueryTxHash, QueryTxRequest},
         tracking::TrackingId,
     },
     error::Error as RelayerError,
     link::{
-        error::LinkError,
-        operational_data::OperationalData,
-        relay_sender::AsyncReply,
-        RelayPath,
-        RelaySummary,
-        TxHashes,
+        error::LinkError, operational_data::OperationalData, relay_sender::AsyncReply, RelayPath,
+        RelaySummary, TxHashes,
     },
     telemetry,
     util::queue::Queue,

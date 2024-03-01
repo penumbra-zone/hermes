@@ -1,28 +1,15 @@
-use abscissa_core::{
-    clap::Parser,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Runnable};
 use ibc_relayer::chain::{
     handle::ChainHandle,
     requests::{
-        IncludeProof,
-        PageRequest,
-        QueryClientStateRequest,
-        QueryConnectionsRequest,
-        QueryHeight,
+        IncludeProof, PageRequest, QueryClientStateRequest, QueryConnectionsRequest, QueryHeight,
     },
 };
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChainId,
-    ConnectionId,
-};
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ConnectionId};
 
 use crate::{
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
     prelude::*,
 };
 

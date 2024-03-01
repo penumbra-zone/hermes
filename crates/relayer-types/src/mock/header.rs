@@ -1,25 +1,10 @@
-use std::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use std::fmt::{Display, Error as FmtError, Formatter};
 
-use ibc_proto::{
-    google::protobuf::Any,
-    ibc::mock::Header as RawMockHeader,
-    Protobuf,
-};
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use ibc_proto::{google::protobuf::Any, ibc::mock::Header as RawMockHeader, Protobuf};
+use serde_derive::{Deserialize, Serialize};
 
 use crate::{
-    core::ics02_client::{
-        client_type::ClientType,
-        error::Error,
-        header::Header,
-    },
+    core::ics02_client::{client_type::ClientType, error::Error, header::Header},
     timestamp::Timestamp,
     Height,
 };

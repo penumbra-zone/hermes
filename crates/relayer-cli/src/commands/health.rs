@@ -1,19 +1,9 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use ibc_relayer::chain::{
-    endpoint::HealthCheck::*,
-    handle::ChainHandle,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::chain::{endpoint::HealthCheck::*, handle::ChainHandle};
 
 use crate::{
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
     prelude::*,
 };
 

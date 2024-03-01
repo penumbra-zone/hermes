@@ -3,10 +3,7 @@ use tracing::debug;
 
 use crate::{
     chain::exec::simple_exec,
-    error::{
-        handle_generic_error,
-        Error,
-    },
+    error::{handle_generic_error, Error},
 };
 
 pub fn get_chain_command_version(command: &str) -> Result<Option<Version>, Error> {

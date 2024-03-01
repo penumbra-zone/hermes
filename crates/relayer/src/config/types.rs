@@ -57,14 +57,8 @@ pub mod max_msg_num {
     }
 
     use serde::{
-        de::{
-            Error as _,
-            Unexpected,
-        },
-        Deserialize,
-        Deserializer,
-        Serialize,
-        Serializer,
+        de::{Error as _, Unexpected},
+        Deserialize, Deserializer, Serialize, Serializer,
     };
 
     impl<'de> Deserialize<'de> for MaxMsgNum {
@@ -152,14 +146,8 @@ pub mod max_tx_size {
     }
 
     use serde::{
-        de::{
-            Error as _,
-            Unexpected,
-        },
-        Deserialize,
-        Deserializer,
-        Serialize,
-        Serializer,
+        de::{Error as _, Unexpected},
+        Deserialize, Deserializer, Serialize, Serializer,
     };
 
     impl<'de> Deserialize<'de> for MaxTxSize {
@@ -244,13 +232,7 @@ pub mod memo {
         }
     }
 
-    use serde::{
-        de::Error as _,
-        Deserialize,
-        Deserializer,
-        Serialize,
-        Serializer,
-    };
+    use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
 
     impl<'de> Deserialize<'de> for Memo {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -277,11 +259,7 @@ pub mod memo {
         }
     }
 
-    use core::fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    };
+    use core::fmt::{Display, Error as FmtError, Formatter};
 
     impl Display for Memo {
         fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
@@ -294,10 +272,7 @@ pub mod ics20_field_size_limit {
     use std::fmt::Display;
 
     use byte_unit::Byte;
-    use serde_derive::{
-        Deserialize,
-        Serialize,
-    };
+    use serde_derive::{Deserialize, Serialize};
 
     pub enum ValidationResult {
         Valid,

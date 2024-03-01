@@ -2,30 +2,17 @@
    Constructs for N-ary connected chains.
 */
 
-use core::convert::{
-    From,
-    TryFrom,
-};
+use core::convert::{From, TryFrom};
 
 use eyre::eyre;
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    foreign_client::ForeignClient,
-};
+use ibc_relayer::{chain::handle::ChainHandle, foreign_client::ForeignClient};
 
 use crate::{
     error::Error,
     types::{
         binary::chains::ConnectedChains as BinaryConnectedChains,
-        env::{
-            prefix_writer,
-            EnvWriter,
-            ExportEnv,
-        },
-        nary::{
-            aliases::*,
-            foreign_client::*,
-        },
+        env::{prefix_writer, EnvWriter, ExportEnv},
+        nary::{aliases::*, foreign_client::*},
         single::node::FullNode,
         tagged::*,
     },

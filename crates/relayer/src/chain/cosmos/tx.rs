@@ -1,37 +1,20 @@
-use ibc_proto::{
-    cosmos::tx::v1beta1::Fee,
-    google::protobuf::Any,
-};
+use ibc_proto::{cosmos::tx::v1beta1::Fee, google::protobuf::Any};
 use ibc_relayer_types::events::IbcEvent;
-use tendermint_rpc::{
-    endpoint::broadcast::tx_sync::Response,
-    Client,
-    HttpClient,
-    Url,
-};
+use tendermint_rpc::{endpoint::broadcast::tx_sync::Response, Client, HttpClient, Url};
 
 use super::batch::send_batched_messages_and_wait_commit;
 use crate::{
     chain::cosmos::{
         encode::sign_and_encode_tx,
         estimate::estimate_tx_fees,
-        query::{
-            account::query_account,
-            tx::all_ibc_events_from_tx_search_response,
-        },
-        types::{
-            account::Account,
-            config::TxConfig,
-        },
+        query::{account::query_account, tx::all_ibc_events_from_tx_search_response},
+        types::{account::Account, config::TxConfig},
         wait::wait_tx_succeed,
     },
     config::types::Memo,
     error::Error,
     event::IbcEventWithHeight,
-    keyring::{
-        Secp256k1KeyPair,
-        SigningKeyPair,
-    },
+    keyring::{Secp256k1KeyPair, SigningKeyPair},
 };
 
 pub async fn estimate_fee_and_send_tx(

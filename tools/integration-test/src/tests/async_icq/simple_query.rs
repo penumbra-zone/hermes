@@ -1,30 +1,15 @@
-use ibc_relayer::{
-    channel::version::Version,
-    config::ChainConfig,
-};
+use ibc_relayer::{channel::version::Version, config::ChainConfig};
 use ibc_test_framework::{
     chain::{
-        config::{
-            set_max_deposit_period,
-            set_voting_period,
-        },
-        ext::{
-            async_icq::AsyncIcqMethodsExt,
-            bootstrap::ChainBootstrapMethodsExt,
-        },
+        config::{set_max_deposit_period, set_voting_period},
+        ext::{async_icq::AsyncIcqMethodsExt, bootstrap::ChainBootstrapMethodsExt},
     },
     prelude::*,
-    relayer::channel::{
-        assert_eventually_channel_established,
-        init_channel_version,
-    },
+    relayer::channel::{assert_eventually_channel_established, init_channel_version},
     util::proposal_status::ProposalStatus,
 };
 use tendermint::abci::Event;
-use tendermint_rpc::{
-    Client,
-    HttpClient,
-};
+use tendermint_rpc::{Client, HttpClient};
 
 #[test]
 fn test_async_icq() -> Result<(), Error> {

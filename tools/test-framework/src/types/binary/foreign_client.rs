@@ -1,12 +1,6 @@
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    foreign_client::ForeignClient,
-};
+use ibc_relayer::{chain::handle::ChainHandle, foreign_client::ForeignClient};
 
-use crate::{
-    relayer::foreign_client::TaggedForeignClientExt,
-    types::id::TaggedClientIdRef,
-};
+use crate::{relayer::foreign_client::TaggedForeignClientExt, types::id::TaggedClientIdRef};
 
 #[derive(Clone)]
 pub struct ForeignClientPair<ChainA: ChainHandle, ChainB: ChainHandle> {

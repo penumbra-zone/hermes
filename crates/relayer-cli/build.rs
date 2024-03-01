@@ -38,10 +38,7 @@ mod git {
     use core::marker::PhantomData;
     use std::{
         ffi::OsStr,
-        process::{
-            Command,
-            Output,
-        },
+        process::{Command, Output},
     };
 
     // A wrapper over a git shell command that is only constructable if git is available & the

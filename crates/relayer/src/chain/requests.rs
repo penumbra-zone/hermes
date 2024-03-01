@@ -1,7 +1,4 @@
-use core::fmt::{
-    self,
-    Display,
-};
+use core::fmt::{self, Display};
 
 use ibc_proto::{
     cosmos::base::query::v1beta1::PageRequest as RawPageRequest,
@@ -30,25 +27,13 @@ use ibc_proto::{
 use ibc_relayer_types::{
     core::{
         ics04_channel::packet::Sequence,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
     },
     events::WithBlockDataType,
     Height,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use tendermint::{
-    block::Height as TMBlockHeight,
-    Hash as TxHash,
-};
+use serde::{Deserialize, Serialize};
+use tendermint::{block::Height as TMBlockHeight, Hash as TxHash};
 use tonic::metadata::AsciiMetadataValue;
 
 use crate::error::Error;

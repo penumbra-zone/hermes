@@ -7,40 +7,21 @@ use ibc_relayer_types::{
         ics02_client::events::UpdateClient,
         ics03_connection::events::Attributes as ConnectionAttributes,
         ics04_channel::events::{
-            Attributes,
-            CloseInit,
-            SendPacket,
-            TimeoutPacket,
-            WriteAcknowledgement,
+            Attributes, CloseInit, SendPacket, TimeoutPacket, WriteAcknowledgement,
         },
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
     },
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     chain::{
         counterparty::{
-            channel_connection_client,
-            channel_connection_client_no_checks,
-            counterparty_chain_from_channel,
-            counterparty_chain_from_connection,
+            channel_connection_client, channel_connection_client_no_checks,
+            counterparty_chain_from_channel, counterparty_chain_from_connection,
         },
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryClientStateRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
     },
     error::Error as RelayerError,
     supervisor::Error as SupervisorError,

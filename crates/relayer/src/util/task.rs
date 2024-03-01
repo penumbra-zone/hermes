@@ -1,25 +1,11 @@
-use core::{
-    fmt::Display,
-    mem,
-    time::Duration,
-};
+use core::{fmt::Display, mem, time::Duration};
 use std::{
-    sync::{
-        Arc,
-        RwLock,
-    },
+    sync::{Arc, RwLock},
     thread,
 };
 
-use crossbeam_channel::{
-    bounded,
-    Sender,
-};
-use tracing::{
-    debug,
-    error,
-    warn,
-};
+use crossbeam_channel::{bounded, Sender};
+use tracing::{debug, error, warn};
 
 use crate::util::lock::LockExt;
 

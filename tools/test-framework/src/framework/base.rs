@@ -9,9 +9,7 @@ use tokio::runtime::Runtime;
 use tracing::info;
 
 use crate::{
-    bootstrap::init::init_test,
-    chain::builder::ChainBuilder,
-    error::Error,
+    bootstrap::init::init_test, chain::builder::ChainBuilder, error::Error,
     types::config::TestConfig,
 };
 

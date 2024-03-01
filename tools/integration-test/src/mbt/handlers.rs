@@ -1,44 +1,22 @@
-use ibc_relayer::{
-    util::task::TaskHandle,
-    worker::client::spawn_refresh_client,
-};
+use ibc_relayer::{util::task::TaskHandle, worker::client::spawn_refresh_client};
 use ibc_test_framework::{
-    bootstrap::binary::{
-        chain::bootstrap_foreign_client_pair,
-        connection::bootstrap_connection,
-    },
-    chain::{
-        ext::transfer::ChainTransferMethodsExt,
-        tagged::TaggedChainDriverExt,
-    },
+    bootstrap::binary::{chain::bootstrap_foreign_client_pair, connection::bootstrap_connection},
+    chain::{ext::transfer::ChainTransferMethodsExt, tagged::TaggedChainDriverExt},
     ibc::denom::derive_ibc_denom,
     prelude::*,
     relayer::{
-        channel::{
-            assert_eventually_channel_established,
-            init_channel,
-        },
-        connection::{
-            assert_eventually_connection_established,
-            init_connection,
-        },
+        channel::{assert_eventually_channel_established, init_channel},
+        connection::{assert_eventually_connection_established, init_connection},
     },
     types::{
-        binary::{
-            client::ClientIdPair,
-            connection::ConnectedConnection,
-        },
+        binary::{client::ClientIdPair, connection::ConnectedConnection},
         tagged::mono::Tagged,
     },
 };
 
 use super::{
     state::Packet,
-    utils::{
-        get_denom,
-        get_wallet,
-        wait_for_client,
-    },
+    utils::{get_denom, get_wallet, wait_for_client},
 };
 
 pub fn setup_chains<ChainA: ChainHandle, ChainB: ChainHandle>(

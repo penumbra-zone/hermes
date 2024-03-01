@@ -1,45 +1,24 @@
 use core::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     time::Duration,
 };
 use std::thread;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::{
         handle::ChainHandle,
         requests::{
-            IncludeProof,
-            PageRequest,
-            QueryClientStateRequest,
-            QueryClientStatesRequest,
+            IncludeProof, PageRequest, QueryClientStateRequest, QueryClientStatesRequest,
             QueryHeight,
         },
     },
-    config::{
-        ChainConfig,
-        Config,
-        GenesisRestart,
-    },
+    config::{ChainConfig, Config, GenesisRestart},
     event::IbcEventWithHeight,
-    foreign_client::{
-        CreateOptions,
-        ForeignClient,
-    },
+    foreign_client::{CreateOptions, ForeignClient},
 };
 use ibc_relayer_types::{
-    core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-    },
+    core::ics24_host::identifier::{ChainId, ClientId},
     events::IbcEvent,
     Height,
 };
@@ -50,15 +29,8 @@ use tracing::debug;
 
 use crate::{
     application::app_config,
-    cli_utils::{
-        spawn_chain_runtime,
-        spawn_chain_runtime_generic,
-        ChainHandlePair,
-    },
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    cli_utils::{spawn_chain_runtime, spawn_chain_runtime_generic, ChainHandlePair},
+    conclude::{exit_with_unrecoverable_error, Output},
     error::Error,
 };
 
@@ -645,17 +617,11 @@ mod tests {
 
     use abscissa_core::clap::Parser;
     use humantime::Duration;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
     use tendermint_light_client_verifier::types::TrustThreshold;
 
     use super::{
-        parse_trust_threshold,
-        TxCreateClientCmd,
-        TxUpdateClientCmd,
-        TxUpgradeClientCmd,
+        parse_trust_threshold, TxCreateClientCmd, TxUpdateClientCmd, TxUpgradeClientCmd,
         TxUpgradeClientsCmd,
     };
 

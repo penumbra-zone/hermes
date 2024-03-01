@@ -1,7 +1,6 @@
 use flex_error::define_error;
 use ibc_relayer_types::core::{
-    ics02_client::trust_threshold::TrustThreshold,
-    ics24_host::identifier::ChainId,
+    ics02_client::trust_threshold::TrustThreshold, ics24_host::identifier::ChainId,
 };
 
 define_error! {

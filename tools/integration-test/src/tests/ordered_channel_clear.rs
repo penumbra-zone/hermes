@@ -1,22 +1,11 @@
 use ibc_relayer::{
-    config::{
-        types::MaxMsgNum,
-        ChainConfig,
-    },
-    link::{
-        Link,
-        LinkParameters,
-    },
-    transfer::{
-        build_and_send_transfer_messages,
-        TransferOptions,
-    },
+    config::{types::MaxMsgNum, ChainConfig},
+    link::{Link, LinkParameters},
+    transfer::{build_and_send_transfer_messages, TransferOptions},
 };
 use ibc_relayer_types::events::IbcEvent;
 use ibc_test_framework::{
-    ibc::denom::derive_ibc_denom,
-    prelude::*,
-    util::random::random_u64_range,
+    ibc::denom::derive_ibc_denom, prelude::*, util::random::random_u64_range,
 };
 
 #[test]

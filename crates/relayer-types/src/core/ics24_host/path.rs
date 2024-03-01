@@ -4,20 +4,12 @@
 ///
 use std::str::FromStr;
 
-use derive_more::{
-    Display,
-    From,
-};
+use derive_more::{Display, From};
 use flex_error::define_error;
 
 use crate::core::{
     ics04_channel::packet::Sequence,
-    ics24_host::identifier::{
-        ChannelId,
-        ClientId,
-        ConnectionId,
-        PortId,
-    },
+    ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId},
 };
 
 /// ABCI Query path for the IBC sub-store

@@ -1,9 +1,6 @@
 use ibc_relayer_types::core::{
     ics04_channel::channel::IdentifiedChannelEnd,
-    ics24_host::identifier::{
-        ChannelId,
-        PortId,
-    },
+    ics24_host::identifier::{ChannelId, PortId},
 };
 
 /// Defines the channel & port identifiers which comprise

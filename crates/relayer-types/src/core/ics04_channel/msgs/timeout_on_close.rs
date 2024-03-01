@@ -1,15 +1,9 @@
-use ibc_proto::{
-    ibc::core::channel::v1::MsgTimeoutOnClose as RawMsgTimeoutOnClose,
-    Protobuf,
-};
+use ibc_proto::{ibc::core::channel::v1::MsgTimeoutOnClose as RawMsgTimeoutOnClose, Protobuf};
 
 use crate::{
     core::ics04_channel::{
         error::Error,
-        packet::{
-            Packet,
-            Sequence,
-        },
+        packet::{Packet, Sequence},
     },
     proofs::Proofs,
     signer::Signer,
@@ -122,8 +116,7 @@ mod tests {
     use test_log::test;
 
     use crate::core::ics04_channel::msgs::timeout_on_close::{
-        test_util::get_dummy_raw_msg_timeout_on_close,
-        MsgTimeoutOnClose,
+        test_util::get_dummy_raw_msg_timeout_on_close, MsgTimeoutOnClose,
     };
 
     #[test]
@@ -207,16 +200,12 @@ mod tests {
 #[cfg(test)]
 pub mod test_util {
     use ibc_proto::ibc::core::{
-        channel::v1::MsgTimeoutOnClose as RawMsgTimeoutOnClose,
-        client::v1::Height as RawHeight,
+        channel::v1::MsgTimeoutOnClose as RawMsgTimeoutOnClose, client::v1::Height as RawHeight,
     };
 
     use crate::{
         core::ics04_channel::packet::test_utils::get_dummy_raw_packet,
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
 
     /// Returns a dummy `RawMsgTimeoutOnClose`, for testing only!

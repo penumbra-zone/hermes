@@ -5,50 +5,24 @@ use std::sync::Arc;
 use crossbeam_channel as channel;
 use ibc_relayer_types::{
     core::{
-        ics02_client::{
-            events::NewBlock,
-            height::Height,
-        },
+        ics02_client::{events::NewBlock, height::Height},
         ics24_host::identifier::ChainId,
     },
     events::IbcEvent,
 };
-use tendermint::{
-    abci,
-    block::Height as BlockHeight,
-};
-use tendermint_rpc::{
-    Client,
-    HttpClient,
-};
+use tendermint::{abci, block::Height as BlockHeight};
+use tendermint_rpc::{Client, HttpClient};
 use tokio::{
     runtime::Runtime as TokioRuntime,
-    time::{
-        sleep,
-        Duration,
-        Instant,
-    },
+    time::{sleep, Duration, Instant},
 };
-use tracing::{
-    debug,
-    error,
-    error_span,
-    trace,
-};
+use tracing::{debug, error, error_span, trace};
 
 use self::extract::extract_events;
-use super::{
-    EventBatch,
-    EventSourceCmd,
-    TxEventSourceCmd,
-};
+use super::{EventBatch, EventSourceCmd, TxEventSourceCmd};
 use crate::{
     chain::tracking::TrackingId,
-    event::{
-        bus::EventBus,
-        source::Error,
-        IbcEventWithHeight,
-    },
+    event::{bus::EventBus, source::Error, IbcEventWithHeight},
     telemetry,
     util::retry::ConstantGrowth,
 };
@@ -267,10 +241,7 @@ fn poll_backoff(poll_interval: Duration) -> impl Iterator<Item = Duration> {
 }
 
 fn dedupe(events: Vec<abci::Event>) -> Vec<abci::Event> {
-    use std::hash::{
-        Hash,
-        Hasher,
-    };
+    use std::hash::{Hash, Hasher};
 
     use itertools::Itertools;
 

@@ -1,18 +1,9 @@
-use ibc_proto::{
-    google::protobuf::Any,
-    stride::interchainquery::v1::MsgSubmitQueryResponse,
-};
+use ibc_proto::{google::protobuf::Any, stride::interchainquery::v1::MsgSubmitQueryResponse};
 use prost::Message;
 use tendermint::merkle::proof::ProofOps as TendermintProofOps;
-use tendermint_proto::crypto::{
-    ProofOp,
-    ProofOps,
-};
+use tendermint_proto::crypto::{ProofOp, ProofOps};
 
-use crate::{
-    applications::ics31_icq::error::Error,
-    signer::Signer,
-};
+use crate::{applications::ics31_icq::error::Error, signer::Signer};
 
 pub const TYPE_URL: &str = "/stride.interchainquery.v1.MsgSubmitQueryResponse";
 

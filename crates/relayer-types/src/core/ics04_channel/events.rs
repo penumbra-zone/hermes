@@ -1,37 +1,19 @@
 //! Types for the IBC events emitted from Tendermint Websocket by the channels module.
 
 use std::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     str,
 };
 
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 use tendermint::abci;
 
 use crate::{
     core::{
-        ics04_channel::{
-            error::Error,
-            packet::Packet,
-        },
-        ics24_host::identifier::{
-            ChannelId,
-            ConnectionId,
-            PortId,
-        },
+        ics04_channel::{error::Error, packet::Packet},
+        ics24_host::identifier::{ChannelId, ConnectionId, PortId},
     },
-    events::{
-        Error as EventError,
-        IbcEvent,
-        IbcEventType,
-    },
+    events::{Error as EventError, IbcEvent, IbcEventType},
     utils::pretty::PrettySlice,
 };
 

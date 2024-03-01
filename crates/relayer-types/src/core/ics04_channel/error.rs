@@ -1,13 +1,7 @@
-use flex_error::{
-    define_error,
-    TraceError,
-};
+use flex_error::{define_error, TraceError};
 use tendermint_proto::Error as TendermintError;
 
-use super::{
-    packet::Sequence,
-    timeout::TimeoutHeight,
-};
+use super::{packet::Sequence, timeout::TimeoutHeight};
 use crate::{
     core::{
         ics02_client::error as client_error,
@@ -15,12 +9,7 @@ use crate::{
         ics04_channel::channel::State,
         ics24_host::{
             error::ValidationError,
-            identifier::{
-                ChannelId,
-                ClientId,
-                ConnectionId,
-                PortId,
-            },
+            identifier::{ChannelId, ClientId, ConnectionId, PortId},
         },
     },
     proofs::ProofError,

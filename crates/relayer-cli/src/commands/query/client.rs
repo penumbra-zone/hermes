@@ -1,30 +1,17 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use color_eyre::eyre::eyre;
 use ibc_relayer::chain::{
     handle::ChainHandle,
     requests::{
-        IncludeProof,
-        PageRequest,
-        QueryClientConnectionsRequest,
-        QueryClientEventRequest,
-        QueryClientStateRequest,
-        QueryConsensusStateHeightsRequest,
-        QueryConsensusStateRequest,
-        QueryHeight,
-        QueryTxRequest,
+        IncludeProof, PageRequest, QueryClientConnectionsRequest, QueryClientEventRequest,
+        QueryClientStateRequest, QueryConsensusStateHeightsRequest, QueryConsensusStateRequest,
+        QueryHeight, QueryTxRequest,
     },
 };
 use ibc_relayer_types::{
     core::{
         ics02_client::client_state::ClientState,
-        ics24_host::identifier::{
-            ChainId,
-            ClientId,
-        },
+        ics24_host::identifier::{ChainId, ClientId},
     },
     events::WithBlockDataType,
     Height,
@@ -33,10 +20,7 @@ use ibc_relayer_types::{
 use crate::{
     application::app_config,
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
 };
 
 /// Query client state command
@@ -430,17 +414,11 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 
     use super::{
-        QueryClientConnectionsCmd,
-        QueryClientConsensusCmd,
-        QueryClientHeaderCmd,
-        QueryClientStateCmd,
-        QueryClientStatusCmd,
+        QueryClientConnectionsCmd, QueryClientConsensusCmd, QueryClientHeaderCmd,
+        QueryClientStateCmd, QueryClientStatusCmd,
     };
 
     #[test]

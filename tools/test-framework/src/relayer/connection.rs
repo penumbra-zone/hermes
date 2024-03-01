@@ -8,23 +8,13 @@ use eyre::eyre;
 use ibc_relayer::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryConnectionRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryConnectionRequest, QueryHeight},
     },
-    connection::{
-        extract_connection_id,
-        Connection,
-        ConnectionSide,
-    },
+    connection::{extract_connection_id, Connection, ConnectionSide},
 };
 use ibc_relayer_types::{
     core::ics03_connection::connection::{
-        ConnectionEnd,
-        IdentifiedConnectionEnd,
-        State as ConnectionState,
+        ConnectionEnd, IdentifiedConnectionEnd, State as ConnectionState,
     },
     timestamp::ZERO_DURATION,
 };
@@ -32,11 +22,7 @@ use ibc_relayer_types::{
 use crate::{
     error::Error,
     types::{
-        id::{
-            TaggedClientIdRef,
-            TaggedConnectionId,
-            TaggedConnectionIdRef,
-        },
+        id::{TaggedClientIdRef, TaggedConnectionId, TaggedConnectionIdRef},
         tagged::DualTagged,
     },
     util::retry::assert_eventually_succeed,

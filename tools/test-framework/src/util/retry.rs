@@ -5,10 +5,7 @@
 use core::time::Duration;
 use std::thread::sleep;
 
-use tracing::{
-    info,
-    trace,
-};
+use tracing::{info, trace};
 
 use crate::error::Error;
 

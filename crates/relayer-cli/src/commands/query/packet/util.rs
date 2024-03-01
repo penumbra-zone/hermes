@@ -1,14 +1,8 @@
 use core::fmt;
 
 pub use ibc_relayer::chain::counterparty::PendingPackets;
-use ibc_relayer::util::collate::{
-    Collated,
-    CollatedIterExt,
-};
-use ibc_relayer_types::{
-    core::ics04_channel::packet::Sequence,
-    Height,
-};
+use ibc_relayer::util::collate::{Collated, CollatedIterExt};
+use ibc_relayer_types::{core::ics04_channel::packet::Sequence, Height};
 use serde::Serialize;
 
 #[derive(Serialize)]

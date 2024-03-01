@@ -19,18 +19,11 @@
 use std::time::Duration;
 
 use ibc_relayer::{
-    chain::requests::{
-        IncludeProof,
-        QueryClientStateRequest,
-        QueryHeight,
-    },
+    chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
     client_state::AnyClientState,
     foreign_client::CreateOptions,
     object::ObjectType,
-    supervisor::client_state_filter::{
-        FilterPolicy,
-        Permission,
-    },
+    supervisor::client_state_filter::{FilterPolicy, Permission},
 };
 use ibc_relayer_types::{
     clients::ics07_tendermint::client_state::ClientState as TmClientState,

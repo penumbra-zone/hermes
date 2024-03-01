@@ -1,13 +1,7 @@
-use alloc::collections::{
-    BTreeMap as HashMap,
-    VecDeque,
-};
+use alloc::collections::{BTreeMap as HashMap, VecDeque};
 use std::{
     ops::Sub,
-    time::{
-        Duration,
-        Instant,
-    },
+    time::{Duration, Instant},
 };
 
 use ibc_proto::{
@@ -18,130 +12,59 @@ use ibc_relayer_types::{
     core::{
         ics02_client::events::ClientMisbehaviour,
         ics04_channel::{
-            channel::{
-                ChannelEnd,
-                Ordering,
-            },
-            events::{
-                SendPacket,
-                WriteAcknowledgement,
-            },
+            channel::{ChannelEnd, Ordering},
+            events::{SendPacket, WriteAcknowledgement},
             msgs::{
-                acknowledgement::MsgAcknowledgement,
-                chan_close_confirm::MsgChannelCloseConfirm,
-                recv_packet::MsgRecvPacket,
-                timeout::MsgTimeout,
+                acknowledgement::MsgAcknowledgement, chan_close_confirm::MsgChannelCloseConfirm,
+                recv_packet::MsgRecvPacket, timeout::MsgTimeout,
                 timeout_on_close::MsgTimeoutOnClose,
             },
-            packet::{
-                Packet,
-                PacketMsgType,
-            },
+            packet::{Packet, PacketMsgType},
         },
-        ics24_host::identifier::{
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId},
     },
-    events::{
-        IbcEvent,
-        IbcEventType,
-        WithBlockDataType,
-    },
+    events::{IbcEvent, IbcEventType, WithBlockDataType},
     signer::Signer,
     timestamp::Timestamp,
     tx_msg::Msg,
     Height,
 };
 use itertools::Itertools;
-use tracing::{
-    debug,
-    error,
-    info,
-    span,
-    trace,
-    warn,
-    Level,
-};
+use tracing::{debug, error, info, span, trace, warn, Level};
 
 use crate::{
     chain::{
-        counterparty::{
-            unreceived_acknowledgements,
-            unreceived_packets,
-        },
+        counterparty::{unreceived_acknowledgements, unreceived_packets},
         endpoint::ChainStatus,
         handle::ChainHandle,
         requests::{
-            IncludeProof,
-            Qualified,
-            QueryChannelRequest,
-            QueryClientEventRequest,
-            QueryHeight,
-            QueryHostConsensusStateRequest,
-            QueryNextSequenceReceiveRequest,
-            QueryPacketCommitmentRequest,
-            QueryTxRequest,
-            QueryUnreceivedAcksRequest,
+            IncludeProof, Qualified, QueryChannelRequest, QueryClientEventRequest, QueryHeight,
+            QueryHostConsensusStateRequest, QueryNextSequenceReceiveRequest,
+            QueryPacketCommitmentRequest, QueryTxRequest, QueryUnreceivedAcksRequest,
             QueryUnreceivedPacketsRequest,
         },
-        tracking::{
-            TrackedMsgs,
-            TrackingId,
-        },
+        tracking::{TrackedMsgs, TrackingId},
     },
-    channel::{
-        error::ChannelError,
-        Channel,
-    },
-    config::types::ics20_field_size_limit::{
-        Ics20FieldSizeLimit,
-        ValidationResult,
-    },
-    event::{
-        source::EventBatch,
-        IbcEventWithHeight,
-    },
-    foreign_client::{
-        ForeignClient,
-        ForeignClientError,
-    },
+    channel::{error::ChannelError, Channel},
+    config::types::ics20_field_size_limit::{Ics20FieldSizeLimit, ValidationResult},
+    event::{source::EventBatch, IbcEventWithHeight},
+    foreign_client::{ForeignClient, ForeignClientError},
     link::{
-        error::{
-            self,
-            LinkError,
-        },
-        operational_data::{
-            OperationalData,
-            OperationalDataTarget,
-            TrackedEvents,
-            TransitMessage,
-        },
+        error::{self, LinkError},
+        operational_data::{OperationalData, OperationalDataTarget, TrackedEvents, TransitMessage},
         packet_events::{
-            query_packet_events_with,
-            query_send_packet_events,
-            query_write_ack_events,
+            query_packet_events_with, query_send_packet_events, query_write_ack_events,
         },
         pending,
         pending::PendingTxs,
         relay_sender,
-        relay_sender::{
-            AsyncReply,
-            SubmitReply,
-        },
+        relay_sender::{AsyncReply, SubmitReply},
         relay_summary::RelaySummary,
-        ChannelState,
-        LinkParameters,
+        ChannelState, LinkParameters,
     },
     path::PathIdentifiers,
     telemetry,
-    util::{
-        collate::CollatedIterExt,
-        pretty::PrettyEvents,
-        queue::Queue,
-    },
+    util::{collate::CollatedIterExt, pretty::PrettyEvents, queue::Queue},
 };
 
 const MAX_RETRIES: usize = 5;

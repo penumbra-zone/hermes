@@ -3,18 +3,11 @@
 */
 
 use core::convert::AsRef;
-use std::{
-    collections::BTreeMap,
-    fs::write,
-    path::Path,
-};
+use std::{collections::BTreeMap, fs::write, path::Path};
 
 use itertools::Itertools;
 
-use crate::{
-    error::Error,
-    types::tagged::*,
-};
+use crate::{error::Error, types::tagged::*};
 
 /**
     This trait is implemented by data types that can export the contained

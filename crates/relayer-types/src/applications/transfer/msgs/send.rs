@@ -1,22 +1,10 @@
-use std::{
-    fmt::Display,
-    str::FromStr,
-};
+use std::{fmt::Display, str::FromStr};
 
-use ibc_proto::{
-    cosmos::bank::v1beta1::MsgSend as RawMsgSend,
-    Protobuf,
-};
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use ibc_proto::{cosmos::bank::v1beta1::MsgSend as RawMsgSend, Protobuf};
+use serde_derive::{Deserialize, Serialize};
 
 use crate::{
-    applications::transfer::{
-        error::Error,
-        Coin,
-    },
+    applications::transfer::{error::Error, Coin},
     core::ics24_host::error::ValidationError,
     tx_msg::Msg,
 };

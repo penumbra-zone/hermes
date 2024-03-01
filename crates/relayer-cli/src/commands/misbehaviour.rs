@@ -1,46 +1,26 @@
 use std::ops::Deref;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use eyre::eyre;
 use ibc_relayer::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryClientStateRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
     },
     config::Config,
-    foreign_client::{
-        ForeignClient,
-        MisbehaviourResults,
-    },
+    foreign_client::{ForeignClient, MisbehaviourResults},
     util::pretty::PrettySlice,
 };
 use ibc_relayer_types::{
     core::{
-        ics02_client::{
-            client_state::ClientState,
-            events::UpdateClient,
-        },
-        ics24_host::identifier::{
-            ChainId,
-            ClientId,
-        },
+        ics02_client::{client_state::ClientState, events::UpdateClient},
+        ics24_host::identifier::{ChainId, ClientId},
     },
     events::IbcEvent,
 };
 
 use crate::{
-    cli_utils::{
-        spawn_chain_runtime,
-        spawn_chain_runtime_generic,
-    },
+    cli_utils::{spawn_chain_runtime, spawn_chain_runtime_generic},
     conclude::Output,
     prelude::*,
 };
@@ -187,10 +167,7 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 
     use super::MisbehaviourCmd;
 

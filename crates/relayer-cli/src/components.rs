@@ -1,23 +1,11 @@
 //! Various components for internal use by the Abscissa subsystem.
 
-use abscissa_core::{
-    Component,
-    FrameworkError,
-    FrameworkErrorKind,
-};
+use abscissa_core::{Component, FrameworkError, FrameworkErrorKind};
 use ibc_relayer::{
-    config::{
-        Error,
-        GlobalConfig,
-        LogLevel,
-    },
+    config::{Error, GlobalConfig, LogLevel},
     util::debug_section::DebugSection,
 };
-use tracing_subscriber::{
-    filter::EnvFilter,
-    util::SubscriberInitExt,
-    FmtSubscriber,
-};
+use tracing_subscriber::{filter::EnvFilter, util::SubscriberInitExt, FmtSubscriber};
 
 use crate::tracing_handle::ReloadHandle;
 

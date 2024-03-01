@@ -8,38 +8,22 @@ use tracing::info;
 
 use crate::{
     bootstrap::nary::chain::{
-        boostrap_chains_with_nodes,
-        boostrap_chains_with_self_connected_node,
+        boostrap_chains_with_nodes, boostrap_chains_with_self_connected_node,
     },
     error::Error,
     framework::{
-        base::{
-            HasOverrides,
-            TestConfigOverride,
-        },
+        base::{HasOverrides, TestConfigOverride},
         binary::{
             chain::RelayerConfigOverride,
-            node::{
-                NodeConfigOverride,
-                NodeGenesisOverride,
-            },
+            node::{NodeConfigOverride, NodeGenesisOverride},
         },
-        nary::node::{
-            run_nary_node_test,
-            NaryNodeTest,
-        },
-        supervisor::{
-            RunWithSupervisor,
-            SupervisorOverride,
-        },
+        nary::node::{run_nary_node_test, NaryNodeTest},
+        supervisor::{RunWithSupervisor, SupervisorOverride},
     },
     relayer::driver::RelayerDriver,
     types::{
-        binary::chains::DropChainHandle,
-        config::TestConfig,
-        env::write_env,
-        nary::chains::NaryConnectedChains,
-        single::node::FullNode,
+        binary::chains::DropChainHandle, config::TestConfig, env::write_env,
+        nary::chains::NaryConnectedChains, single::node::FullNode,
     },
     util::suspend::hang_on_error,
 };

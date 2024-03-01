@@ -3,53 +3,32 @@
    `hermes tx ft-transfer`.
 */
 
-use core::{
-    ops::Add,
-    time::Duration,
-};
+use core::{ops::Add, time::Duration};
 
 use eyre::eyre;
 use ibc_proto::google::protobuf::Any;
 use ibc_relayer::{
     chain::cosmos::{
-        tx::{
-            batched_send_tx,
-            simple_send_tx,
-        },
+        tx::{batched_send_tx, simple_send_tx},
         types::config::TxConfig,
     },
-    transfer::{
-        build_transfer_message as raw_build_transfer_message,
-        TransferError,
-    },
+    transfer::{build_transfer_message as raw_build_transfer_message, TransferError},
 };
 use ibc_relayer_types::{
     applications::transfer::error::Error as Ics20Error,
-    core::ics04_channel::{
-        packet::Packet,
-        timeout::TimeoutHeight,
-    },
+    core::ics04_channel::{packet::Packet, timeout::TimeoutHeight},
     events::IbcEvent,
     timestamp::Timestamp,
 };
 use tendermint_rpc::HttpClient;
 
 use crate::{
-    error::{
-        handle_generic_error,
-        Error,
-    },
+    error::{handle_generic_error, Error},
     ibc::token::TaggedTokenRef,
     types::{
-        id::{
-            TaggedChannelIdRef,
-            TaggedPortIdRef,
-        },
+        id::{TaggedChannelIdRef, TaggedPortIdRef},
         tagged::*,
-        wallet::{
-            Wallet,
-            WalletAddress,
-        },
+        wallet::{Wallet, WalletAddress},
     },
 };
 

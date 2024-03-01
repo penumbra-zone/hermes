@@ -1,11 +1,7 @@
 use ibc_relayer_types::core::{
     ics03_connection::connection::State as ConnectionState,
     ics04_channel::channel::State as ChannelState,
-    ics24_host::identifier::{
-        ChannelId,
-        PortChannelId,
-        PortId,
-    },
+    ics24_host::identifier::{ChannelId, PortChannelId, PortId},
 };
 use tracing::info;
 
@@ -13,17 +9,9 @@ use crate::{
     chain::{
         counterparty::check_channel_counterparty,
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryChannelRequest,
-            QueryConnectionRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryChannelRequest, QueryConnectionRequest, QueryHeight},
     },
-    channel::{
-        Channel,
-        ChannelSide,
-    },
+    channel::{Channel, ChannelSide},
     config::types::ics20_field_size_limit::Ics20FieldSizeLimit,
     link::error::LinkError,
 };
@@ -39,10 +27,7 @@ mod relay_sender;
 mod relay_summary;
 mod tx_hashes;
 
-pub use relay_path::{
-    RelayPath,
-    Resubmit,
-};
+pub use relay_path::{RelayPath, Resubmit};
 // Re-export the telemetries summary
 pub use relay_summary::RelaySummary;
 use tx_hashes::TxHashes;

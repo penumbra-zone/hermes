@@ -1,17 +1,11 @@
 use ibc_proto::{
     google::protobuf::Any,
-    ibc::applications::fee::v1::{
-        MsgRegisterCounterpartyPayee,
-        MsgRegisterPayee,
-    },
+    ibc::applications::fee::v1::{MsgRegisterCounterpartyPayee, MsgRegisterPayee},
 };
 
 use crate::{
     applications::ics29_fee::error::Error,
-    core::ics24_host::identifier::{
-        ChannelId,
-        PortId,
-    },
+    core::ics24_host::identifier::{ChannelId, PortId},
     signer::Signer,
     tx_msg::encode_message,
 };

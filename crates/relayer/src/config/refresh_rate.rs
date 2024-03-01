@@ -1,11 +1,6 @@
 use std::str::FromStr;
 
-use serde::{
-    Deserialize,
-    Deserializer,
-    Serialize,
-    Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct RefreshRate {

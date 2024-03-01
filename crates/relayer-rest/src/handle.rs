@@ -4,12 +4,7 @@ use crossbeam_channel as channel;
 use ibc_relayer::{
     config::ChainConfig,
     rest::{
-        request::{
-            reply_channel,
-            ReplySender,
-            Request,
-            VersionInfo,
-        },
+        request::{reply_channel, ReplySender, Request, VersionInfo},
         RestApiError,
     },
     supervisor::dump_state::SupervisorState,

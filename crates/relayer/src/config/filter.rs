@@ -1,31 +1,16 @@
 //! Custom `serde` deserializer for `FilterMatch`
 
-use core::{
-    fmt,
-    str::FromStr,
-};
-use std::{
-    collections::HashMap,
-    hash::Hash,
-};
+use core::{fmt, str::FromStr};
+use std::{collections::HashMap, hash::Hash};
 
 use ibc_relayer_types::{
     applications::transfer::RawCoin,
     bigint::U256,
-    core::ics24_host::identifier::{
-        ChannelId,
-        PortId,
-    },
+    core::ics24_host::identifier::{ChannelId, PortId},
     events::IbcEventType,
 };
 use itertools::Itertools;
-use serde::{
-    de,
-    Deserialize,
-    Deserializer,
-    Serialize,
-    Serializer,
-};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 /// Represents all the filtering policies for packets.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -469,10 +454,7 @@ mod tests {
     fn serialize_packet_filter_policy() {
         use std::str::FromStr;
 
-        use ibc_relayer_types::core::ics24_host::identifier::{
-            ChannelId,
-            PortId,
-        };
+        use ibc_relayer_types::core::ics24_host::identifier::{ChannelId, PortId};
 
         let filter_policy = ChannelFilters(vec![
             (

@@ -1,14 +1,8 @@
-use ibc_proto::{
-    ibc::core::channel::v1::MsgChannelOpenInit as RawMsgChannelOpenInit,
-    Protobuf,
-};
+use ibc_proto::{ibc::core::channel::v1::MsgChannelOpenInit as RawMsgChannelOpenInit, Protobuf};
 
 use crate::{
     core::{
-        ics04_channel::{
-            channel::ChannelEnd,
-            error::Error,
-        },
+        ics04_channel::{channel::ChannelEnd, error::Error},
         ics24_host::identifier::PortId,
     },
     signer::Signer,
@@ -106,8 +100,7 @@ mod tests {
     use test_log::test;
 
     use crate::core::ics04_channel::msgs::chan_open_init::{
-        test_util::get_dummy_raw_msg_chan_open_init,
-        MsgChannelOpenInit,
+        test_util::get_dummy_raw_msg_chan_open_init, MsgChannelOpenInit,
     };
 
     #[test]

@@ -1,37 +1,19 @@
 use core::time::Duration;
-use std::{
-    thread,
-    time::Instant,
-};
+use std::{thread, time::Instant};
 
-use ibc_relayer_types::{
-    core::ics24_host::identifier::ChainId,
-    events::IbcEvent,
-    Height,
-};
+use ibc_relayer_types::{core::ics24_host::identifier::ChainId, events::IbcEvent, Height};
 use itertools::Itertools;
 use tendermint::Hash as TxHash;
-use tendermint_rpc::{
-    endpoint::tx::Response as TxResponse,
-    HttpClient,
-    Url,
-};
+use tendermint_rpc::{endpoint::tx::Response as TxResponse, HttpClient, Url};
 use tokio::time::sleep;
-use tracing::{
-    debug,
-    debug_span,
-    trace,
-};
+use tracing::{debug, debug_span, trace};
 
 use crate::{
     chain::cosmos::{
         query::tx::query_tx_response,
         types::{
             events::from_tx_response_event,
-            tx::{
-                TxStatus,
-                TxSyncResult,
-            },
+            tx::{TxStatus, TxSyncResult},
         },
     },
     error::Error,

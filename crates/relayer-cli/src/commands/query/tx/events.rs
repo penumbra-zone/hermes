@@ -1,26 +1,16 @@
 use core::str::FromStr;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::chain::{
     handle::ChainHandle,
-    requests::{
-        QueryTxHash,
-        QueryTxRequest,
-    },
+    requests::{QueryTxHash, QueryTxRequest},
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tendermint::Hash;
 
 use crate::{
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
     error::Error,
     prelude::app_config,
 };

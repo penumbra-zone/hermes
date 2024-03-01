@@ -1,45 +1,23 @@
 #![allow(clippy::redundant_closure_call)]
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryConnectionRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryConnectionRequest, QueryHeight},
     },
-    channel::{
-        Channel,
-        ChannelSide,
-    },
+    channel::{Channel, ChannelSide},
 };
 use ibc_relayer_types::{
     core::{
         ics03_connection::connection::ConnectionEnd,
         ics04_channel::channel::Ordering,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
     },
     events::IbcEvent,
 };
 
-use crate::{
-    cli_utils::ChainHandlePair,
-    conclude::Output,
-    error::Error,
-    prelude::*,
-};
+use crate::{cli_utils::ChainHandlePair, conclude::Output, error::Error, prelude::*};
 
 macro_rules! tx_chan_cmd {
     ($dbg_string:literal, $func:ident, $self:expr, $chan:expr) => {
@@ -699,21 +677,12 @@ mod tests {
     use abscissa_core::clap::Parser;
     use ibc_relayer_types::core::{
         ics04_channel::channel::Ordering,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ConnectionId, PortId},
     };
 
     use super::{
-        TxChanCloseConfirmCmd,
-        TxChanCloseInitCmd,
-        TxChanOpenAckCmd,
-        TxChanOpenConfirmCmd,
-        TxChanOpenInitCmd,
-        TxChanOpenTryCmd,
+        TxChanCloseConfirmCmd, TxChanCloseInitCmd, TxChanOpenAckCmd, TxChanOpenConfirmCmd,
+        TxChanOpenInitCmd, TxChanOpenTryCmd,
     };
 
     #[test]

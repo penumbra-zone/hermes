@@ -9,16 +9,8 @@ use crate::{
     bootstrap::single::bootstrap_single_node,
     chain::builder::ChainBuilder,
     error::Error,
-    framework::base::{
-        run_basic_test,
-        BasicTest,
-        HasOverrides,
-        TestConfigOverride,
-    },
-    types::{
-        config::TestConfig,
-        single::node::FullNode,
-    },
+    framework::base::{run_basic_test, BasicTest, HasOverrides, TestConfigOverride},
+    types::{config::TestConfig, single::node::FullNode},
 };
 
 /**

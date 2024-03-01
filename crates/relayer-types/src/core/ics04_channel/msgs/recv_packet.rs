@@ -1,13 +1,7 @@
-use ibc_proto::{
-    ibc::core::channel::v1::MsgRecvPacket as RawMsgRecvPacket,
-    Protobuf,
-};
+use ibc_proto::{ibc::core::channel::v1::MsgRecvPacket as RawMsgRecvPacket, Protobuf};
 
 use crate::{
-    core::ics04_channel::{
-        error::Error,
-        packet::Packet,
-    },
+    core::ics04_channel::{error::Error, packet::Packet},
     proofs::Proofs,
     signer::Signer,
     tx_msg::Msg,
@@ -94,22 +88,15 @@ impl From<MsgRecvPacket> for RawMsgRecvPacket {
 
 #[cfg(test)]
 pub mod test_util {
-    use core::{
-        ops::Add,
-        time::Duration,
-    };
+    use core::{ops::Add, time::Duration};
 
     use ibc_proto::ibc::core::{
-        channel::v1::MsgRecvPacket as RawMsgRecvPacket,
-        client::v1::Height as RawHeight,
+        channel::v1::MsgRecvPacket as RawMsgRecvPacket, client::v1::Height as RawHeight,
     };
 
     use crate::{
         core::ics04_channel::packet::test_utils::get_dummy_raw_packet,
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
         timestamp::Timestamp,
     };
 
@@ -141,10 +128,7 @@ mod test {
     use crate::{
         core::ics04_channel::{
             error::Error,
-            msgs::recv_packet::{
-                test_util::get_dummy_raw_msg_recv_packet,
-                MsgRecvPacket,
-            },
+            msgs::recv_packet::{test_util::get_dummy_raw_msg_recv_packet, MsgRecvPacket},
         },
         test_utils::get_dummy_bech32_account,
     };

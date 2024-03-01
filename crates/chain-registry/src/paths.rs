@@ -1,15 +1,7 @@
 use std::path::PathBuf;
 
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChannelId,
-    ClientId,
-    ConnectionId,
-    PortId,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use ibc_relayer_types::core::ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId};
+use serde::{Deserialize, Serialize};
 
 /// Models for serializing and deserializing IBC path JSON data found in the `_IBC/` directory of the registry repository
 use crate::fetchable::Fetchable;
@@ -76,10 +68,7 @@ impl Fetchable for IBCPath {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        constants::ALL_PATHS,
-        error::RegistryError,
-    };
+    use crate::{constants::ALL_PATHS, error::RegistryError};
 
     #[tokio::test]
     #[ignore]
@@ -109,10 +98,7 @@ mod tests {
         use std::str::FromStr;
 
         use ibc_relayer_types::core::ics24_host::identifier::{
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
+            ChannelId, ClientId, ConnectionId, PortId,
         };
 
         let path = r#"{

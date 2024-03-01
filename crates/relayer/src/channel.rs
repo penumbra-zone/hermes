@@ -1,9 +1,5 @@
 use core::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     time::Duration,
 };
 
@@ -12,75 +8,39 @@ use ibc_proto::google::protobuf::Any;
 use ibc_relayer_types::{
     core::{
         ics04_channel::{
-            channel::{
-                ChannelEnd,
-                Counterparty,
-                IdentifiedChannelEnd,
-                Ordering,
-                State,
-            },
+            channel::{ChannelEnd, Counterparty, IdentifiedChannelEnd, Ordering, State},
             msgs::{
-                chan_close_confirm::MsgChannelCloseConfirm,
-                chan_close_init::MsgChannelCloseInit,
-                chan_open_ack::MsgChannelOpenAck,
-                chan_open_confirm::MsgChannelOpenConfirm,
-                chan_open_init::MsgChannelOpenInit,
-                chan_open_try::MsgChannelOpenTry,
+                chan_close_confirm::MsgChannelCloseConfirm, chan_close_init::MsgChannelCloseInit,
+                chan_open_ack::MsgChannelOpenAck, chan_open_confirm::MsgChannelOpenConfirm,
+                chan_open_init::MsgChannelOpenInit, chan_open_try::MsgChannelOpenTry,
             },
         },
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            ClientId,
-            ConnectionId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
     },
     events::IbcEvent,
     tx_msg::Msg,
     Height,
 };
 use serde::Serialize;
-use tracing::{
-    debug,
-    error,
-    info,
-    warn,
-};
+use tracing::{debug, error, info, warn};
 
 use crate::{
     chain::{
-        counterparty::{
-            channel_connection_client,
-            channel_state_on_destination,
-        },
+        counterparty::{channel_connection_client, channel_state_on_destination},
         handle::ChainHandle,
         requests::{
-            IncludeProof,
-            PageRequest,
-            QueryChannelRequest,
-            QueryConnectionChannelsRequest,
-            QueryConnectionRequest,
-            QueryHeight,
+            IncludeProof, PageRequest, QueryChannelRequest, QueryConnectionChannelsRequest,
+            QueryConnectionRequest, QueryHeight,
         },
         tracking::TrackedMsgs,
     },
     connection::Connection,
-    foreign_client::{
-        ForeignClient,
-        HasExpiredOrFrozenError,
-    },
+    foreign_client::{ForeignClient, HasExpiredOrFrozenError},
     object::Channel as WorkerChannelObject,
     supervisor::error::Error as SupervisorError,
     util::{
-        pretty::{
-            PrettyDuration,
-            PrettyOption,
-        },
-        retry::{
-            retry_with_index,
-            RetryResult,
-        },
+        pretty::{PrettyDuration, PrettyOption},
+        retry::{retry_with_index, RetryResult},
         task::Next,
     },
 };
@@ -97,10 +57,7 @@ pub mod channel_handshake_retry {
 
     use crate::{
         channel::ChannelError,
-        util::retry::{
-            clamp_total,
-            ConstantGrowth,
-        },
+        util::retry::{clamp_total, ConstantGrowth},
     };
 
     /// Approximate number of retries per block.

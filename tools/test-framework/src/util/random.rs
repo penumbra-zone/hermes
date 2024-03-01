@@ -4,11 +4,7 @@
 
 use std::{
     collections::HashSet,
-    net::{
-        Ipv4Addr,
-        SocketAddrV4,
-        TcpListener,
-    },
+    net::{Ipv4Addr, SocketAddrV4, TcpListener},
     sync::Mutex,
 };
 

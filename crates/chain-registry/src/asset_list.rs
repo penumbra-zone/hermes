@@ -3,10 +3,7 @@
 
 use std::path::PathBuf;
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 use crate::fetchable::Fetchable;
 
@@ -56,10 +53,7 @@ impl Fetchable for AssetList {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        constants::ALL_CHAINS,
-        error::RegistryError,
-    };
+    use crate::{constants::ALL_CHAINS, error::RegistryError};
 
     #[tokio::test]
     #[ignore]

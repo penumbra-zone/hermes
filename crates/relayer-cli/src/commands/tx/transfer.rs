@@ -1,40 +1,21 @@
 use core::time::Duration;
 
-use abscissa_core::{
-    clap::Parser,
-    config::Override,
-    Command,
-    FrameworkErrorKind,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, config::Override, Command, FrameworkErrorKind, Runnable};
 use eyre::eyre;
 use ibc_relayer::{
     chain::handle::ChainHandle,
     config::Config,
     event::IbcEventWithHeight,
-    transfer::{
-        build_and_send_transfer_messages,
-        TransferOptions,
-    },
+    transfer::{build_and_send_transfer_messages, TransferOptions},
 };
 use ibc_relayer_types::{
     applications::transfer::Amount,
-    core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    },
+    core::ics24_host::identifier::{ChainId, ChannelId, PortId},
 };
 
 use crate::{
-    cli_utils::{
-        check_can_send_on_channel,
-        ChainHandlePair,
-    },
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    cli_utils::{check_can_send_on_channel, ChainHandlePair},
+    conclude::{exit_with_unrecoverable_error, Output},
     error::Error,
     prelude::*,
 };
@@ -235,11 +216,7 @@ mod tests {
     use abscissa_core::clap::Parser;
     use ibc_relayer_types::{
         applications::transfer::Amount,
-        core::ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        core::ics24_host::identifier::{ChainId, ChannelId, PortId},
     };
 
     use super::TxIcs20MsgTransferCmd;

@@ -1,25 +1,15 @@
 use std::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };
 
 use ibc_proto::cosmos::base::v1beta1::Coin as ProtoCoin;
 use regex::Regex;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 use super::{
     amount::Amount,
-    denom::{
-        BaseDenom,
-        PrefixedDenom,
-    },
+    denom::{BaseDenom, PrefixedDenom},
     error::Error,
 };
 use crate::serializers::serde_string;

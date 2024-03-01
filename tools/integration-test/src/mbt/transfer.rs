@@ -1,34 +1,18 @@
 use std::{
     io::Write,
-    panic::{
-        RefUnwindSafe,
-        UnwindSafe,
-    },
+    panic::{RefUnwindSafe, UnwindSafe},
 };
 
 use ibc_relayer::config::{
-    ChainConfig,
-    Channels as ConfigChannels,
-    Clients as ConfigClients,
-    Connections as ConfigConnections,
-    ModeConfig,
-    Packets as ConfigPackets,
+    ChainConfig, Channels as ConfigChannels, Clients as ConfigClients,
+    Connections as ConfigConnections, ModeConfig, Packets as ConfigPackets,
 };
-use ibc_test_framework::{
-    prelude::*,
-    types::tagged::mono::Tagged,
-};
+use ibc_test_framework::{prelude::*, types::tagged::mono::Tagged};
 
 use super::{
     itf::InformalTrace,
-    state::{
-        Action,
-        State,
-    },
-    utils::{
-        get_chain,
-        CLIENT_EXPIRY,
-    },
+    state::{Action, State},
+    utils::{get_chain, CLIENT_EXPIRY},
 };
 
 const TEST_NAMES: &[&str] = &[
@@ -144,8 +128,7 @@ fn test_ibc_transfer() -> Result<(), Error> {
 #[cfg(feature = "manual")]
 fn test_self_connected_ibc_transfer() -> Result<(), Error> {
     use ibc_test_framework::framework::binary::{
-        chain::run_self_connected_binary_chain_test,
-        channel::RunBinaryChannelTest,
+        chain::run_self_connected_binary_chain_test, channel::RunBinaryChannelTest,
     };
 
     execute_mbt(|trace| {

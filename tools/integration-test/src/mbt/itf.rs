@@ -1,8 +1,4 @@
-use serde::{
-    Deserialize,
-    Deserializer,
-    Serialize,
-};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
@@ -64,10 +60,7 @@ where
 }
 
 mod test {
-    use super::{
-        Map,
-        Set,
-    };
+    use super::{Map, Set};
 
     #[test]
     fn test_empty_set() {
@@ -108,10 +101,7 @@ mod test {
     #[test]
     #[cfg(feature = "manual")]
     fn parse_itf() {
-        use super::super::{
-            itf::InformalTrace,
-            state::State,
-        };
+        use super::super::{itf::InformalTrace, state::State};
 
         let itf_path = concat!(
             env!("CARGO_MANIFEST_DIR"),

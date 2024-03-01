@@ -1,7 +1,4 @@
-use flex_error::{
-    define_error,
-    TraceError,
-};
+use flex_error::{define_error, TraceError};
 use prost::DecodeError;
 
 define_error! {

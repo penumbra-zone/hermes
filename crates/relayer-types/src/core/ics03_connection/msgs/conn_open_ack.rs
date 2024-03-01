@@ -1,22 +1,15 @@
 use ibc_proto::{
     google::protobuf::Any,
-    ibc::core::connection::v1::MsgConnectionOpenAck as RawMsgConnectionOpenAck,
-    Protobuf,
+    ibc::core::connection::v1::MsgConnectionOpenAck as RawMsgConnectionOpenAck, Protobuf,
 };
 
 use crate::{
     core::{
-        ics03_connection::{
-            error::Error,
-            version::Version,
-        },
+        ics03_connection::{error::Error, version::Version},
         ics23_commitment::commitment::CommitmentProofBytes,
         ics24_host::identifier::ConnectionId,
     },
-    proofs::{
-        ConsensusProof,
-        Proofs,
-    },
+    proofs::{ConsensusProof, Proofs},
     signer::Signer,
     tx_msg::Msg,
     Height,
@@ -146,19 +139,12 @@ impl From<MsgConnectionOpenAck> for RawMsgConnectionOpenAck {
 pub mod test_util {
 
     use ibc_proto::ibc::core::{
-        client::v1::Height,
-        connection::v1::MsgConnectionOpenAck as RawMsgConnectionOpenAck,
+        client::v1::Height, connection::v1::MsgConnectionOpenAck as RawMsgConnectionOpenAck,
     };
 
     use crate::{
-        core::{
-            ics03_connection::version::Version,
-            ics24_host::identifier::ConnectionId,
-        },
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        core::{ics03_connection::version::Version, ics24_host::identifier::ConnectionId},
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
 
     pub fn get_dummy_raw_msg_conn_open_ack(
@@ -191,14 +177,12 @@ pub mod test_util {
 mod tests {
 
     use ibc_proto::ibc::core::{
-        client::v1::Height,
-        connection::v1::MsgConnectionOpenAck as RawMsgConnectionOpenAck,
+        client::v1::Height, connection::v1::MsgConnectionOpenAck as RawMsgConnectionOpenAck,
     };
     use test_log::test;
 
     use crate::core::ics03_connection::msgs::conn_open_ack::{
-        test_util::get_dummy_raw_msg_conn_open_ack,
-        MsgConnectionOpenAck,
+        test_util::get_dummy_raw_msg_conn_open_ack, MsgConnectionOpenAck,
     };
 
     #[test]

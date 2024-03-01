@@ -2,11 +2,7 @@ use flex_error::define_error;
 use ibc_relayer_types::{
     core::{
         ics02_client::error::Error as Ics02Error,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     events::IbcEvent,
     Height,
@@ -16,10 +12,7 @@ use crate::{
     channel::ChannelError,
     connection::ConnectionError,
     error::Error,
-    foreign_client::{
-        ForeignClientError,
-        HasExpiredOrFrozenError,
-    },
+    foreign_client::{ForeignClientError, HasExpiredOrFrozenError},
     supervisor::Error as SupervisorError,
     transfer::TransferError,
 };

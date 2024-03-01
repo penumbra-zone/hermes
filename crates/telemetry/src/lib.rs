@@ -6,20 +6,14 @@ pub mod state;
 
 use std::{
     error::Error,
-    net::{
-        SocketAddr,
-        ToSocketAddrs,
-    },
+    net::{SocketAddr, ToSocketAddrs},
     ops::Range,
     sync::Arc,
 };
 
 use once_cell::sync::OnceCell;
 use tokio::task::JoinHandle;
-use tracing::{
-    debug,
-    warn,
-};
+use tracing::{debug, warn};
 
 pub use crate::state::TelemetryState;
 

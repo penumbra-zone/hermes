@@ -3,49 +3,28 @@
     with connected foreign clients.
 */
 
-use std::{
-    fs,
-    path::Path,
-    thread,
-    time::Duration,
-};
+use std::{fs, path::Path, thread, time::Duration};
 
 use eyre::Report as Error;
 use ibc_relayer::{
-    chain::handle::{
-        ChainHandle,
-        CountingAndCachingChainHandle,
-    },
+    chain::handle::{ChainHandle, CountingAndCachingChainHandle},
     config::Config,
     error::ErrorDetail as RelayerErrorDetail,
-    foreign_client::{
-        extract_client_id,
-        CreateOptions as ClientOptions,
-        ForeignClient,
-    },
+    foreign_client::{extract_client_id, CreateOptions as ClientOptions, ForeignClient},
     keyring::errors::ErrorDetail as KeyringErrorDetail,
     registry::SharedRegistry,
 };
 use ibc_relayer_types::core::ics24_host::identifier::ClientId;
-use tracing::{
-    debug,
-    info,
-};
+use tracing::{debug, info};
 
 use crate::{
     relayer::driver::RelayerDriver,
     types::{
-        binary::{
-            chains::ConnectedChains,
-            foreign_client::ForeignClientPair,
-        },
+        binary::{chains::ConnectedChains, foreign_client::ForeignClientPair},
         config::TestConfig,
         single::node::FullNode,
         tagged::*,
-        wallet::{
-            TestWallets,
-            Wallet,
-        },
+        wallet::{TestWallets, Wallet},
     },
     util::random::random_u64_range,
 };

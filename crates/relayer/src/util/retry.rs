@@ -1,13 +1,8 @@
 use core::time::Duration;
 
 pub use retry::{
-    delay::{
-        Fibonacci,
-        Fixed,
-    },
-    retry_with_index,
-    Error as RetryError,
-    OperationResult as RetryResult,
+    delay::{Fibonacci, Fixed},
+    retry_with_index, Error as RetryError, OperationResult as RetryResult,
 };
 
 #[derive(Copy, Clone, Debug)]

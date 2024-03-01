@@ -1,17 +1,7 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
-use tracing::{
-    error,
-    info,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
+use tracing::{error, info};
 
-use crate::{
-    prelude::app_config,
-    tracing_handle::send_command,
-};
+use crate::{prelude::app_config, tracing_handle::send_command};
 
 // TODO `hermes set-raw-filter`
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]

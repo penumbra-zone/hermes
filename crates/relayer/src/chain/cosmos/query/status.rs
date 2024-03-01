@@ -1,17 +1,7 @@
-use ibc_relayer_types::{
-    core::ics24_host::identifier::ChainId,
-    Height,
-};
-use tendermint_rpc::{
-    Client,
-    HttpClient,
-    Url,
-};
+use ibc_relayer_types::{core::ics24_host::identifier::ChainId, Height};
+use tendermint_rpc::{Client, HttpClient, Url};
 
-use crate::{
-    chain::endpoint::ChainStatus,
-    error::Error,
-};
+use crate::{chain::endpoint::ChainStatus, error::Error};
 
 /// Query the chain status via an RPC query.
 ///

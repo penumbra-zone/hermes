@@ -1,27 +1,14 @@
 //! Error type used for the tests.
 
-use core::convert::{
-    From,
-    Into,
-};
-use std::io::{
-    Error as IoError,
-    ErrorKind as IoErrorKind,
-};
+use core::convert::{From, Into};
+use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 
 use eyre::Report;
-use flex_error::{
-    define_error,
-    TraceError,
-};
+use flex_error::{define_error, TraceError};
 use ibc_relayer::{
-    channel::error::ChannelError,
-    connection::ConnectionError,
-    error::Error as RelayerError,
-    foreign_client::ForeignClientError,
-    link::error::LinkError,
-    supervisor::error::Error as SupervisorError,
-    transfer::TransferError,
+    channel::error::ChannelError, connection::ConnectionError, error::Error as RelayerError,
+    foreign_client::ForeignClientError, link::error::LinkError,
+    supervisor::error::Error as SupervisorError, transfer::TransferError,
     upgrade_chain::UpgradeChainError,
 };
 

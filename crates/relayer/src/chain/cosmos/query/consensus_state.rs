@@ -1,25 +1,13 @@
 use http::Uri;
-use ibc_relayer_types::{
-    core::ics24_host::identifier::ChainId,
-    Height,
-};
-use tracing::{
-    debug,
-    warn,
-};
+use ibc_relayer_types::{core::ics24_host::identifier::ChainId, Height};
+use tracing::{debug, warn};
 
 use crate::{
-    chain::requests::{
-        QueryConsensusStateHeightsRequest,
-        QueryConsensusStatesRequest,
-    },
+    chain::requests::{QueryConsensusStateHeightsRequest, QueryConsensusStatesRequest},
     config::default::max_grpc_decoding_size,
     consensus_state::AnyConsensusStateWithHeight,
     error::Error,
-    util::pretty::{
-        PrettyConsensusStateWithHeight,
-        PrettyHeight,
-    },
+    util::pretty::{PrettyConsensusStateWithHeight, PrettyHeight},
 };
 
 /// Performs a `QueryConsensusStateHeightsRequest` gRPC query to fetch all the consensus state

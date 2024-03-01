@@ -8,10 +8,7 @@
 
 use core::time::Duration;
 
-use eyre::{
-    eyre,
-    Report as Error,
-};
+use eyre::{eyre, Report as Error};
 use toml::Value;
 use tracing::debug;
 

@@ -4,46 +4,27 @@
 
 use ibc_proto::google::protobuf::Any;
 use ibc_relayer::{
-    chain::cosmos::{
-        tx::simple_send_tx,
-        types::config::TxConfig,
-    },
+    chain::cosmos::{tx::simple_send_tx, types::config::TxConfig},
     event::IbcEventWithHeight,
     util::compat_mode::compat_mode_from_version,
 };
 use serde_json as json;
-use tendermint_rpc::client::{
-    Client,
-    HttpClient,
-};
+use tendermint_rpc::client::{Client, HttpClient};
 
 use crate::{
     chain::{
-        cli::query::{
-            query_auth_module,
-            query_recipient_transactions,
-        },
+        cli::query::{query_auth_module, query_recipient_transactions},
         driver::ChainDriver,
     },
-    error::{
-        handle_generic_error,
-        Error,
-    },
+    error::{handle_generic_error, Error},
     ibc::{
         denom::Denom,
-        token::{
-            TaggedDenomExt,
-            TaggedToken,
-            TaggedTokenRef,
-        },
+        token::{TaggedDenomExt, TaggedToken, TaggedTokenRef},
     },
     types::{
         id::TaggedChainIdRef,
         tagged::*,
-        wallet::{
-            Wallet,
-            WalletAddress,
-        },
+        wallet::{Wallet, WalletAddress},
     },
 };
 

@@ -2,10 +2,7 @@
 //! /genesis RPC endpoint.
 
 use serde::Deserialize as SerdeDeserialize;
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GenesisAppState {

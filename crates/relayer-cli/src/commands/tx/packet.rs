@@ -1,37 +1,21 @@
 use std::ops::RangeInclusive;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::handle::ChainHandle,
-    link::{
-        Link,
-        LinkParameters,
-    },
+    link::{Link, LinkParameters},
     util::seq_range::parse_seq_range,
 };
 use ibc_relayer_types::{
     core::{
         ics02_client::height::Height,
         ics04_channel::packet::Sequence,
-        ics24_host::identifier::{
-            ChainId,
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     events::IbcEvent,
 };
 
-use crate::{
-    cli_utils::ChainHandlePair,
-    conclude::Output,
-    error::Error,
-    prelude::*,
-};
+use crate::{cli_utils::ChainHandlePair, conclude::Output, error::Error, prelude::*};
 
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]
 pub struct TxPacketRecvCmd {
@@ -232,16 +216,9 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ChannelId,
-        PortId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 
-    use super::{
-        TxPacketAckCmd,
-        TxPacketRecvCmd,
-    };
+    use super::{TxPacketAckCmd, TxPacketRecvCmd};
 
     #[test]
     fn test_packet_recv_required_only() {

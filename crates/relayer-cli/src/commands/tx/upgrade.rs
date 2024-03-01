@@ -1,26 +1,14 @@
 use core::time::Duration;
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::upgrade_chain::{
-    build_and_send_ibc_upgrade_proposal,
-    requires_legacy_upgrade_proposal,
-    UpgradePlanOptions,
+    build_and_send_ibc_upgrade_proposal, requires_legacy_upgrade_proposal, UpgradePlanOptions,
 };
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChainId,
-    ClientId,
-};
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 
 use crate::{
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
     error::Error,
     prelude::*,
 };
@@ -169,10 +157,7 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ClientId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
 
     use super::TxIbcUpgradeChainCmd;
 

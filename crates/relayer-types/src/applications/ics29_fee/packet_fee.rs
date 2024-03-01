@@ -3,18 +3,14 @@ use std::str::FromStr;
 use ibc_proto::{
     cosmos::base::v1beta1::Coin as ProtoCoin,
     ibc::applications::fee::v1::{
-        Fee as ProtoFee,
-        IdentifiedPacketFees as ProtoIdentifiedPacketFees,
+        Fee as ProtoFee, IdentifiedPacketFees as ProtoIdentifiedPacketFees,
         PacketFee as ProtoPacketFee,
     },
 };
 
 use super::error::Error;
 use crate::{
-    applications::transfer::{
-        amount::Amount,
-        coin::RawCoin,
-    },
+    applications::transfer::{amount::Amount, coin::RawCoin},
     core::ics04_channel::packet_id::PacketId,
     signer::Signer,
 };

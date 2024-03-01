@@ -6,12 +6,7 @@ use http::uri::Builder;
 use serde::de::DeserializeOwned;
 
 use crate::{
-    constants::{
-        DEFAULT_REF,
-        HOST,
-        PROTOCOL,
-        REGISTRY_PATH,
-    },
+    constants::{DEFAULT_REF, HOST, PROTOCOL, REGISTRY_PATH},
     error::RegistryError,
 };
 

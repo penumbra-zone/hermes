@@ -5,10 +5,7 @@
 use std::thread;
 
 use ibc_relayer_types::core::ics04_channel::version::Version;
-use ibc_test_framework::{
-    prelude::*,
-    util::random::random_u128_range,
-};
+use ibc_test_framework::{prelude::*, util::random::random_u128_range};
 
 #[test]
 fn test_timeout_fee() -> Result<(), Error> {

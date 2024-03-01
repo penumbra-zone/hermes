@@ -1,15 +1,8 @@
 //! `create` subcommand
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 
 use crate::commands::{
-    create::{
-        channel::CreateChannelCommand,
-        connection::CreateConnectionCommand,
-    },
+    create::{channel::CreateChannelCommand, connection::CreateConnectionCommand},
     tx::client::TxCreateClientCmd,
 };
 

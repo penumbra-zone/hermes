@@ -6,14 +6,10 @@ use std::time::Duration;
 use ibc_relayer_types::core::ics02_client::client_type::ClientType;
 use ibc_relayer_types::{
     clients::ics07_tendermint::{
-        header::Header as TmHeader,
-        misbehaviour::Misbehaviour as TmMisbehaviour,
+        header::Header as TmHeader, misbehaviour::Misbehaviour as TmMisbehaviour,
     },
     core::{
-        ics02_client::{
-            events::UpdateClient,
-            header::AnyHeader,
-        },
+        ics02_client::{events::UpdateClient, header::AnyHeader},
         ics24_host::identifier::ChainId,
     },
     Height as ICSHeight,
@@ -23,55 +19,29 @@ use tendermint::Time;
 use tendermint_light_client::{
     components::{
         self,
-        io::{
-            AtHeight,
-            Io,
-            ProdIo,
-        },
+        io::{AtHeight, Io, ProdIo},
     },
     light_client::LightClient as TmLightClient,
     state::State as LightClientState,
-    store::{
-        memory::MemoryStore,
-        LightStore,
-    },
+    store::{memory::MemoryStore, LightStore},
     verifier::{
-        types::{
-            Height as TMHeight,
-            LightBlock,
-            PeerId,
-            Status,
-        },
+        types::{Height as TMHeight, LightBlock, PeerId, Status},
         ProdVerifier,
     },
 };
 use tendermint_light_client_detector::Divergence;
 use tendermint_rpc as rpc;
-use tracing::{
-    debug,
-    error,
-    trace,
-    warn,
-};
+use tracing::{debug, error, trace, warn};
 
 use super::{
-    io::{
-        AnyIo,
-        RestartAwareIo,
-    },
+    io::{AnyIo, RestartAwareIo},
     Verified,
 };
 use crate::{
-    chain::cosmos::{
-        config::CosmosSdkConfig,
-        CosmosSdkChain,
-    },
+    chain::cosmos::{config::CosmosSdkConfig, CosmosSdkChain},
     client_state::AnyClientState,
     error::Error,
-    misbehaviour::{
-        AnyMisbehaviour,
-        MisbehaviourEvidence,
-    },
+    misbehaviour::{AnyMisbehaviour, MisbehaviourEvidence},
 };
 
 pub struct LightClient {

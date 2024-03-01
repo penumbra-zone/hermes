@@ -1,23 +1,12 @@
-use ibc_proto::ibc::core::commitment::v1::{
-    MerklePath,
-    MerkleProof as RawMerkleProof,
-    MerkleRoot,
-};
+use ibc_proto::ibc::core::commitment::v1::{MerklePath, MerkleProof as RawMerkleProof, MerkleRoot};
 use ics23::{
-    calculate_existence_root,
-    commitment_proof::Proof,
-    verify_membership,
-    verify_non_membership,
-    CommitmentProof,
-    NonExistenceProof,
+    calculate_existence_root, commitment_proof::Proof, verify_membership, verify_non_membership,
+    CommitmentProof, NonExistenceProof,
 };
 use tendermint::merkle::proof::ProofOps as TendermintProof;
 
 use crate::core::ics23_commitment::{
-    commitment::{
-        CommitmentPrefix,
-        CommitmentRoot,
-    },
+    commitment::{CommitmentPrefix, CommitmentRoot},
     error::Error,
     specs::ProofSpecs,
 };

@@ -1,13 +1,7 @@
-use std::{
-    collections::HashMap,
-    str,
-};
+use std::{collections::HashMap, str};
 
 use crate::{
-    chain::exec::{
-        simple_exec,
-        ExecOutput,
-    },
+    chain::exec::{simple_exec, ExecOutput},
     error::Error,
 };
 

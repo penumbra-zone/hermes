@@ -1,35 +1,21 @@
 use std::{
-    convert::{
-        TryFrom,
-        TryInto,
-    },
+    convert::{TryFrom, TryInto},
     str::FromStr,
     time::Duration,
 };
 
 use ibc_proto::{
     google::protobuf::Any,
-    ibc::core::connection::v1::MsgConnectionOpenTry as RawMsgConnectionOpenTry,
-    Protobuf,
+    ibc::core::connection::v1::MsgConnectionOpenTry as RawMsgConnectionOpenTry, Protobuf,
 };
 
 use crate::{
     core::{
-        ics03_connection::{
-            connection::Counterparty,
-            error::Error,
-            version::Version,
-        },
+        ics03_connection::{connection::Counterparty, error::Error, version::Version},
         ics23_commitment::commitment::CommitmentProofBytes,
-        ics24_host::identifier::{
-            ClientId,
-            ConnectionId,
-        },
+        ics24_host::identifier::{ClientId, ConnectionId},
     },
-    proofs::{
-        ConsensusProof,
-        Proofs,
-    },
+    proofs::{ConsensusProof, Proofs},
     signer::Signer,
     tx_msg::Msg,
     Height,
@@ -188,28 +174,20 @@ impl From<MsgConnectionOpenTry> for RawMsgConnectionOpenTry {
 pub mod test_util {
 
     use ibc_proto::ibc::core::{
-        client::v1::Height,
-        connection::v1::MsgConnectionOpenTry as RawMsgConnectionOpenTry,
+        client::v1::Height, connection::v1::MsgConnectionOpenTry as RawMsgConnectionOpenTry,
     };
 
     use crate::{
         core::{
             ics03_connection::{
                 msgs::{
-                    conn_open_try::MsgConnectionOpenTry,
-                    test_util::get_dummy_raw_counterparty,
+                    conn_open_try::MsgConnectionOpenTry, test_util::get_dummy_raw_counterparty,
                 },
                 version::get_compatible_versions,
             },
-            ics24_host::identifier::{
-                ClientId,
-                ConnectionId,
-            },
+            ics24_host::identifier::{ClientId, ConnectionId},
         },
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
 
     /// Testing-specific helper methods.
@@ -273,17 +251,13 @@ mod tests {
     use ibc_proto::ibc::core::{
         client::v1::Height,
         connection::v1::{
-            Counterparty as RawCounterparty,
-            MsgConnectionOpenTry as RawMsgConnectionOpenTry,
+            Counterparty as RawCounterparty, MsgConnectionOpenTry as RawMsgConnectionOpenTry,
         },
     };
     use test_log::test;
 
     use crate::core::ics03_connection::msgs::{
-        conn_open_try::{
-            test_util::get_dummy_raw_msg_conn_open_try,
-            MsgConnectionOpenTry,
-        },
+        conn_open_try::{test_util::get_dummy_raw_msg_conn_open_try, MsgConnectionOpenTry},
         test_util::get_dummy_raw_counterparty,
     };
 

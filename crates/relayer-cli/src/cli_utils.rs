@@ -5,30 +5,17 @@ use alloc::sync::Arc;
 use eyre::eyre;
 use ibc_relayer::{
     chain::{
-        counterparty::{
-            channel_connection_client,
-            ChannelConnectionClient,
-        },
-        handle::{
-            BaseChainHandle,
-            ChainHandle,
-        },
+        counterparty::{channel_connection_client, ChannelConnectionClient},
+        handle::{BaseChainHandle, ChainHandle},
         requests::{
-            IncludeProof,
-            QueryChannelRequest,
-            QueryClientStateRequest,
-            QueryConnectionRequest,
+            IncludeProof, QueryChannelRequest, QueryClientStateRequest, QueryConnectionRequest,
             QueryHeight,
         },
     },
     config::Config,
     spawn,
 };
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChainId,
-    ChannelId,
-    PortId,
-};
+use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 use tokio::runtime::Runtime as TokioRuntime;
 use tracing::debug;
 

@@ -16,25 +16,14 @@ use std::str::FromStr;
 
 use http::Uri;
 use ibc_relayer::{
-    chain::requests::{
-        IncludeProof,
-        QueryClientStateRequest,
-        QueryHeight,
-    },
+    chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
     client_state::AnyClientState,
-    upgrade_chain::{
-        build_and_send_ibc_upgrade_proposal,
-        UpgradePlanOptions,
-    },
+    upgrade_chain::{build_and_send_ibc_upgrade_proposal, UpgradePlanOptions},
 };
 use ibc_relayer_types::core::ics02_client::height::Height;
 use ibc_test_framework::{
     chain::{
-        config::{
-            set_max_deposit_period,
-            set_min_deposit_amount,
-            set_voting_period,
-        },
+        config::{set_max_deposit_period, set_min_deposit_amount, set_voting_period},
         ext::bootstrap::ChainBootstrapMethodsExt,
     },
     prelude::*,

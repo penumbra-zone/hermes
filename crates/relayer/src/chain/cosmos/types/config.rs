@@ -1,7 +1,4 @@
-use core::{
-    str::FromStr,
-    time::Duration,
-};
+use core::{str::FromStr, time::Duration};
 
 use http::Uri;
 use ibc_proto::google::protobuf::Any;
@@ -9,15 +6,9 @@ use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tendermint_rpc::Url;
 
 use crate::{
-    chain::cosmos::{
-        config::CosmosSdkConfig,
-        types::gas::GasConfig,
-    },
+    chain::cosmos::{config::CosmosSdkConfig, types::gas::GasConfig},
     config::{
-        types::{
-            MaxMsgNum,
-            MaxTxSize,
-        },
+        types::{MaxMsgNum, MaxTxSize},
         AddressType,
     },
     error::Error,

@@ -1,15 +1,8 @@
 use crossbeam_channel::RecvError;
-use flex_error::{
-    define_error,
-    DisplayOnly,
-};
+use flex_error::{define_error, DisplayOnly};
 use ibc_relayer_types::core::ics02_client::error::Error as Ics02Error;
 
-use crate::{
-    channel::ChannelError,
-    connection::ConnectionError,
-    link::error::LinkError,
-};
+use crate::{channel::ChannelError, connection::ConnectionError, link::error::LinkError};
 
 define_error! {
     RunError {

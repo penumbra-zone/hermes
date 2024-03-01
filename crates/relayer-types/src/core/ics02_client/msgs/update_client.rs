@@ -1,18 +1,13 @@
 //! Definition of domain type message `MsgUpdateAnyClient`.
 
 use ibc_proto::{
-    google::protobuf::Any,
-    ibc::core::client::v1::MsgUpdateClient as RawMsgUpdateClient,
-    Protobuf,
+    google::protobuf::Any, ibc::core::client::v1::MsgUpdateClient as RawMsgUpdateClient, Protobuf,
 };
 
 use crate::{
     core::{
         ics02_client::error::Error,
-        ics24_host::{
-            error::ValidationError,
-            identifier::ClientId,
-        },
+        ics24_host::{error::ValidationError, identifier::ClientId},
     },
     signer::Signer,
     tx_msg::Msg,
@@ -86,10 +81,7 @@ mod tests {
 
     use crate::{
         clients::ics07_tendermint::header::test_util::get_dummy_ics07_header,
-        core::{
-            ics02_client::msgs::MsgUpdateClient,
-            ics24_host::identifier::ClientId,
-        },
+        core::{ics02_client::msgs::MsgUpdateClient, ics24_host::identifier::ClientId},
         test_utils::get_dummy_account_id,
     };
 

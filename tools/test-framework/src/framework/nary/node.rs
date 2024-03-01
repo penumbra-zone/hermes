@@ -8,21 +8,10 @@ use crate::{
     chain::builder::ChainBuilder,
     error::Error,
     framework::{
-        base::{
-            run_basic_test,
-            BasicTest,
-            HasOverrides,
-            TestConfigOverride,
-        },
-        binary::node::{
-            NodeConfigOverride,
-            NodeGenesisOverride,
-        },
+        base::{run_basic_test, BasicTest, HasOverrides, TestConfigOverride},
+        binary::node::{NodeConfigOverride, NodeGenesisOverride},
     },
-    types::{
-        config::TestConfig,
-        single::node::FullNode,
-    },
+    types::{config::TestConfig, single::node::FullNode},
     util::array::try_into_array,
 };
 

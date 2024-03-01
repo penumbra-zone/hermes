@@ -1,8 +1,4 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 
 pub mod log_level;
 pub mod raw;

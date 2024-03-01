@@ -1,9 +1,6 @@
 //! Data structures related to the accounts used by the relayer.
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 /// The balance for a specific denom
 #[derive(Clone, Debug, Serialize, Deserialize)]

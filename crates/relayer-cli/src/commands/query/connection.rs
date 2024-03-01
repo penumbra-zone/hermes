@@ -1,36 +1,22 @@
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Runnable,
-};
+use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::chain::{
     handle::ChainHandle,
     requests::{
-        IncludeProof,
-        PageRequest,
-        QueryConnectionChannelsRequest,
-        QueryConnectionRequest,
+        IncludeProof, PageRequest, QueryConnectionChannelsRequest, QueryConnectionRequest,
         QueryHeight,
     },
 };
 use ibc_relayer_types::{
     core::{
         ics03_connection::connection::State,
-        ics24_host::identifier::{
-            ChainId,
-            ConnectionId,
-            PortChannelId,
-        },
+        ics24_host::identifier::{ChainId, ConnectionId, PortChannelId},
     },
     Height,
 };
 
 use crate::{
     cli_utils::spawn_chain_runtime,
-    conclude::{
-        exit_with_unrecoverable_error,
-        Output,
-    },
+    conclude::{exit_with_unrecoverable_error, Output},
     error::Error,
     prelude::*,
 };
@@ -161,15 +147,9 @@ mod tests {
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics24_host::identifier::{
-        ChainId,
-        ConnectionId,
-    };
+    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ConnectionId};
 
-    use super::{
-        QueryConnectionChannelsCmd,
-        QueryConnectionEndCmd,
-    };
+    use super::{QueryConnectionChannelsCmd, QueryConnectionEndCmd};
 
     #[test]
     fn test_query_connection_channels() {

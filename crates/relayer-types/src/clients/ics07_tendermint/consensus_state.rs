@@ -1,29 +1,15 @@
 use ibc_proto::{
-    google::protobuf::Any,
-    ibc::lightclients::tendermint::v1::ConsensusState as RawConsensusState,
+    google::protobuf::Any, ibc::lightclients::tendermint::v1::ConsensusState as RawConsensusState,
     Protobuf,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use tendermint::{
-    hash::Algorithm,
-    time::Time,
-    Hash,
-};
+use serde::{Deserialize, Serialize};
+use tendermint::{hash::Algorithm, time::Time, Hash};
 use tendermint_proto::google::protobuf as tpb;
 
 use crate::{
-    clients::ics07_tendermint::{
-        error::Error,
-        header::Header,
-    },
+    clients::ics07_tendermint::{error::Error, header::Header},
     core::{
-        ics02_client::{
-            client_type::ClientType,
-            error::Error as Ics02Error,
-        },
+        ics02_client::{client_type::ClientType, error::Error as Ics02Error},
         ics23_commitment::commitment::CommitmentRoot,
     },
     timestamp::Timestamp,

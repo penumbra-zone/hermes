@@ -2,21 +2,12 @@
 
 use std::{
     collections::BTreeMap,
-    io::{
-        self,
-        Write,
-    },
+    io::{self, Write},
 };
 
 use prometheus::{
-    proto::{
-        self,
-        MetricFamily,
-        MetricType,
-    },
-    Encoder,
-    Error,
-    Result,
+    proto::{self, MetricFamily, MetricType},
+    Encoder, Error, Result,
 };
 use serde::Serialize;
 

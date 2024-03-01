@@ -7,40 +7,26 @@ use bytes::BufMut;
 use flex_error::define_error;
 use ibc_proto::{
     cosmos::{
-        gov::{
-            v1::MsgSubmitProposal,
-            v1beta1::MsgSubmitProposal as LegacyMsgSubmitProposal,
-        },
+        gov::{v1::MsgSubmitProposal, v1beta1::MsgSubmitProposal as LegacyMsgSubmitProposal},
         upgrade::v1beta1::Plan,
     },
     google::protobuf::Any,
-    ibc::core::client::v1::{
-        MsgIbcSoftwareUpgrade,
-        UpgradeProposal,
-    },
+    ibc::core::client::v1::{MsgIbcSoftwareUpgrade, UpgradeProposal},
 };
 use ibc_relayer_types::{
     clients::ics07_tendermint::client_state::UpgradeOptions,
     core::{
         ics02_client::client_state::ClientState,
-        ics24_host::identifier::{
-            ChainId,
-            ClientId,
-        },
+        ics24_host::identifier::{ChainId, ClientId},
     },
-    downcast,
-    Height,
+    downcast, Height,
 };
 use tendermint::Hash as TxHash;
 
 use crate::{
     chain::{
         handle::ChainHandle,
-        requests::{
-            IncludeProof,
-            QueryClientStateRequest,
-            QueryHeight,
-        },
+        requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
         tracking::TrackedMsgs,
     },
     client_state::AnyClientState,

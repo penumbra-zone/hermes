@@ -2,26 +2,11 @@
 
 //! Definition of the entrypoint for the Hermes CLI.
 
-use std::{
-    path::PathBuf,
-    process,
-};
+use std::{path::PathBuf, process};
 
-use abscissa_core::{
-    clap::Parser,
-    Command,
-    Configurable,
-    FrameworkError,
-    Runnable,
-};
-use clap::{
-    IntoApp,
-    ValueEnum,
-};
-use ibc_relayer::{
-    config::Config,
-    util::debug_section::DebugSection,
-};
+use abscissa_core::{clap::Parser, Command, Configurable, FrameworkError, Runnable};
+use clap::{IntoApp, ValueEnum};
+use ibc_relayer::{config::Config, util::debug_section::DebugSection};
 
 use crate::commands::CliCmd;
 

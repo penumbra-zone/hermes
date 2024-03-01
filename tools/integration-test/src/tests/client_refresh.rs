@@ -1,19 +1,12 @@
 use std::time::Duration;
 
 use ibc_relayer::{
-    config::{
-        gas_multiplier::GasMultiplier,
-        ChainConfig,
-    },
+    config::{gas_multiplier::GasMultiplier, ChainConfig},
     foreign_client::CreateOptions,
 };
 use ibc_relayer_types::core::ics02_client::trust_threshold::TrustThreshold;
 use ibc_test_framework::{
-    bootstrap::binary::chain::{
-        add_chain_config,
-        new_registry,
-        spawn_chain_handle,
-    },
+    bootstrap::binary::chain::{add_chain_config, new_registry, spawn_chain_handle},
     prelude::*,
 };
 

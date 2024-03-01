@@ -1,9 +1,5 @@
 use core::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     time::Duration,
 };
 use std::thread;
@@ -13,63 +9,35 @@ use ibc_relayer_types::{
     core::{
         ics02_client::height::Height,
         ics03_connection::{
-            connection::{
-                ConnectionEnd,
-                Counterparty,
-                IdentifiedConnectionEnd,
-                State,
-            },
+            connection::{ConnectionEnd, Counterparty, IdentifiedConnectionEnd, State},
             msgs::{
-                conn_open_ack::MsgConnectionOpenAck,
-                conn_open_confirm::MsgConnectionOpenConfirm,
-                conn_open_init::MsgConnectionOpenInit,
-                conn_open_try::MsgConnectionOpenTry,
+                conn_open_ack::MsgConnectionOpenAck, conn_open_confirm::MsgConnectionOpenConfirm,
+                conn_open_init::MsgConnectionOpenInit, conn_open_try::MsgConnectionOpenTry,
             },
         },
-        ics24_host::identifier::{
-            ClientId,
-            ConnectionId,
-        },
+        ics24_host::identifier::{ClientId, ConnectionId},
     },
     events::IbcEvent,
     timestamp::ZERO_DURATION,
     tx_msg::Msg,
 };
 use serde::Serialize;
-use tracing::{
-    debug,
-    error,
-    info,
-    warn,
-};
+use tracing::{debug, error, info, warn};
 
 use crate::{
     chain::{
         counterparty::connection_state_on_destination,
         handle::ChainHandle,
         requests::{
-            IncludeProof,
-            PageRequest,
-            QueryConnectionRequest,
-            QueryConnectionsRequest,
-            QueryHeight,
+            IncludeProof, PageRequest, QueryConnectionRequest, QueryConnectionsRequest, QueryHeight,
         },
         tracking::TrackedMsgs,
     },
-    foreign_client::{
-        ForeignClient,
-        HasExpiredOrFrozenError,
-    },
+    foreign_client::{ForeignClient, HasExpiredOrFrozenError},
     object::Connection as WorkerConnectionObject,
     util::{
-        pretty::{
-            PrettyDuration,
-            PrettyOption,
-        },
-        retry::{
-            retry_with_index,
-            RetryResult,
-        },
+        pretty::{PrettyDuration, PrettyOption},
+        retry::{retry_with_index, RetryResult},
         task::Next,
     },
 };
@@ -88,10 +56,7 @@ mod handshake_retry {
 
     use crate::{
         connection::ConnectionError,
-        util::retry::{
-            clamp_total,
-            ConstantGrowth,
-        },
+        util::retry::{clamp_total, ConstantGrowth},
     };
 
     /// Approximate number of retries per block.

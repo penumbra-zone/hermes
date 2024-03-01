@@ -1,26 +1,17 @@
 use core::convert::TryFrom;
 
 use eyre::eyre;
-use ibc_relayer::{
-    chain::handle::ChainHandle,
-    foreign_client::ForeignClient,
-};
+use ibc_relayer::{chain::handle::ChainHandle, foreign_client::ForeignClient};
 
 use super::aliases::NthChainHandle;
 use crate::{
     error::Error,
     types::{
         binary::foreign_client::ForeignClientPair,
-        env::{
-            EnvWriter,
-            ExportEnv,
-        },
+        env::{EnvWriter, ExportEnv},
         tagged::*,
     },
-    util::array::{
-        into_nested_vec,
-        try_into_nested_array,
-    },
+    util::array::{into_nested_vec, try_into_nested_array},
 };
 
 /**

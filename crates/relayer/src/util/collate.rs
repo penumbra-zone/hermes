@@ -1,12 +1,6 @@
-use std::{
-    fmt,
-    ops::Add,
-};
+use std::{fmt, ops::Add};
 
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Collated<T> {

@@ -9,10 +9,7 @@ use tracing::debug;
 
 use crate::{
     chain::exec::simple_exec,
-    error::{
-        handle_generic_error,
-        Error,
-    },
+    error::{handle_generic_error, Error},
 };
 
 pub fn query_balance(

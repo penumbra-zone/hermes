@@ -1,7 +1,4 @@
-use ibc_test_framework::{
-    ibc::denom::derive_ibc_denom,
-    prelude::*,
-};
+use ibc_test_framework::{ibc::denom::derive_ibc_denom, prelude::*};
 
 #[test]
 fn test_ternary_ibc_transfer() -> Result<(), Error> {

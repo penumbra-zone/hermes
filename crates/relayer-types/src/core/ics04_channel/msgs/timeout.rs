@@ -1,15 +1,9 @@
-use ibc_proto::{
-    ibc::core::channel::v1::MsgTimeout as RawMsgTimeout,
-    Protobuf,
-};
+use ibc_proto::{ibc::core::channel::v1::MsgTimeout as RawMsgTimeout, Protobuf};
 
 use crate::{
     core::ics04_channel::{
         error::Error,
-        packet::{
-            Packet,
-            Sequence,
-        },
+        packet::{Packet, Sequence},
     },
     proofs::Proofs,
     signer::Signer,
@@ -109,16 +103,12 @@ impl From<MsgTimeout> for RawMsgTimeout {
 #[cfg(test)]
 pub mod test_util {
     use ibc_proto::ibc::core::{
-        channel::v1::MsgTimeout as RawMsgTimeout,
-        client::v1::Height as RawHeight,
+        channel::v1::MsgTimeout as RawMsgTimeout, client::v1::Height as RawHeight,
     };
 
     use crate::{
         core::ics04_channel::packet::test_utils::get_dummy_raw_packet,
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
 
     /// Returns a dummy `RawMsgTimeout`, for testing only!
@@ -150,10 +140,7 @@ mod test {
     use crate::{
         core::ics04_channel::{
             error::Error,
-            msgs::timeout::{
-                test_util::get_dummy_raw_msg_timeout,
-                MsgTimeout,
-            },
+            msgs::timeout::{test_util::get_dummy_raw_msg_timeout, MsgTimeout},
         },
         test_utils::get_dummy_bech32_account,
     };

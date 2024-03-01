@@ -1,9 +1,6 @@
 use ibc_proto::google::protobuf::Any;
 use prost::Message;
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 
 use crate::error::Error;
 

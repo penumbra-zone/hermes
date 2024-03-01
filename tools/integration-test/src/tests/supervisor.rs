@@ -1,20 +1,10 @@
-use ibc_relayer::config::{
-    self,
-    Config,
-    ModeConfig,
-};
+use ibc_relayer::config::{self, Config, ModeConfig};
 use ibc_test_framework::{
     ibc::denom::derive_ibc_denom,
     prelude::*,
     relayer::{
-        channel::{
-            assert_eventually_channel_established,
-            init_channel,
-        },
-        connection::{
-            assert_eventually_connection_established,
-            init_connection,
-        },
+        channel::{assert_eventually_channel_established, init_channel},
+        connection::{assert_eventually_connection_established, init_connection},
     },
 };
 

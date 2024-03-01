@@ -1,9 +1,6 @@
 use crate::{
     applications::transfer::{
-        acknowledgement::Acknowledgement,
-        Amount,
-        PrefixedDenom,
-        MODULE_ID_STR,
+        acknowledgement::Acknowledgement, Amount, PrefixedDenom, MODULE_ID_STR,
     },
     events::ModuleEvent,
     signer::Signer,

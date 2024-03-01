@@ -1,10 +1,7 @@
 /*!
    Methods for voting on a proposal.
 */
-use crate::{
-    chain::exec::simple_exec,
-    error::Error,
-};
+use crate::{chain::exec::simple_exec, error::Error};
 
 pub fn vote_proposal(
     chain_id: &str,

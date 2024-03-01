@@ -1,24 +1,13 @@
 use core::fmt::Debug;
 
-use ibc_proto::{
-    google::protobuf::Any,
-    Protobuf,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use ibc_proto::{google::protobuf::Any, Protobuf};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     clients::ics07_tendermint::header::{
-        decode_header as tm_decode_header,
-        Header as TendermintHeader,
-        TENDERMINT_HEADER_TYPE_URL,
+        decode_header as tm_decode_header, Header as TendermintHeader, TENDERMINT_HEADER_TYPE_URL,
     },
-    core::ics02_client::{
-        client_type::ClientType,
-        error::Error,
-    },
+    core::ics02_client::{client_type::ClientType, error::Error},
     timestamp::Timestamp,
     Height,
 };

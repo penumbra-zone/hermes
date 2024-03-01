@@ -1,9 +1,6 @@
 use std::str;
 
-use crate::{
-    chain::exec::simple_exec,
-    error::Error,
-};
+use crate::{chain::exec::simple_exec, error::Error};
 
 pub fn update_oracle(
     chain_id: &str,

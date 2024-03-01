@@ -1,24 +1,13 @@
 use std::{
     convert::TryFrom,
     str::FromStr,
-    string::{
-        String,
-        ToString,
-    },
+    string::{String, ToString},
 };
 
 use ibc_proto::ibc::applications::transfer::v2::FungibleTokenPacketData as RawPacketData;
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
-use super::{
-    error::Error,
-    Amount,
-    PrefixedCoin,
-    PrefixedDenom,
-};
+use super::{error::Error, Amount, PrefixedCoin, PrefixedDenom};
 use crate::signer::Signer;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

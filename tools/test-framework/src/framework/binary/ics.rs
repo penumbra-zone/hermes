@@ -1,28 +1,15 @@
 use std::str::FromStr;
 
 use crate::{
-    bootstrap::{
-        consumer::bootstrap_consumer_node,
-        single::bootstrap_single_node,
-    },
+    bootstrap::{consumer::bootstrap_consumer_node, single::bootstrap_single_node},
     chain::{
-        builder::ChainBuilder,
-        chain_type::ChainType,
-        cli::upgrade::vote_proposal,
+        builder::ChainBuilder, chain_type::ChainType, cli::upgrade::vote_proposal,
         ext::bootstrap::ChainBootstrapMethodsExt,
     },
     error::Error,
     framework::{
-        base::{
-            run_basic_test,
-            BasicTest,
-            HasOverrides,
-            TestConfigOverride,
-        },
-        binary::node::{
-            NodeConfigOverride,
-            NodeGenesisOverride,
-        },
+        base::{run_basic_test, BasicTest, HasOverrides, TestConfigOverride},
+        binary::node::{NodeConfigOverride, NodeGenesisOverride},
     },
     prelude::FullNode,
     types::config::TestConfig,

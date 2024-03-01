@@ -2,27 +2,15 @@
    Helper functions for deriving IBC denom.
 */
 
-use core::fmt::{
-    self,
-    Display,
-};
+use core::fmt::{self, Display};
 
 use eyre::Report as Error;
-use ibc_relayer_types::core::ics24_host::identifier::{
-    ChannelId,
-    PortId,
-};
-use sha2::{
-    Digest,
-    Sha256,
-};
+use ibc_relayer_types::core::ics24_host::identifier::{ChannelId, PortId};
+use sha2::{Digest, Sha256};
 use subtle_encoding::hex;
 
 use crate::types::{
-    id::{
-        TaggedChannelIdRef,
-        TaggedPortIdRef,
-    },
+    id::{TaggedChannelIdRef, TaggedPortIdRef},
     tagged::*,
 };
 

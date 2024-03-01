@@ -7,11 +7,7 @@ use ibc_proto::{
 use tendermint::evidence::DuplicateVoteEvidence;
 
 use super::error::Error;
-use crate::{
-    clients::ics07_tendermint::header::Header,
-    signer::Signer,
-    tx_msg::Msg,
-};
+use crate::{clients::ics07_tendermint::header::Header, signer::Signer, tx_msg::Msg};
 
 pub const ICS_DOUBLE_VOTING_TYPE_URL: &str =
     "/interchain_security.ccv.provider.v1.MsgSubmitConsumerDoubleVoting";

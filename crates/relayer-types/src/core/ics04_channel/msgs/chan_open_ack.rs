@@ -1,18 +1,9 @@
-use ibc_proto::{
-    ibc::core::channel::v1::MsgChannelOpenAck as RawMsgChannelOpenAck,
-    Protobuf,
-};
+use ibc_proto::{ibc::core::channel::v1::MsgChannelOpenAck as RawMsgChannelOpenAck, Protobuf};
 
 use crate::{
     core::{
-        ics04_channel::{
-            error::Error,
-            version::Version,
-        },
-        ics24_host::identifier::{
-            ChannelId,
-            PortId,
-        },
+        ics04_channel::{error::Error, version::Version},
+        ics24_host::identifier::{ChannelId, PortId},
     },
     proofs::Proofs,
     signer::Signer,
@@ -118,19 +109,12 @@ impl From<MsgChannelOpenAck> for RawMsgChannelOpenAck {
 pub mod test_util {
 
     use ibc_proto::ibc::core::{
-        channel::v1::MsgChannelOpenAck as RawMsgChannelOpenAck,
-        client::v1::Height,
+        channel::v1::MsgChannelOpenAck as RawMsgChannelOpenAck, client::v1::Height,
     };
 
     use crate::{
-        core::ics24_host::identifier::{
-            ChannelId,
-            PortId,
-        },
-        test_utils::{
-            get_dummy_bech32_account,
-            get_dummy_proof,
-        },
+        core::ics24_host::identifier::{ChannelId, PortId},
+        test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
 
     /// Returns a dummy `RawMsgChannelOpenAck`, for testing only!
@@ -154,14 +138,12 @@ pub mod test_util {
 mod tests {
 
     use ibc_proto::ibc::core::{
-        channel::v1::MsgChannelOpenAck as RawMsgChannelOpenAck,
-        client::v1::Height,
+        channel::v1::MsgChannelOpenAck as RawMsgChannelOpenAck, client::v1::Height,
     };
     use test_log::test;
 
     use crate::core::ics04_channel::msgs::chan_open_ack::{
-        test_util::get_dummy_raw_msg_chan_open_ack,
-        MsgChannelOpenAck,
+        test_util::get_dummy_raw_msg_chan_open_ack, MsgChannelOpenAck,
     };
 
     #[test]

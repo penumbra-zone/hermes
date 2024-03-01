@@ -2,10 +2,7 @@
    Methods for performing IBC token transfer on a chain.
 */
 
-use crate::{
-    chain::exec::simple_exec,
-    error::Error,
-};
+use crate::{chain::exec::simple_exec, error::Error};
 
 pub fn local_transfer_token(
     chain_id: &str,

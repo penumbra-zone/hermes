@@ -1,28 +1,14 @@
 use std::time::Duration;
 
-use ibc_proto::{
-    google::protobuf::Any,
-    ibc::mock::ClientState as RawMockClientState,
-    Protobuf,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use ibc_proto::{google::protobuf::Any, ibc::mock::ClientState as RawMockClientState, Protobuf};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     core::{
-        ics02_client::{
-            client_state::ClientState,
-            client_type::ClientType,
-            error::Error,
-        },
+        ics02_client::{client_state::ClientState, client_type::ClientType, error::Error},
         ics24_host::identifier::ChainId,
     },
-    mock::{
-        consensus_state::MockConsensusState,
-        header::MockHeader,
-    },
+    mock::{consensus_state::MockConsensusState, header::MockHeader},
     Height,
 };
 

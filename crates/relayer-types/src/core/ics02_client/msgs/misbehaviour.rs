@@ -1,14 +1,10 @@
 use ibc_proto::{
     google::protobuf::Any as ProtoAny,
-    ibc::core::client::v1::MsgSubmitMisbehaviour as RawMsgSubmitMisbehaviour,
-    Protobuf,
+    ibc::core::client::v1::MsgSubmitMisbehaviour as RawMsgSubmitMisbehaviour, Protobuf,
 };
 
 use crate::{
-    core::{
-        ics02_client::error::Error,
-        ics24_host::identifier::ClientId,
-    },
+    core::{ics02_client::error::Error, ics24_host::identifier::ClientId},
     signer::Signer,
     tx_msg::Msg,
 };

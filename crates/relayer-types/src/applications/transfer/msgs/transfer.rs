@@ -1,20 +1,15 @@
 //! This is the definition of a transfer messages that an application submits to a chain.
 
 use ibc_proto::{
-    cosmos::base::v1beta1::Coin,
-    google::protobuf::Any,
-    ibc::applications::transfer::v1::MsgTransfer as RawMsgTransfer,
-    Protobuf,
+    cosmos::base::v1beta1::Coin, google::protobuf::Any,
+    ibc::applications::transfer::v1::MsgTransfer as RawMsgTransfer, Protobuf,
 };
 
 use crate::{
     applications::transfer::error::Error,
     core::{
         ics04_channel::timeout::TimeoutHeight,
-        ics24_host::identifier::{
-            ChannelId,
-            PortId,
-        },
+        ics24_host::identifier::{ChannelId, PortId},
     },
     signer::Signer,
     timestamp::Timestamp,
@@ -138,32 +133,18 @@ impl From<MsgTransfer> for Any {
 
 #[cfg(test)]
 pub mod test_util {
-    use core::{
-        ops::Add,
-        time::Duration,
-    };
+    use core::{ops::Add, time::Duration};
 
     use super::MsgTransfer;
     use crate::{
-        applications::transfer::{
-            packet::PacketData,
-            BaseCoin,
-            Coin,
-            PrefixedCoin,
-        },
+        applications::transfer::{packet::PacketData, BaseCoin, Coin, PrefixedCoin},
         bigint::U256,
         core::{
             ics04_channel::{
-                packet::{
-                    Packet,
-                    Sequence,
-                },
+                packet::{Packet, Sequence},
                 timeout::TimeoutHeight,
             },
-            ics24_host::identifier::{
-                ChannelId,
-                PortId,
-            },
+            ics24_host::identifier::{ChannelId, PortId},
         },
         signer::Signer,
         test_utils::get_dummy_bech32_account,

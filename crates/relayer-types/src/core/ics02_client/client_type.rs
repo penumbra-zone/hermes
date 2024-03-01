@@ -1,13 +1,6 @@
-use std::fmt::{
-    Display,
-    Error as FmtError,
-    Formatter,
-};
+use std::fmt::{Display, Error as FmtError, Formatter};
 
-use serde_derive::{
-    Deserialize,
-    Serialize,
-};
+use serde_derive::{Deserialize, Serialize};
 
 use super::error::Error;
 
@@ -65,10 +58,7 @@ mod tests {
     use test_log::test;
 
     use super::ClientType;
-    use crate::core::ics02_client::error::{
-        Error,
-        ErrorDetail,
-    };
+    use crate::core::ics02_client::error::{Error, ErrorDetail};
 
     #[test]
     fn parse_tendermint_client_type() {
