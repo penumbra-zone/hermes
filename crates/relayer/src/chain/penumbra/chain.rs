@@ -1553,10 +1553,11 @@ fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
 
 fn decode_merkle_proof(proof_bytes: Vec<u8>) -> Result<MerkleProof, Error> {
     let proof_bytes = CommitmentProofBytes::try_from(proof_bytes).map_err(|e| {
-        Error::temp_penumbra_error(format!("couldnt decode CommitmentProofBytes: {}", e))
+        Error::temp_penumbra_error(format!("couldn't decode CommitmentProofBytes: {}", e))
     })?;
-    let raw_proof: RawMerkleProof = RawMerkleProof::try_from(proof_bytes)
-        .map_err(|e| Error::temp_penumbra_error(format!("couldnt decode RawMerkleProof: {}", e)))?;
+    let raw_proof: RawMerkleProof = RawMerkleProof::try_from(proof_bytes).map_err(|e| {
+        Error::temp_penumbra_error(format!("couldn't decode RawMerkleProof: {}", e))
+    })?;
 
     let proof = MerkleProof::from(raw_proof);
 
