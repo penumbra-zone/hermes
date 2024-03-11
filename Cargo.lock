@@ -78,17 +78,6 @@ dependencies = [
 
 [[package]]
 name = "ahash"
-version = "0.7.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "891477e0c6a8957309ee5c45a6368af3ae14bb510732d2684ffa19af310920f9"
-dependencies = [
- "getrandom",
- "once_cell",
- "version_check",
-]
-
-[[package]]
-name = "ahash"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c3a9648d43b9cd48db467b3f87fdd6e146bcc88ab0180006cef2179fe11d01"
@@ -429,20 +418,22 @@ checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
 [[package]]
 name = "astria-core"
 version = "0.1.0"
-source = "git+https://github.com/astriaorg/astria?rev=093e5794a6b66c7e163442127170263d4e2b2cf9#093e5794a6b66c7e163442127170263d4e2b2cf9"
+source = "git+https://github.com/astriaorg/astria?rev=112a66d6f9bb6638cce4935c949834e1d35416bb#112a66d6f9bb6638cce4935c949834e1d35416bb"
 dependencies = [
  "astria-merkle",
+ "bytes",
  "ed25519-consensus",
  "hex",
- "ibc-types 0.11.1",
+ "ibc-types",
  "indexmap 2.2.5",
- "penumbra-ibc 0.64.1",
- "penumbra-proto 0.64.1",
+ "penumbra-ibc",
+ "penumbra-proto",
  "prost 0.12.3",
  "prost-types",
  "sha2 0.10.8",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.32.0",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "thiserror",
  "tracing",
 ]
@@ -450,7 +441,7 @@ dependencies = [
 [[package]]
 name = "astria-merkle"
 version = "0.1.0"
-source = "git+https://github.com/astriaorg/astria?rev=093e5794a6b66c7e163442127170263d4e2b2cf9#093e5794a6b66c7e163442127170263d4e2b2cf9"
+source = "git+https://github.com/astriaorg/astria?rev=112a66d6f9bb6638cce4935c949834e1d35416bb#112a66d6f9bb6638cce4935c949834e1d35416bb"
 dependencies = [
  "sha2 0.10.8",
 ]
@@ -458,27 +449,18 @@ dependencies = [
 [[package]]
 name = "astria-sequencer-client"
 version = "0.1.0"
-source = "git+https://github.com/astriaorg/astria?rev=093e5794a6b66c7e163442127170263d4e2b2cf9#093e5794a6b66c7e163442127170263d4e2b2cf9"
+source = "git+https://github.com/astriaorg/astria?rev=112a66d6f9bb6638cce4935c949834e1d35416bb#112a66d6f9bb6638cce4935c949834e1d35416bb"
 dependencies = [
  "astria-core",
  "async-trait",
  "futures",
  "hex",
  "prost 0.12.3",
- "tendermint",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "thiserror",
  "tracing",
-]
-
-[[package]]
-name = "async-stream"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22068c0c19514942eefcfd4daf8976ef1aad84e61539f95cd200c35202f80af5"
-dependencies = [
- "async-stream-impl 0.2.1",
- "futures-core",
 ]
 
 [[package]]
@@ -487,20 +469,9 @@ version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd56dd203fef61ac097dd65721a419ddccb106b2d2b70ba60a6b529f03961a51"
 dependencies = [
- "async-stream-impl 0.3.5",
+ "async-stream-impl",
  "futures-core",
  "pin-project-lite",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25f9db3b38af870bf7e5cc649167533b493928e50744e2c30ae350230b414670"
-dependencies = [
- "proc-macro2 1.0.78",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -642,12 +613,6 @@ name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
-
-[[package]]
-name = "base64"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
 
 [[package]]
 name = "base64"
@@ -1151,18 +1116,18 @@ dependencies = [
 
 [[package]]
 name = "cnidarium"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "async-trait",
  "borsh",
  "futures",
  "hex",
- "ibc-types 0.11.1",
+ "ibc-types",
  "ics23 0.11.1",
  "jmt 0.9.0",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
  "parking_lot",
  "pin-project",
@@ -1171,7 +1136,7 @@ dependencies = [
  "sha2 0.10.8",
  "smallvec",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -1179,14 +1144,14 @@ dependencies = [
 
 [[package]]
 name = "cnidarium-component"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "async-trait",
  "cnidarium",
  "hex",
- "tendermint",
+ "tendermint 0.34.1",
 ]
 
 [[package]]
@@ -1545,22 +1510,8 @@ dependencies = [
 
 [[package]]
 name = "decaf377-fmd"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "ark-ff",
- "ark-serialize",
- "bitvec",
- "blake2b_simd 0.5.11",
- "decaf377 0.5.0",
- "rand_core",
- "thiserror",
-]
-
-[[package]]
-name = "decaf377-fmd"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "ark-ff",
  "ark-serialize",
@@ -1573,24 +1524,24 @@ dependencies = [
 
 [[package]]
 name = "decaf377-frost"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
  "blake2b_simd 1.0.2",
  "decaf377 0.5.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-rdsa",
  "frost-core",
  "frost-rerandomized",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "rand_core",
 ]
 
 [[package]]
 name = "decaf377-ka"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "ark-ff",
  "decaf377 0.5.0",
@@ -1599,38 +1550,6 @@ dependencies = [
  "thiserror",
  "zeroize",
  "zeroize_derive",
-]
-
-[[package]]
-name = "decaf377-ka"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
-dependencies = [
- "ark-ff",
- "decaf377 0.5.0",
- "hex",
- "rand_core",
- "thiserror",
- "zeroize",
- "zeroize_derive",
-]
-
-[[package]]
-name = "decaf377-rdsa"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc48f39a9939244f1d1e043b8065330022b8c4337cf359f32231fed8b2165973"
-dependencies = [
- "ark-ff",
- "ark-serialize",
- "blake2b_simd 0.5.11",
- "byteorder",
- "decaf377 0.5.0",
- "digest 0.9.0",
- "hex",
- "rand_core",
- "serde",
- "thiserror",
 ]
 
 [[package]]
@@ -2350,7 +2269,7 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
- "ahash 0.8.7",
+ "ahash",
 ]
 
 [[package]]
@@ -2359,7 +2278,7 @@ version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
 dependencies = [
- "ahash 0.8.7",
+ "ahash",
  "allocator-api2",
 ]
 
@@ -2593,7 +2512,7 @@ dependencies = [
  "flex-error",
  "futures",
  "http",
- "ibc-proto 0.41.0",
+ "ibc-proto",
  "ibc-relayer-types",
  "itertools 0.10.5",
  "reqwest",
@@ -2617,28 +2536,10 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-rpc",
  "time",
  "toml 0.8.10",
- "tonic",
-]
-
-[[package]]
-name = "ibc-proto"
-version = "0.40.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4222cfac37f21da28292db0f2673fdb8455284895891ff09979680243efb9a20"
-dependencies = [
- "base64 0.21.7",
- "bytes",
- "flex-error",
- "ics23 0.11.1",
- "informalsystems-pbjson 0.7.0",
- "prost 0.12.3",
- "serde",
- "subtle-encoding",
- "tendermint-proto",
  "tonic",
 ]
 
@@ -2656,7 +2557,7 @@ dependencies = [
  "prost 0.12.3",
  "serde",
  "subtle-encoding",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tonic",
 ]
 
@@ -2667,7 +2568,7 @@ dependencies = [
  "anyhow",
  "astria-core",
  "astria-sequencer-client",
- "async-stream 0.3.5",
+ "async-stream",
  "bech32 0.9.1",
  "bitcoin",
  "bs58",
@@ -2689,10 +2590,10 @@ dependencies = [
  "http",
  "humantime",
  "humantime-serde",
- "ibc-proto 0.41.0",
+ "ibc-proto",
  "ibc-relayer-types",
  "ibc-telemetry",
- "ibc-types 0.12.0",
+ "ibc-types",
  "itertools 0.10.5",
  "jmt 0.6.0",
  "moka",
@@ -2700,14 +2601,12 @@ dependencies = [
  "num-rational",
  "once_cell",
  "pbjson-types",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-custody",
  "penumbra-fee",
- "penumbra-ibc 0.64.1",
- "penumbra-ibc 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-proto 0.64.1",
- "penumbra-proto 0.68.0",
+ "penumbra-ibc",
+ "penumbra-keys",
+ "penumbra-proto",
  "penumbra-transaction",
  "penumbra-view",
  "penumbra-wallet",
@@ -2726,11 +2625,11 @@ dependencies = [
  "signature",
  "strum",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client",
  "tendermint-light-client-detector",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "tendermint-testgen",
  "test-log",
@@ -2778,7 +2677,7 @@ dependencies = [
  "serial_test",
  "signal-hook",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tendermint-rpc",
  "time",
@@ -2810,7 +2709,7 @@ dependencies = [
  "derive_more",
  "env_logger",
  "flex-error",
- "ibc-proto 0.41.0",
+ "ibc-proto",
  "ics23 0.11.1",
  "itertools 0.10.5",
  "num-rational",
@@ -2821,9 +2720,9 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "tendermint-testgen",
  "test-log",
@@ -2847,7 +2746,7 @@ dependencies = [
  "prometheus",
  "serde",
  "serde_json",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tracing",
 ]
@@ -2863,7 +2762,7 @@ dependencies = [
  "hdpath",
  "hex",
  "http",
- "ibc-proto 0.41.0",
+ "ibc-proto",
  "ibc-relayer",
  "ibc-relayer-cli",
  "ibc-relayer-types",
@@ -2887,70 +2786,20 @@ dependencies = [
 
 [[package]]
 name = "ibc-types"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3178d46ae589af5cab981989a8c631a76d12411edc54d23fd35a52e2fffee07f"
-dependencies = [
- "ibc-types-core-channel 0.11.1",
- "ibc-types-core-client 0.11.1",
- "ibc-types-core-commitment 0.11.1",
- "ibc-types-core-connection 0.11.1",
- "ibc-types-domain-type 0.11.1",
- "ibc-types-identifier 0.11.1",
- "ibc-types-lightclients-tendermint 0.11.1",
- "ibc-types-path 0.11.1",
- "ibc-types-timestamp 0.11.1",
- "ibc-types-transfer 0.11.1",
-]
-
-[[package]]
-name = "ibc-types"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba606d86e2015991f86a129935dbaeacd94beab72fb90a733c1b1ea76be708a2"
 dependencies = [
- "ibc-types-core-channel 0.12.0",
- "ibc-types-core-client 0.12.0",
- "ibc-types-core-commitment 0.12.0",
- "ibc-types-core-connection 0.12.0",
- "ibc-types-domain-type 0.12.0",
- "ibc-types-identifier 0.12.0",
- "ibc-types-lightclients-tendermint 0.12.0",
- "ibc-types-path 0.12.0",
- "ibc-types-timestamp 0.12.0",
- "ibc-types-transfer 0.12.0",
-]
-
-[[package]]
-name = "ibc-types-core-channel"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "743cdc9ec7f4b2c0985136ee0af8f24536b5e1624fb5d88fde7c300881322a82"
-dependencies = [
- "anyhow",
- "bytes",
- "derive_more",
- "displaydoc",
- "ibc-proto 0.40.0",
- "ibc-types-core-client 0.11.1",
- "ibc-types-core-commitment 0.11.1",
- "ibc-types-core-connection 0.11.1",
- "ibc-types-domain-type 0.11.1",
- "ibc-types-identifier 0.11.1",
- "ibc-types-timestamp 0.11.1",
- "ics23 0.11.1",
- "num-traits",
- "proc-macro2 0.1.10",
- "prost 0.12.3",
- "safe-regex",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "subtle-encoding",
- "tendermint",
- "tendermint-proto",
- "time",
- "tracing",
+ "ibc-types-core-channel",
+ "ibc-types-core-client",
+ "ibc-types-core-commitment",
+ "ibc-types-core-connection",
+ "ibc-types-domain-type",
+ "ibc-types-identifier",
+ "ibc-types-lightclients-tendermint",
+ "ibc-types-path",
+ "ibc-types-timestamp",
+ "ibc-types-transfer",
 ]
 
 [[package]]
@@ -2963,13 +2812,13 @@ dependencies = [
  "bytes",
  "derive_more",
  "displaydoc",
- "ibc-proto 0.41.0",
- "ibc-types-core-client 0.12.0",
- "ibc-types-core-commitment 0.12.0",
- "ibc-types-core-connection 0.12.0",
- "ibc-types-domain-type 0.12.0",
- "ibc-types-identifier 0.12.0",
- "ibc-types-timestamp 0.12.0",
+ "ibc-proto",
+ "ibc-types-core-client",
+ "ibc-types-core-commitment",
+ "ibc-types-core-connection",
+ "ibc-types-domain-type",
+ "ibc-types-identifier",
+ "ibc-types-timestamp",
  "ics23 0.11.1",
  "num-traits",
  "proc-macro2 0.1.10",
@@ -2979,36 +2828,10 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
  "tracing",
-]
-
-[[package]]
-name = "ibc-types-core-client"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab7ff8d18f423c0ec0614104f3c07e320cdce2ae5d395606c7d83e4e25a34afc"
-dependencies = [
- "anyhow",
- "bytes",
- "derive_more",
- "displaydoc",
- "ibc-proto 0.40.0",
- "ibc-types-domain-type 0.11.1",
- "ibc-types-identifier 0.11.1",
- "ibc-types-timestamp 0.11.1",
- "ics23 0.11.1",
- "num-traits",
- "prost 0.12.3",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "subtle-encoding",
- "tendermint",
- "tendermint-proto",
- "time",
 ]
 
 [[package]]
@@ -3021,10 +2844,10 @@ dependencies = [
  "bytes",
  "derive_more",
  "displaydoc",
- "ibc-proto 0.41.0",
- "ibc-types-domain-type 0.12.0",
- "ibc-types-identifier 0.12.0",
- "ibc-types-timestamp 0.12.0",
+ "ibc-proto",
+ "ibc-types-domain-type",
+ "ibc-types-identifier",
+ "ibc-types-timestamp",
  "ics23 0.11.1",
  "num-traits",
  "prost 0.12.3",
@@ -3032,43 +2855,9 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
-]
-
-[[package]]
-name = "ibc-types-core-commitment"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "421f7cdfc48065437b276a2abe597ef47d6ffaff4815ba4efd111d5a3af43998"
-dependencies = [
- "anyhow",
- "bytes",
- "derive_more",
- "displaydoc",
- "dyn-clone",
- "erased-serde",
- "hex",
- "ibc-proto 0.40.0",
- "ibc-types-domain-type 0.11.1",
- "ibc-types-identifier 0.11.1",
- "ibc-types-timestamp 0.11.1",
- "ics23 0.11.1",
- "num-traits",
- "primitive-types",
- "prost 0.12.3",
- "safe-regex",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "subtle-encoding",
- "tendermint",
- "tendermint-light-client-verifier",
- "tendermint-proto",
- "time",
- "tracing",
- "uint",
 ]
 
 [[package]]
@@ -3084,10 +2873,10 @@ dependencies = [
  "dyn-clone",
  "erased-serde",
  "hex",
- "ibc-proto 0.41.0",
- "ibc-types-domain-type 0.12.0",
- "ibc-types-identifier 0.12.0",
- "ibc-types-timestamp 0.12.0",
+ "ibc-proto",
+ "ibc-types-domain-type",
+ "ibc-types-identifier",
+ "ibc-types-timestamp",
  "ics23 0.11.1",
  "num-traits",
  "primitive-types",
@@ -3097,41 +2886,12 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "time",
  "tracing",
  "uint",
-]
-
-[[package]]
-name = "ibc-types-core-connection"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f79832a232d5a69325f87aff6a4703c5490f39107a223998b30e83bc3a69510"
-dependencies = [
- "anyhow",
- "bytes",
- "derive_more",
- "displaydoc",
- "ibc-proto 0.40.0",
- "ibc-types-core-client 0.11.1",
- "ibc-types-core-commitment 0.11.1",
- "ibc-types-domain-type 0.11.1",
- "ibc-types-identifier 0.11.1",
- "ibc-types-timestamp 0.11.1",
- "ics23 0.11.1",
- "num-traits",
- "prost 0.12.3",
- "safe-regex",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "subtle-encoding",
- "tendermint",
- "tendermint-proto",
- "time",
 ]
 
 [[package]]
@@ -3144,12 +2904,12 @@ dependencies = [
  "bytes",
  "derive_more",
  "displaydoc",
- "ibc-proto 0.41.0",
- "ibc-types-core-client 0.12.0",
- "ibc-types-core-commitment 0.12.0",
- "ibc-types-domain-type 0.12.0",
- "ibc-types-identifier 0.12.0",
- "ibc-types-timestamp 0.12.0",
+ "ibc-proto",
+ "ibc-types-core-client",
+ "ibc-types-core-commitment",
+ "ibc-types-domain-type",
+ "ibc-types-identifier",
+ "ibc-types-timestamp",
  "ics23 0.11.1",
  "num-traits",
  "prost 0.12.3",
@@ -3158,20 +2918,9 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
-]
-
-[[package]]
-name = "ibc-types-domain-type"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73649683daa4fa967f54ef7cf3f98429522895c37fc2dee2a94d490969444779"
-dependencies = [
- "anyhow",
- "bytes",
- "prost 0.12.3",
 ]
 
 [[package]]
@@ -3187,58 +2936,12 @@ dependencies = [
 
 [[package]]
 name = "ibc-types-identifier"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e007333cded43d125cacb26aeb1a3630a8ffe03144d798ad9a8f2c99e4529a3a"
-dependencies = [
- "displaydoc",
- "serde",
-]
-
-[[package]]
-name = "ibc-types-identifier"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "405880cf06fef65f51c5c91b7efbdcbc8d7eba0ac16b43538b36ebd17f21edea"
 dependencies = [
  "displaydoc",
  "serde",
-]
-
-[[package]]
-name = "ibc-types-lightclients-tendermint"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7f9305a26e8d78faca85ac5414d5432549bb6c196a49032c00e723c9054d7b5"
-dependencies = [
- "anyhow",
- "bytes",
- "derive_more",
- "displaydoc",
- "dyn-clone",
- "erased-serde",
- "ibc-proto 0.40.0",
- "ibc-types-core-client 0.11.1",
- "ibc-types-core-commitment 0.11.1",
- "ibc-types-core-connection 0.11.1",
- "ibc-types-domain-type 0.11.1",
- "ibc-types-identifier 0.11.1",
- "ibc-types-timestamp 0.11.1",
- "ics23 0.11.1",
- "num-traits",
- "primitive-types",
- "prost 0.12.3",
- "safe-regex",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "subtle-encoding",
- "tendermint",
- "tendermint-light-client-verifier",
- "tendermint-proto",
- "time",
- "tracing",
- "uint",
 ]
 
 [[package]]
@@ -3253,13 +2956,13 @@ dependencies = [
  "displaydoc",
  "dyn-clone",
  "erased-serde",
- "ibc-proto 0.41.0",
- "ibc-types-core-client 0.12.0",
- "ibc-types-core-commitment 0.12.0",
- "ibc-types-core-connection 0.12.0",
- "ibc-types-domain-type 0.12.0",
- "ibc-types-identifier 0.12.0",
- "ibc-types-timestamp 0.12.0",
+ "ibc-proto",
+ "ibc-types-core-client",
+ "ibc-types-core-commitment",
+ "ibc-types-core-connection",
+ "ibc-types-domain-type",
+ "ibc-types-identifier",
+ "ibc-types-timestamp",
  "ics23 0.11.1",
  "num-traits",
  "primitive-types",
@@ -3269,34 +2972,12 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "time",
  "tracing",
  "uint",
-]
-
-[[package]]
-name = "ibc-types-path"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a22688a533f90b48e6fde7a1271028f01b66f7a44d298747403bc346fdf08529"
-dependencies = [
- "bytes",
- "derive_more",
- "displaydoc",
- "ibc-types-core-channel 0.11.1",
- "ibc-types-core-client 0.11.1",
- "ibc-types-core-connection 0.11.1",
- "num-traits",
- "prost 0.12.3",
- "serde",
- "serde_json",
- "subtle-encoding",
- "tendermint",
- "tendermint-proto",
- "time",
 ]
 
 [[package]]
@@ -3308,34 +2989,16 @@ dependencies = [
  "bytes",
  "derive_more",
  "displaydoc",
- "ibc-types-core-channel 0.12.0",
- "ibc-types-core-client 0.12.0",
- "ibc-types-core-connection 0.12.0",
+ "ibc-types-core-channel",
+ "ibc-types-core-client",
+ "ibc-types-core-connection",
  "num-traits",
  "prost 0.12.3",
  "serde",
  "serde_json",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
- "time",
-]
-
-[[package]]
-name = "ibc-types-timestamp"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25e93de4be3480445111959b61b10b4f1865e6cad206961a46cb5170b88fdfc0"
-dependencies = [
- "bytes",
- "displaydoc",
- "num-traits",
- "prost 0.12.3",
- "serde",
- "serde_json",
- "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
 ]
 
@@ -3352,19 +3015,9 @@ dependencies = [
  "serde",
  "serde_json",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
-]
-
-[[package]]
-name = "ibc-types-transfer"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45f7420000987bca27f718a44a220efbf4114dcf8dffbfea1aaed6e9b1e9551a"
-dependencies = [
- "displaydoc",
- "serde",
 ]
 
 [[package]]
@@ -3810,33 +3463,12 @@ dependencies = [
 
 [[package]]
 name = "metrics"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "142c53885123b68d94108295a09d4afe1a1388ed95b54d5dacd9a454753030f2"
-dependencies = [
- "ahash 0.7.8",
- "metrics-macros",
-]
-
-[[package]]
-name = "metrics"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd71d9db2e4287c3407fa04378b8c2ee570aebe0854431562cdd89ca091854f4"
 dependencies = [
- "ahash 0.8.7",
+ "ahash",
  "portable-atomic",
-]
-
-[[package]]
-name = "metrics-macros"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49e30813093f757be5cf21e50389a24dc7dbb22c49f23b7e8f51d69b508a5ffa"
-dependencies = [
- "proc-macro2 1.0.78",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -4285,8 +3917,8 @@ checksum = "36bae92c60fa2398ce4678b98b2c4b5a7c61099961ca1fa305aec04a9ad28922"
 
 [[package]]
 name = "penumbra-app"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4299,18 +3931,18 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-rdsa",
  "futures",
  "hex",
- "ibc-proto 0.40.0",
- "ibc-types 0.11.1",
+ "ibc-proto",
+ "ibc-types",
  "ics23 0.11.1",
  "im",
  "jmt 0.9.0",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
  "parking_lot",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-community-pool",
  "penumbra-compact-block",
  "penumbra-dex",
@@ -4319,18 +3951,18 @@ dependencies = [
  "penumbra-funding",
  "penumbra-genesis",
  "penumbra-governance",
- "penumbra-ibc 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
+ "penumbra-ibc",
+ "penumbra-keys",
+ "penumbra-num",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
- "penumbra-tct 0.68.0",
+ "penumbra-tct",
  "penumbra-tower-trace",
  "penumbra-transaction",
- "penumbra-txhash 0.68.0",
+ "penumbra-txhash",
  "prost 0.12.3",
  "rand_chacha",
  "regex",
@@ -4340,9 +3972,9 @@ dependencies = [
  "serde_with",
  "sha2 0.10.8",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tokio",
  "tokio-util 0.7.10",
  "tonic",
@@ -4355,53 +3987,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-asset"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "aes",
- "anyhow",
- "ark-ff",
- "ark-groth16",
- "ark-r1cs-std",
- "ark-relations",
- "ark-serialize",
- "ark-snark",
- "ark-std",
- "base64 0.20.0",
- "bech32 0.8.1",
- "blake2b_simd 0.5.11",
- "bytes",
- "chacha20poly1305",
- "decaf377 0.5.0",
- "decaf377-fmd 0.64.1",
- "decaf377-ka 0.64.1",
- "decaf377-rdsa 0.7.0",
- "derivative",
- "ethnum",
- "f4jumble",
- "hex",
- "hmac",
- "ibig",
- "num-bigint",
- "once_cell",
- "pbkdf2 0.12.2",
- "penumbra-num 0.64.1",
- "penumbra-proto 0.64.1",
- "penumbra-tct 0.64.1",
- "poseidon377",
- "rand",
- "rand_core",
- "regex",
- "serde",
- "sha2 0.10.8",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "penumbra-asset"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4414,16 +4001,16 @@ dependencies = [
  "blake2b_simd 1.0.2",
  "bytes",
  "decaf377 0.5.0",
- "decaf377-fmd 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-rdsa",
  "derivative",
  "ethnum",
  "hex",
  "ibig",
  "num-bigint",
  "once_cell",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-num",
+ "penumbra-proto",
  "poseidon377",
  "rand",
  "rand_core",
@@ -4436,36 +4023,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "penumbra-chain"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "anyhow",
- "ark-ff",
- "async-trait",
- "bincode",
- "bytes",
- "decaf377 0.5.0",
- "hex",
- "ibc-types 0.11.1",
- "ics23 0.11.1",
- "once_cell",
- "penumbra-asset 0.64.1",
- "penumbra-keys 0.64.1",
- "penumbra-num 0.64.1",
- "penumbra-proto 0.64.1",
- "penumbra-tct 0.64.1",
- "penumbra-txhash 0.64.1",
- "serde",
- "sha2 0.9.9",
- "tendermint",
- "tracing",
-]
-
-[[package]]
 name = "penumbra-community-pool"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4476,28 +4036,28 @@ dependencies = [
  "cnidarium-component",
  "futures",
  "hex",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
  "pbjson-types",
- "penumbra-asset 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-asset",
+ "penumbra-keys",
+ "penumbra-num",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
- "penumbra-txhash 0.68.0",
+ "penumbra-txhash",
  "prost 0.12.3",
  "serde",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tracing",
 ]
 
 [[package]]
 name = "penumbra-compact-block"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4506,25 +4066,25 @@ dependencies = [
  "bytes",
  "cnidarium",
  "cnidarium-component",
- "decaf377-rdsa 0.9.0",
+ "decaf377-rdsa",
  "futures",
  "im",
- "metrics 0.22.1",
+ "metrics",
  "penumbra-community-pool",
  "penumbra-dex",
  "penumbra-fee",
  "penumbra-governance",
- "penumbra-ibc 0.68.0",
+ "penumbra-ibc",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
- "penumbra-tct 0.68.0",
+ "penumbra-tct",
  "rand",
  "rand_core",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -4533,8 +4093,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-custody"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4545,15 +4105,15 @@ dependencies = [
  "chacha20poly1305",
  "decaf377 0.5.0",
  "decaf377-frost",
- "decaf377-ka 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-ka",
+ "decaf377-rdsa",
  "ed25519-consensus",
  "futures",
  "hex",
- "penumbra-keys 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-keys",
+ "penumbra-proto",
  "penumbra-transaction",
- "penumbra-txhash 0.68.0",
+ "penumbra-txhash",
  "prost 0.12.3",
  "rand_core",
  "serde",
@@ -4566,8 +4126,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-dex"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4576,7 +4136,7 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-snark",
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
  "base64 0.21.7",
  "bincode",
@@ -4584,26 +4144,26 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-fmd 0.68.0",
- "decaf377-ka 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-ka",
+ "decaf377-rdsa",
  "futures",
  "hex",
  "im",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
  "parking_lot",
  "pbjson-types",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-fee",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
+ "penumbra-keys",
+ "penumbra-num",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
- "penumbra-tct 0.68.0",
- "penumbra-txhash 0.68.0",
+ "penumbra-tct",
+ "penumbra-txhash",
  "poseidon377",
  "prost 0.12.3",
  "rand_core",
@@ -4612,7 +4172,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "tap",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "thiserror",
  "tokio",
@@ -4622,26 +4182,26 @@ dependencies = [
 
 [[package]]
 name = "penumbra-distributions"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "async-trait",
  "cnidarium",
  "cnidarium-component",
- "penumbra-asset 0.68.0",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-asset",
+ "penumbra-num",
+ "penumbra-proto",
  "penumbra-sct",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tracing",
 ]
 
 [[package]]
 name = "penumbra-fee"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4651,46 +4211,46 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-rdsa 0.9.0",
- "metrics 0.22.1",
- "penumbra-asset 0.68.0",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "decaf377-rdsa",
+ "metrics",
+ "penumbra-asset",
+ "penumbra-num",
+ "penumbra-proto",
  "rand",
  "rand_core",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tonic",
  "tracing",
 ]
 
 [[package]]
 name = "penumbra-funding"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "async-trait",
  "cnidarium",
  "cnidarium-component",
  "futures",
- "metrics 0.22.1",
- "penumbra-asset 0.68.0",
+ "metrics",
+ "penumbra-asset",
  "penumbra-community-pool",
  "penumbra-distributions",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tracing",
 ]
 
 [[package]]
 name = "penumbra-genesis"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "penumbra-community-pool",
@@ -4698,8 +4258,8 @@ dependencies = [
  "penumbra-fee",
  "penumbra-funding",
  "penumbra-governance",
- "penumbra-ibc 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-ibc",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
@@ -4708,8 +4268,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-governance"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4718,7 +4278,7 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-snark",
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
  "base64 0.21.7",
  "blake2b_simd 1.0.2",
@@ -4726,35 +4286,35 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-rdsa",
  "futures",
- "ibc-types 0.11.1",
+ "ibc-types",
  "im",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
  "pbjson-types",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-community-pool",
  "penumbra-distributions",
  "penumbra-fee",
  "penumbra-funding",
- "penumbra-ibc 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
+ "penumbra-ibc",
+ "penumbra-keys",
+ "penumbra-num",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
- "penumbra-tct 0.68.0",
- "penumbra-txhash 0.68.0",
+ "penumbra-tct",
+ "penumbra-txhash",
  "rand",
  "rand_chacha",
  "rand_core",
  "regex",
  "serde",
  "tap",
- "tendermint",
+ "tendermint 0.34.1",
  "thiserror",
  "tokio",
  "tonic",
@@ -4763,42 +4323,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-ibc"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "anyhow",
- "ark-ff",
- "async-trait",
- "base64 0.20.0",
- "blake2b_simd 0.5.11",
- "hex",
- "ibc-proto 0.40.0",
- "ibc-types 0.11.1",
- "ics23 0.11.1",
- "metrics 0.19.0",
- "num-traits",
- "once_cell",
- "pbjson-types",
- "penumbra-asset 0.64.1",
- "penumbra-chain",
- "penumbra-keys 0.64.1",
- "penumbra-num 0.64.1",
- "penumbra-proto 0.64.1",
- "penumbra-txhash 0.64.1",
- "prost 0.12.3",
- "serde",
- "serde_json",
- "sha2 0.10.8",
- "tendermint",
- "tendermint-light-client-verifier",
- "tower",
- "tracing",
-]
-
-[[package]]
-name = "penumbra-ibc"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4807,23 +4333,23 @@ dependencies = [
  "blake2b_simd 1.0.2",
  "cnidarium",
  "hex",
- "ibc-proto 0.40.0",
- "ibc-types 0.11.1",
+ "ibc-proto",
+ "ibc-types",
  "ics23 0.11.1",
- "metrics 0.22.1",
+ "metrics",
  "num-traits",
  "once_cell",
  "pbjson-types",
- "penumbra-asset 0.68.0",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-asset",
+ "penumbra-num",
+ "penumbra-proto",
  "penumbra-sct",
- "penumbra-txhash 0.68.0",
+ "penumbra-txhash",
  "prost 0.12.3",
  "serde",
  "serde_json",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tower",
  "tracing",
@@ -4831,54 +4357,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-keys"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "aes",
- "anyhow",
- "ark-ff",
- "ark-groth16",
- "ark-r1cs-std",
- "ark-relations",
- "ark-serialize",
- "ark-snark",
- "ark-std",
- "base64 0.20.0",
- "bech32 0.8.1",
- "bip32",
- "blake2b_simd 0.5.11",
- "bytes",
- "chacha20poly1305",
- "decaf377 0.5.0",
- "decaf377-fmd 0.64.1",
- "decaf377-ka 0.64.1",
- "decaf377-rdsa 0.7.0",
- "derivative",
- "ethnum",
- "f4jumble",
- "hex",
- "hmac",
- "ibig",
- "num-bigint",
- "once_cell",
- "pbkdf2 0.12.2",
- "penumbra-asset 0.64.1",
- "penumbra-proto 0.64.1",
- "penumbra-tct 0.64.1",
- "poseidon377",
- "rand",
- "rand_core",
- "regex",
- "serde",
- "sha2 0.10.8",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "penumbra-keys"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "aes",
  "anyhow",
@@ -4894,9 +4374,9 @@ dependencies = [
  "bytes",
  "chacha20poly1305",
  "decaf377 0.5.0",
- "decaf377-fmd 0.68.0",
- "decaf377-ka 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-ka",
+ "decaf377-rdsa",
  "derivative",
  "ethnum",
  "f4jumble",
@@ -4906,9 +4386,9 @@ dependencies = [
  "num-bigint",
  "once_cell",
  "pbkdf2 0.12.2",
- "penumbra-asset 0.68.0",
- "penumbra-proto 0.68.0",
- "penumbra-tct 0.68.0",
+ "penumbra-asset",
+ "penumbra-proto",
+ "penumbra-tct",
  "poseidon377",
  "rand",
  "rand_core",
@@ -4921,52 +4401,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-num"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "aes",
- "anyhow",
- "ark-ff",
- "ark-groth16",
- "ark-r1cs-std",
- "ark-relations",
- "ark-serialize",
- "ark-snark",
- "ark-std",
- "base64 0.20.0",
- "bech32 0.8.1",
- "blake2b_simd 0.5.11",
- "bytes",
- "chacha20poly1305",
- "decaf377 0.5.0",
- "decaf377-fmd 0.64.1",
- "decaf377-ka 0.64.1",
- "decaf377-rdsa 0.7.0",
- "derivative",
- "ethnum",
- "f4jumble",
- "hex",
- "hmac",
- "ibig",
- "num-bigint",
- "once_cell",
- "pbkdf2 0.12.2",
- "penumbra-proto 0.64.1",
- "penumbra-tct 0.64.1",
- "poseidon377",
- "rand",
- "rand_core",
- "regex",
- "serde",
- "sha2 0.10.8",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "penumbra-num"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -4981,15 +4417,15 @@ dependencies = [
  "blake2b_simd 1.0.2",
  "bytes",
  "decaf377 0.5.0",
- "decaf377-fmd 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-rdsa",
  "derivative",
  "ethnum",
  "hex",
  "ibig",
  "num-bigint",
  "once_cell",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "rand",
  "rand_core",
  "regex",
@@ -5001,8 +4437,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-proof-params"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -5027,49 +4463,21 @@ dependencies = [
 
 [[package]]
 name = "penumbra-proto"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "anyhow",
- "async-stream 0.2.1",
- "async-trait",
- "bech32 0.8.1",
- "bytes",
- "decaf377-fmd 0.64.1",
- "decaf377-rdsa 0.7.0",
- "futures",
- "hex",
- "ibc-proto 0.40.0",
- "ibc-types 0.11.1",
- "ics23 0.11.1",
- "pbjson",
- "pbjson-types",
- "pin-project",
- "prost 0.12.3",
- "serde",
- "serde_json",
- "subtle-encoding",
- "tendermint",
- "tracing",
-]
-
-[[package]]
-name = "penumbra-proto"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "async-trait",
  "bech32 0.8.1",
  "bytes",
  "cnidarium",
- "decaf377-fmd 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-rdsa",
  "futures",
  "hex",
  "http-body",
- "ibc-proto 0.40.0",
- "ibc-types 0.11.1",
+ "ibc-proto",
+ "ibc-types",
  "ics23 0.11.1",
  "pbjson",
  "pbjson-types",
@@ -5078,7 +4486,7 @@ dependencies = [
  "serde",
  "serde_json",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tonic",
  "tower",
  "tracing",
@@ -5086,8 +4494,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-sct"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -5101,27 +4509,27 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-rdsa",
  "hex",
  "im",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
- "penumbra-keys 0.68.0",
- "penumbra-proto 0.68.0",
- "penumbra-tct 0.68.0",
+ "penumbra-keys",
+ "penumbra-proto",
+ "penumbra-tct",
  "poseidon377",
  "rand",
  "rand_core",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tonic",
  "tracing",
 ]
 
 [[package]]
 name = "penumbra-shielded-pool"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -5138,23 +4546,23 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-fmd 0.68.0",
- "decaf377-ka 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-ka",
+ "decaf377-rdsa",
  "hex",
- "ibc-types 0.11.1",
+ "ibc-types",
  "im",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
- "penumbra-asset 0.68.0",
- "penumbra-ibc 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
+ "penumbra-asset",
+ "penumbra-ibc",
+ "penumbra-keys",
+ "penumbra-num",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
- "penumbra-tct 0.68.0",
- "penumbra-txhash 0.68.0",
+ "penumbra-tct",
+ "penumbra-txhash",
  "poseidon377",
  "prost 0.12.3",
  "rand",
@@ -5162,7 +4570,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tap",
- "tendermint",
+ "tendermint 0.34.1",
  "thiserror",
  "tonic",
  "tracing",
@@ -5170,8 +4578,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-stake"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -5180,7 +4588,7 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-snark",
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
  "base64 0.21.7",
  "bech32 0.8.1",
@@ -5188,23 +4596,23 @@ dependencies = [
  "cnidarium",
  "cnidarium-component",
  "decaf377 0.5.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-rdsa",
  "futures",
  "hex",
  "im",
- "metrics 0.22.1",
+ "metrics",
  "once_cell",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-community-pool",
  "penumbra-distributions",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
+ "penumbra-keys",
+ "penumbra-num",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
- "penumbra-tct 0.68.0",
- "penumbra-txhash 0.68.0",
+ "penumbra-tct",
+ "penumbra-txhash",
  "rand_chacha",
  "rand_core",
  "regex",
@@ -5212,7 +4620,7 @@ dependencies = [
  "serde_unit_struct",
  "serde_with",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tonic",
  "tracing",
@@ -5220,8 +4628,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-tct"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "ark-ed-on-bls12-377",
  "ark-ff",
@@ -5238,35 +4646,7 @@ dependencies = [
  "im",
  "once_cell",
  "parking_lot",
- "penumbra-proto 0.64.1",
- "poseidon377",
- "rand",
- "serde",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "penumbra-tct"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
-dependencies = [
- "ark-ed-on-bls12-377",
- "ark-ff",
- "ark-r1cs-std",
- "ark-relations",
- "ark-serialize",
- "async-trait",
- "blake2b_simd 1.0.2",
- "decaf377 0.5.0",
- "derivative",
- "futures",
- "hash_hasher",
- "hex",
- "im",
- "once_cell",
- "parking_lot",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "poseidon377",
  "rand",
  "serde",
@@ -5276,8 +4656,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-tower-trace"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "futures",
  "hex",
@@ -5285,8 +4665,8 @@ dependencies = [
  "pin-project",
  "pin-project-lite",
  "sha2 0.10.8",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "tokio",
  "tokio-stream",
  "tokio-util 0.7.10",
@@ -5298,8 +4678,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-transaction"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-ff",
@@ -5310,31 +4690,31 @@ dependencies = [
  "bytes",
  "chacha20poly1305",
  "decaf377 0.5.0",
- "decaf377-fmd 0.68.0",
- "decaf377-ka 0.68.0",
- "decaf377-rdsa 0.9.0",
+ "decaf377-fmd",
+ "decaf377-ka",
+ "decaf377-rdsa",
  "derivative",
  "hex",
- "ibc-proto 0.40.0",
- "ibc-types 0.11.1",
+ "ibc-proto",
+ "ibc-types",
  "num-bigint",
  "once_cell",
  "pbjson-types",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-community-pool",
  "penumbra-dex",
  "penumbra-fee",
  "penumbra-governance",
- "penumbra-ibc 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
+ "penumbra-ibc",
+ "penumbra-keys",
+ "penumbra-num",
  "penumbra-proof-params",
- "penumbra-proto 0.68.0",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
- "penumbra-tct 0.68.0",
- "penumbra-txhash 0.68.0",
+ "penumbra-tct",
+ "penumbra-txhash",
  "poseidon377",
  "rand",
  "rand_core",
@@ -5349,38 +4729,25 @@ dependencies = [
 
 [[package]]
 name = "penumbra-txhash"
-version = "0.64.1"
-source = "git+https://github.com/penumbra-zone/penumbra.git?rev=1b1be7e1373401eaf30d63352ee680991cb42aea#1b1be7e1373401eaf30d63352ee680991cb42aea"
-dependencies = [
- "anyhow",
- "blake2b_simd 0.5.11",
- "hex",
- "penumbra-proto 0.64.1",
- "penumbra-tct 0.64.1",
- "serde",
-]
-
-[[package]]
-name = "penumbra-txhash"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "blake2b_simd 1.0.2",
  "hex",
- "penumbra-proto 0.68.0",
- "penumbra-tct 0.68.0",
+ "penumbra-proto",
+ "penumbra-tct",
  "serde",
 ]
 
 [[package]]
 name = "penumbra-view"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-std",
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
  "bytes",
  "camino",
@@ -5390,12 +4757,12 @@ dependencies = [
  "futures",
  "genawaiter",
  "hex",
- "ibc-types 0.11.1",
- "metrics 0.22.1",
+ "ibc-types",
+ "metrics",
  "once_cell",
  "parking_lot",
  "penumbra-app",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-community-pool",
  "penumbra-compact-block",
  "penumbra-dex",
@@ -5403,14 +4770,14 @@ dependencies = [
  "penumbra-fee",
  "penumbra-funding",
  "penumbra-governance",
- "penumbra-ibc 0.68.0",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-ibc",
+ "penumbra-keys",
+ "penumbra-num",
+ "penumbra-proto",
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-stake",
- "penumbra-tct 0.68.0",
+ "penumbra-tct",
  "penumbra-transaction",
  "prost 0.12.3",
  "r2d2",
@@ -5420,7 +4787,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -5431,8 +4798,8 @@ dependencies = [
 
 [[package]]
 name = "penumbra-wallet"
-version = "0.68.0"
-source = "git+https://github.com/penumbra-zone/penumbra?branch=main#a9694cfc997a893bf3a9a66a6822e2b078b861b4"
+version = "0.68.1"
+source = "git+https://github.com/penumbra-zone/penumbra?tag=v0.68.1#c462e9a6cc86a37d42a9d75f1ab9ceb0e3789f77"
 dependencies = [
  "anyhow",
  "ark-std",
@@ -5441,16 +4808,16 @@ dependencies = [
  "decaf377 0.5.0",
  "hex",
  "penumbra-app",
- "penumbra-asset 0.68.0",
+ "penumbra-asset",
  "penumbra-custody",
  "penumbra-dex",
  "penumbra-fee",
  "penumbra-governance",
- "penumbra-keys 0.68.0",
- "penumbra-num 0.68.0",
- "penumbra-proto 0.68.0",
+ "penumbra-keys",
+ "penumbra-num",
+ "penumbra-proto",
  "penumbra-stake",
- "penumbra-tct 0.68.0",
+ "penumbra-tct",
  "penumbra-transaction",
  "penumbra-view",
  "pin-project",
@@ -6932,6 +6299,34 @@ dependencies = [
 
 [[package]]
 name = "tendermint"
+version = "0.32.0"
+source = "git+https://github.com/eigerco/celestia-tendermint-rs?rev=bbe7de8#bbe7de8c777f0c44b338f4bf26f0f6efb18e87f0"
+dependencies = [
+ "bytes",
+ "digest 0.10.7",
+ "ed25519",
+ "ed25519-consensus",
+ "flex-error",
+ "futures",
+ "num-traits",
+ "once_cell",
+ "prost 0.12.3",
+ "prost-types",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_repr",
+ "sha2 0.10.8",
+ "signature",
+ "subtle",
+ "subtle-encoding",
+ "tendermint-proto 0.32.0",
+ "time",
+ "zeroize",
+]
+
+[[package]]
+name = "tendermint"
 version = "0.34.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15ab8f0a25d0d2ad49ac615da054d6a76aa6603ff95f7d18bafdd34450a1a04b"
@@ -6956,7 +6351,7 @@ dependencies = [
  "signature",
  "subtle",
  "subtle-encoding",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "time",
  "zeroize",
 ]
@@ -6970,7 +6365,7 @@ dependencies = [
  "flex-error",
  "serde",
  "serde_json",
- "tendermint",
+ "tendermint 0.34.1",
  "toml 0.5.11",
  "url",
 ]
@@ -6992,7 +6387,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "static_assertions",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tendermint-rpc",
  "time",
@@ -7015,9 +6410,9 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "static_assertions",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "time",
  "tracing",
@@ -7032,7 +6427,24 @@ dependencies = [
  "derive_more",
  "flex-error",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
+ "time",
+]
+
+[[package]]
+name = "tendermint-proto"
+version = "0.32.0"
+source = "git+https://github.com/eigerco/celestia-tendermint-rs?rev=bbe7de8#bbe7de8c777f0c44b338f4bf26f0f6efb18e87f0"
+dependencies = [
+ "bytes",
+ "flex-error",
+ "num-derive",
+ "num-traits",
+ "prost 0.12.3",
+ "prost-types",
+ "serde",
+ "serde_bytes",
+ "subtle-encoding",
  "time",
 ]
 
@@ -7076,9 +6488,9 @@ dependencies = [
  "serde_json",
  "subtle",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-config",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "thiserror",
  "time",
  "tokio",
@@ -7100,7 +6512,7 @@ dependencies = [
  "serde_json",
  "simple-error",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "time",
 ]
 
@@ -7396,7 +6808,7 @@ version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d560933a0de61cf715926b9cac824d4c883c2c43142f787595e48280c40a1d0e"
 dependencies = [
- "async-stream 0.3.5",
+ "async-stream",
  "async-trait",
  "axum",
  "base64 0.21.7",
@@ -7452,8 +6864,8 @@ dependencies = [
  "futures",
  "pin-project",
  "prost 0.12.3",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "tokio",
  "tokio-stream",
  "tokio-util 0.6.10",

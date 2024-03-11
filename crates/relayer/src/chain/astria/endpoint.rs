@@ -182,15 +182,14 @@ impl AstriaEndpoint {
         use astria_core::{
             generated::sequencer::v1alpha1::Ics20Withdrawal as RawIcs20Withdrawal,
             sequencer::v1alpha1::{
-                asset::default_native_asset_id,
                 transaction::{action::Ics20Withdrawal, Action},
                 Address, UnsignedTransaction,
             },
         };
         use astria_sequencer_client::SequencerClientExt as _;
         use ibc_relayer_types::applications::transfer::msgs::ASTRIA_WITHDRAWAL_TYPE_URL;
-        use penumbra_ibc_astria::IbcRelay;
-        use penumbra_proto_astria::core::component::ibc::v1alpha1::IbcRelay as RawIbcRelay;
+        use penumbra_ibc::IbcRelay;
+        use penumbra_proto::core::component::ibc::v1::IbcRelay as RawIbcRelay;
 
         let msg_len = tracked_msgs.msgs.len();
         let mut actions: Vec<Action> = Vec::with_capacity(msg_len);
@@ -226,7 +225,6 @@ impl AstriaEndpoint {
         let unsigned_tx = UnsignedTransaction {
             nonce: nonce.nonce,
             actions,
-            fee_asset_id: default_native_asset_id(),
         };
 
         let signed_tx = unsigned_tx.into_signed(&signing_key);

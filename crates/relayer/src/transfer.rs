@@ -1,6 +1,7 @@
 use core::time::Duration;
 use std::{ops::Add, str::FromStr};
 
+use astria_core::sequencer::v1alpha1::asset::default_native_asset_id;
 use flex_error::{define_error, DetailOnly};
 use ibc_proto::{cosmos::base::v1beta1::Coin, google::protobuf::Any};
 use ibc_relayer_types::{
@@ -193,6 +194,7 @@ fn build_transfer_message_astria(
         return_address: hex::decode(sender.to_string()).expect("sender address is hex"),
         timeout_height: Some(timeout_height),
         timeout_time: timeout_timestamp.nanoseconds(),
+        fee_asset_id: default_native_asset_id().as_bytes().into(),
     };
 
     Any {

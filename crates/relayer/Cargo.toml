@@ -26,8 +26,8 @@ ibc-relayer-types = { version = "0.27.0", path = "../relayer-types", features = 
     "mocks",
 ] }
 
-astria-core = { git = "https://github.com/astriaorg/astria", rev = "093e5794a6b66c7e163442127170263d4e2b2cf9" }
-astria-sequencer-client = { git = "https://github.com/astriaorg/astria", rev = "093e5794a6b66c7e163442127170263d4e2b2cf9", features = [
+astria-core = { git = "https://github.com/astriaorg/astria", rev = "112a66d6f9bb6638cce4935c949834e1d35416bb" }
+astria-sequencer-client = { git = "https://github.com/astriaorg/astria", rev = "112a66d6f9bb6638cce4935c949834e1d35416bb", features = [
     "http",
 ] }
 ed25519-consensus = "2.1.0"
@@ -93,22 +93,18 @@ tracing-subscriber = { version = "0.3.14", features = [
 ] }
 
 # Penumbra dependencies
-penumbra-custody = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-penumbra-view = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", branch = "main", features = [
+penumbra-custody = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-view = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1", features = [
     "box-grpc",
     "rpc",
 ] }
-penumbra-wallet = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-penumbra-fee = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-penumbra-keys = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-penumbra-ibc = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
-# Astria uses a conflicting version here: https://github.com/astriaorg/astria/blob/093e5794a6b66c7e163442127170263d4e2b2cf9/Cargo.toml#L69
-# TODO: get Astria and Penumbra on the same version
-penumbra-ibc-astria = { package = "penumbra-ibc", git = "https://github.com/penumbra-zone/penumbra.git", rev = "1b1be7e1373401eaf30d63352ee680991cb42aea", default-features = false }
-penumbra-proto-astria = { package = "penumbra-proto", git = "https://github.com/penumbra-zone/penumbra.git", rev = "1b1be7e1373401eaf30d63352ee680991cb42aea" }
-penumbra-asset = { git = "https://github.com/penumbra-zone/penumbra", branch = "main" }
+penumbra-wallet = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-fee = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-keys = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-ibc = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
+penumbra-asset = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.68.1" }
 
 [dependencies.byte-unit]
 version = "4.0.19"
