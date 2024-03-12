@@ -1,0 +1,57 @@
+[global]
+log_level = 'debug'
+
+[mode]
+
+[mode.clients]
+enabled = true
+refresh = true
+misbehaviour = false
+
+[mode.connections]
+enabled = true
+
+[mode.channels]
+enabled = true
+
+[mode.packets]
+enabled = true
+clear_interval = 100
+clear_on_start = true
+tx_confirmation = true
+
+[telemetry]
+enabled = true
+host = '127.0.0.1'
+port = 3001
+
+[[chains]]
+id = 'penumbra-testnet-deimos-5'
+type = 'Penumbra'
+stub_key_name = 'fake'
+rpc_addr = 'https://rpc.testnet.penumbra.zone'
+grpc_addr = 'https://grpc.testnet.penumbra.zone'
+event_source = { mode = 'pull', interval = '1s' }
+rpc_timeout = '15s'
+clock_drift = '5s'
+client_refresh_rate = '1/3'
+trust_threshold = { numerator = '1', denominator = '3' }
+kms_config = { spend_key = "XXXXXXXX" }
+
+[[chains]]
+id = 'osmo-test-5'
+type = 'CosmosSdk'
+rpc_addr = "https://rpc.osmotest5.osmosis.zone/"
+grpc_addr = "https://grpc.osmotest5.osmosis.zone/"
+rpc_timeout = '15s'
+account_prefix = 'osmo'                                  # not used
+key_name = 'osmosis'
+store_prefix = 'ibc'
+gas_price = { price = 0.15, denom = 'uosmo' }
+max_gas = 4000000
+event_source = { mode = 'pull', interval = '1s' }
+gas_multiplier = 1.2
+clock_drift = "5s"
+max_block_time = "10s"
+client_refresh_rate = '1/3'
+memo_prefix = 'Hello from Penumbra 😎🌘'
