@@ -10,17 +10,18 @@
 //! then processed.
 
 use ibc_relayer::config::{self, ModeConfig};
-
-use ibc_test_framework::chain::{
-    cli::host_zone::register_host_zone,
-    config::{
-        set_crisis_denom, set_mint_mint_denom, set_staking_bond_denom, set_staking_max_entries,
-        set_voting_period,
+use ibc_test_framework::{
+    chain::{
+        cli::host_zone::register_host_zone,
+        config::{
+            set_crisis_denom, set_mint_mint_denom, set_staking_bond_denom, set_staking_max_entries,
+            set_voting_period,
+        },
+        ext::crosschainquery::CrossChainQueryMethodsExt,
     },
-    ext::crosschainquery::CrossChainQueryMethodsExt,
+    prelude::*,
+    util::random::random_u128_range,
 };
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::util::random::random_u128_range;
 
 #[test]
 fn test_ics31_cross_chain_queries() -> Result<(), Error> {

@@ -1,18 +1,19 @@
 use core::time::Duration;
+
 use crossbeam_channel::Receiver;
 use tracing::{debug, error_span};
 
-use crate::connection::Connection as RelayConnection;
-use crate::util::task::{spawn_background_task, Next, TaskError, TaskHandle};
+use super::{error::RunError, WorkerCmd};
 use crate::{
     chain::handle::{ChainHandle, ChainHandlePair},
+    connection::Connection as RelayConnection,
     object::Connection,
-    util::retry::retry_with_index,
+    util::{
+        retry::retry_with_index,
+        task::{spawn_background_task, Next, TaskError, TaskHandle},
+    },
     worker::retry_strategy,
 };
-
-use super::error::RunError;
-use super::WorkerCmd;
 
 pub fn spawn_connection_worker<ChainA: ChainHandle, ChainB: ChainHandle>(
     connection: Connection,

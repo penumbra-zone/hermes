@@ -1,13 +1,13 @@
-use ibc_relayer::channel::version::Version;
-use ibc_relayer::config::ChainConfig;
-use ibc_test_framework::chain::config::{set_max_deposit_period, set_voting_period};
-use ibc_test_framework::chain::ext::async_icq::AsyncIcqMethodsExt;
-use ibc_test_framework::chain::ext::bootstrap::ChainBootstrapMethodsExt;
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::relayer::channel::{
-    assert_eventually_channel_established, init_channel_version,
+use ibc_relayer::{channel::version::Version, config::ChainConfig};
+use ibc_test_framework::{
+    chain::{
+        config::{set_max_deposit_period, set_voting_period},
+        ext::{async_icq::AsyncIcqMethodsExt, bootstrap::ChainBootstrapMethodsExt},
+    },
+    prelude::*,
+    relayer::channel::{assert_eventually_channel_established, init_channel_version},
+    util::proposal_status::ProposalStatus,
 };
-use ibc_test_framework::util::proposal_status::ProposalStatus;
 use tendermint::abci::Event;
 use tendermint_rpc::{Client, HttpClient};
 
@@ -143,6 +143,8 @@ fn assert_eventual_async_icq_success<ChainA: ChainHandle, ChainB: ChainHandle>(
 ) -> Result<(), Error> {
     let rpc_addr = match relayer.config.chains.first().unwrap() {
         ChainConfig::CosmosSdk(c) => c.rpc_addr.clone(),
+        ChainConfig::Penumbra(c) => todo!(),
+        ChainConfig::Astria(c) => todo!(),
     };
 
     let mut rpc_client = HttpClient::new(rpc_addr).unwrap();

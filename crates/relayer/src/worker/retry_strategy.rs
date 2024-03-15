@@ -1,5 +1,6 @@
-use crate::util::retry::{clamp_total, ConstantGrowth};
 use core::time::Duration;
+
+use crate::util::retry::{clamp_total, ConstantGrowth};
 
 /// A basic worker retry strategy.
 ///

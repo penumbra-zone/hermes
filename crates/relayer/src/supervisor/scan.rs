@@ -1,9 +1,6 @@
 use core::fmt::{Display, Error as FmtError, Formatter};
 use std::collections::BTreeMap;
 
-use itertools::Itertools;
-use tracing::{debug, error, error_span, info, warn};
-
 use ibc_relayer_types::core::{
     ics03_connection::connection::{IdentifiedConnectionEnd, State as ConnectionState},
     ics04_channel::{
@@ -12,10 +9,15 @@ use ibc_relayer_types::core::{
     },
     ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
 };
+use itertools::Itertools;
+use tracing::{debug, error, error_span, info, warn};
 
 use crate::{
     chain::{
-        counterparty::{channel_on_destination, connection_state_on_destination},
+        counterparty::{
+            channel_on_destination, connection_state_on_destination, unreceived_acknowledgements,
+            unreceived_packets,
+        },
         handle::ChainHandle,
         requests::{
             IncludeProof, PageRequest, QueryChannelRequest, QueryClientConnectionsRequest,
@@ -28,17 +30,13 @@ use crate::{
         filter::{ChannelFilters, ChannelPolicy},
         ChainConfig, Config,
     },
+    error::Error as RelayerError,
     path::PathIdentifiers,
     registry::Registry,
+    spawn::SpawnError,
     supervisor::client_state_filter::{FilterPolicy, Permission},
+    telemetry,
 };
-
-use crate::chain::counterparty::{unreceived_acknowledgements, unreceived_packets};
-
-use crate::error::Error as RelayerError;
-use crate::spawn::SpawnError;
-
-use crate::telemetry;
 
 flex_error::define_error! {
     Error {

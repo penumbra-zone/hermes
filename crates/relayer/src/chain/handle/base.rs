@@ -1,8 +1,6 @@
 use core::fmt::{Debug, Display, Error as FmtError, Formatter};
 
 use crossbeam_channel as channel;
-use tracing::Span;
-
 use ibc_proto::ibc::apps::fee::v1::{
     QueryIncentivizedPacketRequest, QueryIncentivizedPacketResponse,
 };
@@ -10,20 +8,24 @@ use ibc_relayer_types::{
     applications::ics31_icq::response::CrossChainQueryResponse,
     core::{
         ics02_client::{events::UpdateClient, header::AnyHeader},
-        ics03_connection::connection::{ConnectionEnd, IdentifiedConnectionEnd},
-        ics03_connection::version::Version,
-        ics04_channel::channel::{ChannelEnd, IdentifiedChannelEnd},
-        ics04_channel::packet::{PacketMsgType, Sequence},
+        ics03_connection::{
+            connection::{ConnectionEnd, IdentifiedConnectionEnd},
+            version::Version,
+        },
+        ics04_channel::{
+            channel::{ChannelEnd, IdentifiedChannelEnd},
+            packet::{PacketMsgType, Sequence},
+        },
         ics23_commitment::{commitment::CommitmentPrefix, merkle::MerkleProof},
-        ics24_host::identifier::ChainId,
-        ics24_host::identifier::ChannelId,
-        ics24_host::identifier::{ClientId, ConnectionId, PortId},
+        ics24_host::identifier::{ChainId, ChannelId, ClientId, ConnectionId, PortId},
     },
     proofs::Proofs,
     signer::Signer,
     Height,
 };
+use tracing::Span;
 
+use super::{reply_channel, ChainHandle, ChainRequest, HealthCheck, ReplyTo, Subscription};
 use crate::{
     account::Balance,
     chain::{
@@ -40,8 +42,6 @@ use crate::{
     keyring::AnySigningKeyPair,
     misbehaviour::MisbehaviourEvidence,
 };
-
-use super::{reply_channel, ChainHandle, ChainRequest, HealthCheck, ReplyTo, Subscription};
 
 /// A basic chain handle implementation.
 /// For use in interactive CLIs, e.g., `query`, `tx`, etc.

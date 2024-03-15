@@ -5,44 +5,49 @@
 //! refers to light clients running *locally* as part of the relayer.
 
 use core::{fmt, time::Duration};
-use std::thread;
-use std::time::Instant;
+use std::{thread, time::Instant};
 
+use flex_error::define_error;
 use ibc_proto::google::protobuf::Any;
+use ibc_relayer_types::{
+    applications::ics28_ccv::msgs::ccv_misbehaviour::MsgSubmitIcsConsumerMisbehaviour,
+    core::{
+        ics02_client::{
+            client_state::ClientState,
+            error::Error as ClientError,
+            events::UpdateClient,
+            header::{AnyHeader, Header},
+            msgs::{
+                create_client::MsgCreateClient, misbehaviour::MsgSubmitMisbehaviour,
+                update_client::MsgUpdateClient, upgrade_client::MsgUpgradeClient,
+            },
+            trust_threshold::TrustThreshold,
+        },
+        ics24_host::identifier::{ChainId, ClientId},
+    },
+    downcast,
+    events::{IbcEvent, IbcEventType, WithBlockDataType},
+    timestamp::{Timestamp, TimestampOverflowError},
+    tx_msg::Msg,
+    Height,
+};
 use itertools::Itertools;
 use tracing::{debug, error, info, instrument, trace, warn};
 
-use flex_error::define_error;
-use ibc_relayer_types::applications::ics28_ccv::msgs::ccv_misbehaviour::MsgSubmitIcsConsumerMisbehaviour;
-use ibc_relayer_types::core::ics02_client::client_state::ClientState;
-use ibc_relayer_types::core::ics02_client::error::Error as ClientError;
-use ibc_relayer_types::core::ics02_client::events::UpdateClient;
-use ibc_relayer_types::core::ics02_client::header::{AnyHeader, Header};
-use ibc_relayer_types::core::ics02_client::msgs::create_client::MsgCreateClient;
-use ibc_relayer_types::core::ics02_client::msgs::misbehaviour::MsgSubmitMisbehaviour;
-use ibc_relayer_types::core::ics02_client::msgs::update_client::MsgUpdateClient;
-use ibc_relayer_types::core::ics02_client::msgs::upgrade_client::MsgUpgradeClient;
-use ibc_relayer_types::core::ics02_client::trust_threshold::TrustThreshold;
-use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ClientId};
-use ibc_relayer_types::downcast;
-use ibc_relayer_types::events::{IbcEvent, IbcEventType, WithBlockDataType};
-use ibc_relayer_types::timestamp::{Timestamp, TimestampOverflowError};
-use ibc_relayer_types::tx_msg::Msg;
-use ibc_relayer_types::Height;
-
-use crate::chain::client::ClientSettings;
-use crate::chain::handle::ChainHandle;
-use crate::chain::requests::*;
-use crate::chain::tracking::TrackedMsgs;
-use crate::client_state::AnyClientState;
-use crate::config::ChainConfig;
-use crate::consensus_state::AnyConsensusState;
-use crate::error::Error as RelayerError;
-use crate::event::IbcEventWithHeight;
-use crate::misbehaviour::{AnyMisbehaviour, MisbehaviourEvidence};
-use crate::telemetry;
-use crate::util::collate::CollatedIterExt;
-use crate::util::pretty::{PrettyDuration, PrettySlice};
+use crate::{
+    chain::{client::ClientSettings, handle::ChainHandle, requests::*, tracking::TrackedMsgs},
+    client_state::AnyClientState,
+    config::ChainConfig,
+    consensus_state::AnyConsensusState,
+    error::Error as RelayerError,
+    event::IbcEventWithHeight,
+    misbehaviour::{AnyMisbehaviour, MisbehaviourEvidence},
+    telemetry,
+    util::{
+        collate::CollatedIterExt,
+        pretty::{PrettyDuration, PrettySlice},
+    },
+};
 
 const MAX_MISBEHAVIOUR_CHECK_DURATION: Duration = Duration::from_secs(120);
 
@@ -771,7 +776,7 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
             } => {
                 error!(
                     latest_height = %client_state.latest_height(),
-                    network_timestmap = %network_timestamp,
+                    network_timestamp = %network_timestamp,
                     consensus_state_timestamp = %consensus_state_timestmap,
                     elapsed = ?elapsed,
                     "client state is not valid: latest height is outside of trusting period!",
@@ -908,6 +913,7 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
         // that it's common behavior.
         let refresh_rate = match src_config {
             ChainConfig::CosmosSdk(config) => config.client_refresh_rate,
+            ChainConfig::Astria(config) => config.client_refresh_rate,
             ChainConfig::Penumbra(config) => config.client_refresh_rate,
         };
 
@@ -1754,6 +1760,7 @@ impl<DstChain: ChainHandle, SrcChain: ChainHandle> ForeignClient<DstChain, SrcCh
 
         let is_ccv_consumer_chain = match chain_config {
             ChainConfig::CosmosSdk(config) => config.ccv_consumer_chain,
+            ChainConfig::Astria(config) => config.ccv_consumer_chain,
             ChainConfig::Penumbra(_) => false,
         };
 

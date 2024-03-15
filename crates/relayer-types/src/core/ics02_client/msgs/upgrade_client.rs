@@ -2,17 +2,24 @@
 
 use std::str::FromStr;
 
-use ibc_proto::google::protobuf::Any;
-use ibc_proto::ibc::core::client::v1::MsgUpgradeClient as RawMsgUpgradeClient;
-use ibc_proto::ibc::core::commitment::v1::MerkleProof as RawMerkleProof;
-use ibc_proto::Protobuf;
+use ibc_proto::{
+    google::protobuf::Any,
+    ibc::core::{
+        client::v1::MsgUpgradeClient as RawMsgUpgradeClient,
+        commitment::v1::MerkleProof as RawMerkleProof,
+    },
+    Protobuf,
+};
 
-use crate::core::ics02_client::error::Error;
-use crate::core::ics23_commitment::commitment::CommitmentProofBytes;
-use crate::core::ics23_commitment::error::Error as Ics23Error;
-use crate::core::ics24_host::identifier::ClientId;
-use crate::signer::Signer;
-use crate::tx_msg::Msg;
+use crate::{
+    core::{
+        ics02_client::error::Error,
+        ics23_commitment::{commitment::CommitmentProofBytes, error::Error as Ics23Error},
+        ics24_host::identifier::ClientId,
+    },
+    signer::Signer,
+    tx_msg::Msg,
+};
 
 pub(crate) const TYPE_URL: &str = "/ibc.core.client.v1.MsgUpgradeClient";
 
@@ -117,6 +124,7 @@ impl TryFrom<RawMsgUpgradeClient> for MsgUpgradeClient {
 pub mod test_util {
     use ibc_proto::ibc::core::client::v1::MsgUpgradeClient as RawMsgUpgradeClient;
 
+    use super::MsgUpgradeClient;
     use crate::{
         core::{ics02_client::height::Height, ics24_host::identifier::ClientId},
         mock::{
@@ -124,8 +132,6 @@ pub mod test_util {
         },
         test_utils::{get_dummy_bech32_account, get_dummy_proof},
     };
-
-    use super::MsgUpgradeClient;
 
     /// Extends the implementation with additional helper methods.
     impl MsgUpgradeClient {

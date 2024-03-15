@@ -52,6 +52,8 @@ impl TestOverrides for DynamicGasTest {
                     GasPrice::new(0.1, chain_config_a.gas_price.denom.clone());
                 chain_config_a.dynamic_gas_price = DynamicGasPrice::unsafe_new(false, 1.1, 0.6);
             }
+            ChainConfig::Penumbra(chain_config_a) => todo!(),
+            ChainConfig::Astria(chain_config_a) => todo!(),
         }
 
         match &mut config.chains[1] {
@@ -61,6 +63,8 @@ impl TestOverrides for DynamicGasTest {
                 chain_config_b.dynamic_gas_price =
                     DynamicGasPrice::unsafe_new(self.dynamic_gas_enabled, 1.1, 0.6);
             }
+            ChainConfig::Penumbra(chain_config_b) => todo!(),
+            ChainConfig::Astria(chain_config_b) => todo!(),
         }
     }
 

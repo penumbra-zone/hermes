@@ -1,7 +1,11 @@
-use std::fs::{File, OpenOptions};
-use std::path::Path;
-use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
-use std::sync::Mutex;
+use std::{
+    fs::{File, OpenOptions},
+    path::Path,
+    sync::{
+        atomic::{AtomicUsize, Ordering::Relaxed},
+        Mutex,
+    },
+};
 
 use once_cell::sync::OnceCell;
 use serde_derive::Serialize;
@@ -98,7 +102,6 @@ impl Drop for Timer {
 
 pub fn open_or_create_profile_file(file_name: &Path) {
     let file = OpenOptions::new()
-        .write(true)
         .append(true)
         .create(true)
         .open(file_name)

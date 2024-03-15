@@ -1,21 +1,21 @@
 use std::ops::RangeInclusive;
 
-use abscissa_core::clap::Parser;
-use abscissa_core::config::Override;
-use abscissa_core::{Command, FrameworkErrorKind, Runnable};
+use abscissa_core::{clap::Parser, config::Override, Command, FrameworkErrorKind, Runnable};
+use ibc_relayer::{
+    chain::handle::{BaseChainHandle, ChainHandle},
+    config::Config,
+    link::{error::LinkError, Link, LinkParameters},
+    util::seq_range::parse_seq_range,
+};
+use ibc_relayer_types::{
+    core::{
+        ics04_channel::packet::Sequence,
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
+    },
+    events::IbcEvent,
+};
 
-use ibc_relayer::chain::handle::{BaseChainHandle, ChainHandle};
-use ibc_relayer::config::Config;
-use ibc_relayer::link::error::LinkError;
-use ibc_relayer::link::{Link, LinkParameters};
-use ibc_relayer::util::seq_range::parse_seq_range;
-use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
-use ibc_relayer_types::events::IbcEvent;
-
-use crate::application::app_config;
-use crate::cli_utils::spawn_chain_counterparty;
-use crate::conclude::Output;
+use crate::{application::app_config, cli_utils::spawn_chain_counterparty, conclude::Output};
 
 /// `clear` subcommands
 #[derive(Command, Debug, Parser, Runnable)]
@@ -206,13 +206,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::ClearPacketsCmd;
-
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
-    use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-    use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
+    use ibc_relayer_types::core::{
+        ics04_channel::packet::Sequence,
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
+    };
+
+    use crate::commands::clear::ClearPacketsCmd;
 
     #[test]
     fn test_clear_packets_required_only() {

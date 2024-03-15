@@ -1,15 +1,13 @@
 use std::{fmt::Debug, str::FromStr, time::Duration};
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-
 use ibc_relayer::{
     config::ChainConfig,
     rest::request::{Request, VersionInfo},
     supervisor::dump_state::SupervisorState,
 };
-use ibc_relayer_types::core::ics24_host::identifier::ChainId;
-
 use ibc_relayer_rest::spawn;
+use ibc_relayer_types::core::ics24_host::identifier::ChainId;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 enum TestResult {
     Success,
@@ -100,7 +98,7 @@ type = 'CosmosSdk'
 rpc_addr = 'http://127.0.0.1:26557'
 grpc_addr = 'http://127.0.0.1:9091'
 event_source = { mode = 'push', url = 'ws://127.0.0.1:26557/websocket', batch_delay = '500ms' }
-rpc_timeout = '10s'
+rpc_timeout = '60s'
 account_prefix = 'cosmos'
 key_name = 'testkey'
 store_prefix = 'ibc'

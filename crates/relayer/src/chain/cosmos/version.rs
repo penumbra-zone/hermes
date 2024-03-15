@@ -5,9 +5,8 @@
 use core::fmt::{Display, Error as FmtError, Formatter};
 
 use flex_error::define_error;
-use tracing::trace;
-
 use ibc_proto::cosmos::base::tendermint::v1beta1::VersionInfo;
+use tracing::trace;
 
 /// Specifies the SDK, IBC-go, and Tendermint modules path, as expected
 /// to appear in the application version information of a

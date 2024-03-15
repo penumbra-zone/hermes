@@ -1,19 +1,21 @@
-use abscissa_core::clap::Parser;
-use abscissa_core::{Command, Runnable};
-use ibc_relayer_types::core::ics02_client::height::Height;
 use std::ops::RangeInclusive;
 
-use ibc_relayer::chain::handle::ChainHandle;
-use ibc_relayer::link::{Link, LinkParameters};
-use ibc_relayer::util::seq_range::parse_seq_range;
-use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
-use ibc_relayer_types::events::IbcEvent;
+use abscissa_core::{clap::Parser, Command, Runnable};
+use ibc_relayer::{
+    chain::handle::ChainHandle,
+    link::{Link, LinkParameters},
+    util::seq_range::parse_seq_range,
+};
+use ibc_relayer_types::{
+    core::{
+        ics02_client::height::Height,
+        ics04_channel::packet::Sequence,
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
+    },
+    events::IbcEvent,
+};
 
-use crate::cli_utils::ChainHandlePair;
-use crate::conclude::Output;
-use crate::error::Error;
-use crate::prelude::*;
+use crate::{cli_utils::ChainHandlePair, conclude::Output, error::Error, prelude::*};
 
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]
 pub struct TxPacketRecvCmd {
@@ -211,12 +213,12 @@ impl Runnable for TxPacketAckCmd {
 
 #[cfg(test)]
 mod tests {
-    use super::{TxPacketAckCmd, TxPacketRecvCmd};
-
     use std::str::FromStr;
 
     use abscissa_core::clap::Parser;
     use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
+
+    use super::{TxPacketAckCmd, TxPacketRecvCmd};
 
     #[test]
     fn test_packet_recv_required_only() {

@@ -333,7 +333,7 @@ impl PenumbraChain {
         let plan = planner.plan(&mut view_client, AddressIndex::new(0)).await?;
 
         penumbra_wallet::build_transaction(
-            &self.config.kms_config.spend_key.full_viewing_key(),
+            self.config.kms_config.spend_key.full_viewing_key(),
             &mut view_client,
             &mut self.custody_client,
             plan,
@@ -404,10 +404,7 @@ impl PenumbraChain {
                     Some(status) => match status {
                         BroadcastStatus::BroadcastSuccess(bs) => {
                             if !wait_for_commit {
-                                return Ok(bs
-                                    .id
-                                    .expect("detected transaction missing id")
-                                    .try_into()?);
+                                return bs.id.expect("detected transaction missing id").try_into();
                             }
                         }
                         BroadcastStatus::Confirmed(c) => {
@@ -570,7 +567,7 @@ impl ChainEndpoint for PenumbraChain {
         let tendermint_light_client = TmLightClient::from_rpc_parameters(
             config.id.clone(),
             config.rpc_addr.clone(),
-            config.rpc_timeout.clone(),
+            config.rpc_timeout,
             node_info.id,
             true,
         )?;
@@ -1556,10 +1553,11 @@ fn client_id_suffix(client_id: &ClientId) -> Option<u64> {
 
 fn decode_merkle_proof(proof_bytes: Vec<u8>) -> Result<MerkleProof, Error> {
     let proof_bytes = CommitmentProofBytes::try_from(proof_bytes).map_err(|e| {
-        Error::temp_penumbra_error(format!("couldnt decode CommitmentProofBytes: {}", e))
+        Error::temp_penumbra_error(format!("couldn't decode CommitmentProofBytes: {}", e))
     })?;
-    let raw_proof: RawMerkleProof = RawMerkleProof::try_from(proof_bytes)
-        .map_err(|e| Error::temp_penumbra_error(format!("couldnt decode RawMerkleProof: {}", e)))?;
+    let raw_proof: RawMerkleProof = RawMerkleProof::try_from(proof_bytes).map_err(|e| {
+        Error::temp_penumbra_error(format!("couldn't decode RawMerkleProof: {}", e))
+    })?;
 
     let proof = MerkleProof::from(raw_proof);
 

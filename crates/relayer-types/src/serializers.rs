@@ -12,8 +12,7 @@ where
 
 pub mod serde_string {
 
-    use core::fmt::Display;
-    use core::str::FromStr;
+    use core::{fmt::Display, str::FromStr};
 
     use serde::{de, Deserialize, Deserializer, Serializer};
 

@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
-use ibc_relayer::config::filter::{ChannelPolicy, FeePolicy, FilterPattern, MinFee};
-use ibc_relayer::config::{ChainConfig, PacketFilter};
+use ibc_relayer::config::{
+    filter::{ChannelPolicy, FeePolicy, FilterPattern, MinFee},
+    ChainConfig, PacketFilter,
+};
 use ibc_relayer_types::core::ics04_channel::version::Version;
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::util::random::random_u128_range;
+use ibc_test_framework::{prelude::*, util::random::random_u128_range};
 
 #[test]
 fn test_filter_incentivized_fees_relayer() -> Result<(), Error> {
@@ -32,6 +33,7 @@ impl TestOverrides for FilterIncentivizedFeesRelayerTest {
                     chain_config.packet_filter = packet_filter.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }
@@ -185,6 +187,7 @@ impl TestOverrides for FilterByChannelIncentivizedFeesRelayerTest {
                     chain_config.packet_filter = packet_filter.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }

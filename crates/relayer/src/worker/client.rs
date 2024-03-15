@@ -1,21 +1,19 @@
-use core::convert::Infallible;
-use core::time::Duration;
+use core::{convert::Infallible, time::Duration};
+
 use crossbeam_channel::Receiver;
-use retry::delay::Fibonacci;
-use retry::retry_with_index;
+use ibc_relayer_types::{core::ics02_client::events::UpdateClient, events::IbcEvent};
+use retry::{delay::Fibonacci, retry_with_index};
 use tracing::{debug, debug_span, error_span, trace, warn};
 
-use ibc_relayer_types::core::ics02_client::events::UpdateClient;
-use ibc_relayer_types::events::IbcEvent;
-
-use crate::util::retry::clamp_total;
-use crate::util::task::{spawn_background_task, Next, TaskError, TaskHandle};
+use super::WorkerCmd;
 use crate::{
     chain::handle::ChainHandle,
     foreign_client::{ForeignClient, MisbehaviourResults},
+    util::{
+        retry::clamp_total,
+        task::{spawn_background_task, Next, TaskError, TaskHandle},
+    },
 };
-
-use super::WorkerCmd;
 
 const REFRESH_CHECK_INTERVAL: Duration = Duration::from_secs(5); // 5 seconds
 const INITIAL_BACKOFF: Duration = Duration::from_secs(5); // 5 seconds

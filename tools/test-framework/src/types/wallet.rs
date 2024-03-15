@@ -3,10 +3,13 @@
 */
 
 use core::fmt::{self, Display};
+
 use ibc_relayer::keyring::Secp256k1KeyPair;
 
-use crate::types::env::{prefix_writer, EnvWriter, ExportEnv};
-use crate::types::tagged::*;
+use crate::types::{
+    env::{prefix_writer, EnvWriter, ExportEnv},
+    tagged::*,
+};
 
 /**
    Newtype wrapper for a wallet ID as identified by the chain and relayer.

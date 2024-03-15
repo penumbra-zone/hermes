@@ -1,4 +1,5 @@
 use core::fmt::Debug;
+
 use serde::{de::DeserializeOwned, Serialize};
 
 /// Test that a struct `T` can be:

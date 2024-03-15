@@ -1,7 +1,6 @@
 //! Data structures and logic to set up IBC client's parameters.
 
-use crate::config::ChainConfig;
-use crate::foreign_client::CreateOptions;
+use crate::{config::ChainConfig, foreign_client::CreateOptions};
 
 /// Client parameters for the `build_create_client` operation.
 ///
@@ -23,6 +22,20 @@ impl ClientSettings {
         // Currently, only Tendermint chain pairs are supported by
         // ForeignClient::build_create_client_and_send. Support for
         // heterogeneous chains is left for future revisions.
+        //
+        // TODO: extract Tendermint-related configs into a separate substructure
+        // that can be used both by CosmosSdkConfig and configs for nonSDK chains.
+        // let src_chain_config = match src_chain_config {
+        //     ChainConfig::CosmosSdk(src_chain_config) => src_chain_config,
+        //     ChainConfig::Astria(src_chain_config) => src_chain_config,
+        //     ChainConfig::Penumbra(src_chain_config) => todo!(),
+        // };
+        // let dst_chain_config = match dst_chain_config {
+        //     ChainConfig::CosmosSdk(dst_chain_config) => dst_chain_config,
+        //     ChainConfig::Astria(dst_chain_config) => dst_chain_config,
+        //     ChainConfig::Penumbra(dst_chain_config) => todo!(),
+        // };
+
         ClientSettings::Tendermint(crate::chain::client_settings::Settings::for_create_command(
             options,
             src_chain_config,

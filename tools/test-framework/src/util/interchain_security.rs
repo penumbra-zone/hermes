@@ -1,7 +1,6 @@
 use ibc_relayer::config::ChainConfig;
 
-use crate::chain::config::set_voting_period;
-use crate::prelude::*;
+use crate::{chain::config::set_voting_period, prelude::*};
 
 pub fn update_genesis_for_consumer_chain(genesis: &mut serde_json::Value) -> Result<(), Error> {
     // Consumer chain doesn't have a gov key.
@@ -22,13 +21,13 @@ pub fn update_relayer_config_for_consumer_chain(config: &mut Config) {
     // the proposal.
     for chain_config in config.chains.iter_mut() {
         match chain_config {
-            ChainConfig::CosmosSdk(chain_config)
+            ChainConfig::CosmosSdk(chain_config) | ChainConfig::Astria(chain_config)
                 if chain_config.id == ChainId::from_string("ibcconsumer") =>
             {
                 chain_config.ccv_consumer_chain = true;
                 chain_config.trusting_period = Some(Duration::from_secs(99));
             }
-            ChainConfig::CosmosSdk(_) => {}
+            ChainConfig::CosmosSdk(_) | ChainConfig::Astria(_) => {}
             ChainConfig::Penumbra(_) => todo!(),
         }
     }

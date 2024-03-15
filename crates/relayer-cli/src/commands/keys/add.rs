@@ -4,22 +4,20 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use abscissa_core::clap::Parser;
-use abscissa_core::{Command, Runnable};
-
+use abscissa_core::{clap::Parser, Command, Runnable};
 use eyre::eyre;
 use hdpath::StandardHDPath;
 use ibc_relayer::{
     config::{ChainConfig, Config},
     keyring::{
-        AnySigningKeyPair, KeyRing, Secp256k1KeyPair, SigningKeyPair, SigningKeyPairSized, Store,
+        AnySigningKeyPair, Ed25519KeyPair, KeyRing, Secp256k1KeyPair, SigningKeyPair,
+        SigningKeyPairSized, Store,
     },
 };
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use tracing::warn;
 
-use crate::application::app_config;
-use crate::conclude::Output;
+use crate::{application::app_config, conclude::Output};
 
 /// The data structure that represents the arguments when invoking the `keys add` CLI command.
 ///
@@ -220,6 +218,23 @@ pub fn add_key(
             keyring.add_key(key_name, key_pair.clone())?;
             key_pair.into()
         }
+        ChainConfig::Astria(config) => {
+            let mut keyring = KeyRing::new_ed25519(
+                Store::Test,
+                &config.account_prefix,
+                &config.id,
+                &config.key_store_folder,
+            )?;
+
+            check_key_exists(&keyring, key_name, overwrite);
+
+            let key_contents =
+                fs::read_to_string(file).map_err(|_| eyre!("error reading the key file"))?;
+            let key_pair = Ed25519KeyPair::from_seed_file(&key_contents, hd_path)?;
+
+            keyring.add_key(key_name, key_pair.clone())?;
+            key_pair.into()
+        }
         ChainConfig::Penumbra(_) => todo!(),
     };
 
@@ -257,6 +272,26 @@ pub fn restore_key(
             keyring.add_key(key_name, key_pair.clone())?;
             key_pair.into()
         }
+        ChainConfig::Astria(config) => {
+            let mut keyring = KeyRing::new_ed25519(
+                Store::Test,
+                &config.account_prefix,
+                &config.id,
+                &config.key_store_folder,
+            )?;
+
+            check_key_exists(&keyring, key_name, overwrite);
+
+            let key_pair = Ed25519KeyPair::from_mnemonic(
+                &mnemonic_content,
+                hdpath,
+                &config.address_type,
+                keyring.account_prefix(),
+            )?;
+
+            keyring.add_key(key_name, key_pair.clone())?;
+            key_pair.into()
+        }
         ChainConfig::Penumbra(_) => todo!(),
     };
 
@@ -279,11 +314,12 @@ fn check_key_exists<S: SigningKeyPairSized>(keyring: &KeyRing<S>, key_name: &str
 #[cfg(test)]
 mod tests {
 
-    use super::KeysAddCmd;
     use std::path::PathBuf;
 
     use abscissa_core::clap::Parser;
     use ibc_relayer_types::core::ics24_host::identifier::ChainId;
+
+    use super::KeysAddCmd;
 
     #[test]
     fn test_keys_add_key_file() {

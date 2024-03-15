@@ -1,8 +1,7 @@
 use std::fmt::{Display, Error as FmtError, Formatter};
 
-use serde::{Deserialize, Serialize};
-
 use ibc_proto::ibc::core::client::v1::Height as RawHeight;
+use serde::{Deserialize, Serialize};
 
 use crate::core::ics02_client::{error::Error as ICS2Error, height::Height};
 

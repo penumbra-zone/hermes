@@ -1,19 +1,15 @@
-use alloc::collections::btree_map::BTreeMap as HashMap;
-use alloc::sync::Arc;
-use core::convert::Infallible;
-use core::ops::Deref;
-use core::time::Duration;
+use alloc::{collections::btree_map::BTreeMap as HashMap, sync::Arc};
+use core::{convert::Infallible, ops::Deref, time::Duration};
 use std::sync::RwLock;
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use itertools::Itertools;
-use tracing::{debug, error, error_span, info, instrument, trace, warn};
-
 use ibc_relayer_types::{
     core::ics24_host::identifier::{ChainId, ChannelId, PortId},
     events::IbcEvent,
     Height,
 };
+use itertools::Itertools;
+use tracing::{debug, error, error_span, info, instrument, trace, warn};
 
 use crate::{
     chain::{endpoint::HealthCheck, handle::ChainHandle, tracking::TrackingId},

@@ -1,8 +1,12 @@
-use crate::chain::cli::async_icq::{async_icq, update_oracle};
-use crate::chain::driver::ChainDriver;
-use crate::error::Error;
-use crate::prelude::*;
-use crate::types::tagged::*;
+use crate::{
+    chain::{
+        cli::async_icq::{async_icq, update_oracle},
+        driver::ChainDriver,
+    },
+    error::Error,
+    prelude::*,
+    types::tagged::*,
+};
 
 pub trait AsyncIcqMethodsExt<Chain> {
     fn update_oracle(&self, relayer: &str, account: &str) -> Result<(), Error>;
