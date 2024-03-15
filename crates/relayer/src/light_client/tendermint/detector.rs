@@ -1,5 +1,4 @@
-use tracing::{error, info};
-
+use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState;
 use tendermint::{
     evidence::{Evidence, LightClientAttackEvidence},
     Hash, Time,
@@ -14,8 +13,7 @@ use tendermint_light_client::{
 };
 use tendermint_light_client_detector::{detect_divergence, Divergence, Provider};
 use tendermint_rpc::{Client, HttpClient};
-
-use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState;
+use tracing::{error, info};
 
 use crate::{error::Error, util::block_on};
 

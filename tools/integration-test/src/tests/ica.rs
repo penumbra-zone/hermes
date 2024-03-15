@@ -70,6 +70,7 @@ impl TestOverrides for IcaFilterTestAllow {
                     chain_config.packet_filter = self.packet_filter.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }
@@ -202,6 +203,7 @@ impl TestOverrides for IcaFilterTestDeny {
                         )]));
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }

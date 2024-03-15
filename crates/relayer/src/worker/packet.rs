@@ -19,21 +19,22 @@ use ibc_relayer_types::core::ics24_host::identifier::PortId;
 use ibc_relayer_types::events::{IbcEvent, IbcEventType};
 use ibc_relayer_types::Height;
 
-use crate::chain::handle::ChainHandle;
+use super::{error::RunError, WorkerCmd};
 use crate::chain::requests::QueryHeight;
-use crate::config::filter::FeePolicy;
-use crate::event::source::EventBatch;
 use crate::event::IbcEventWithHeight;
-use crate::foreign_client::HasExpiredOrFrozenError;
-use crate::link::Resubmit;
-use crate::link::{error::LinkError, Link};
-use crate::object::Packet;
-use crate::telemetry;
-use crate::util::lock::{LockExt, RwArc};
-use crate::util::task::{spawn_background_task, Next, TaskError, TaskHandle};
-
-use super::error::RunError;
-use super::WorkerCmd;
+use crate::{
+    chain::handle::ChainHandle,
+    config::filter::FeePolicy,
+    event::source::EventBatch,
+    foreign_client::HasExpiredOrFrozenError,
+    link::{error::LinkError, Link, Resubmit},
+    object::Packet,
+    telemetry,
+    util::{
+        lock::{LockExt, RwArc},
+        task::{spawn_background_task, Next, TaskError, TaskHandle},
+    },
+};
 
 const INCENTIVIZED_CACHE_TTL: Duration = Duration::from_secs(10 * 60);
 const INCENTIVIZED_CACHE_MAX_CAPACITY: u64 = 1000;

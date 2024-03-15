@@ -1,14 +1,10 @@
 /// Tendermint client settings, which can apply to any chain that uses the Tendermint consensus
 use core::time::Duration;
 
+use ibc_relayer_types::core::ics02_client::trust_threshold::TrustThreshold;
 use tracing::warn;
 
-use ibc_relayer_types::core::ics02_client::trust_threshold::TrustThreshold;
-
-use crate::config::ChainConfig;
-use crate::foreign_client::CreateOptions;
-
-use crate::util::pretty::PrettyDuration;
+use crate::{config::ChainConfig, foreign_client::CreateOptions, util::pretty::PrettyDuration};
 
 /// Tendermint-specific client parameters for the `build_client_state` operation.
 #[derive(Clone, Debug, Default)]

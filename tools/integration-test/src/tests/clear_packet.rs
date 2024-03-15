@@ -1,10 +1,9 @@
 use std::thread;
 
-use ibc_relayer::chain::counterparty::pending_packet_summary;
-use ibc_relayer::config::ChainConfig;
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::relayer::channel::query_identified_channel_end;
-use ibc_test_framework::util::random::random_u128_range;
+use ibc_relayer::{chain::counterparty::pending_packet_summary, config::ChainConfig};
+use ibc_test_framework::{
+    prelude::*, relayer::channel::query_identified_channel_end, util::random::random_u128_range,
+};
 
 #[test]
 fn test_clear_packet() -> Result<(), Error> {
@@ -327,6 +326,7 @@ impl TestOverrides for ClearPacketOverrideTest {
                 // Use a small clear interval in the chain configurations to override the global high interval
                 ChainConfig::CosmosSdk(chain_config) => chain_config.clear_interval = Some(10),
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }

@@ -416,6 +416,54 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
 
 [[package]]
+name = "astria-core"
+version = "0.1.0"
+source = "git+https://github.com/astriaorg/astria?rev=112a66d6f9bb6638cce4935c949834e1d35416bb#112a66d6f9bb6638cce4935c949834e1d35416bb"
+dependencies = [
+ "astria-merkle",
+ "bytes",
+ "ed25519-consensus",
+ "hex",
+ "ibc-types 0.12.0",
+ "indexmap 2.2.6",
+ "penumbra-ibc",
+ "penumbra-proto",
+ "prost 0.12.4",
+ "prost-types",
+ "sha2 0.10.8",
+ "tendermint 0.32.0",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "astria-merkle"
+version = "0.1.0"
+source = "git+https://github.com/astriaorg/astria?rev=112a66d6f9bb6638cce4935c949834e1d35416bb#112a66d6f9bb6638cce4935c949834e1d35416bb"
+dependencies = [
+ "sha2 0.10.8",
+]
+
+[[package]]
+name = "astria-sequencer-client"
+version = "0.1.0"
+source = "git+https://github.com/astriaorg/astria?rev=112a66d6f9bb6638cce4935c949834e1d35416bb#112a66d6f9bb6638cce4935c949834e1d35416bb"
+dependencies = [
+ "astria-core",
+ "async-trait",
+ "futures",
+ "hex",
+ "prost 0.12.4",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "tendermint-rpc",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "async-stream"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -434,7 +482,7 @@ checksum = "16e62a023e7c117e27523144c5d2459f4397fcc3cab0085af8e2224f643a0193"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -445,7 +493,7 @@ checksum = "a507401cad91ec6a857ed5513a2073c82a9b9048762b885bb98655b306964681"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -562,6 +610,12 @@ checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
 
 [[package]]
 name = "base64"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+
+[[package]]
+name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
@@ -617,7 +671,7 @@ dependencies = [
  "regex",
  "rustc-hash",
  "shlex",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -640,9 +694,9 @@ dependencies = [
 
 [[package]]
 name = "bitcoin"
-version = "0.31.1"
+version = "0.31.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd00f3c09b5f21fb357abe32d29946eb8bb7a0862bae62c0b5e4a692acbbe73c"
+checksum = "6c85783c2fe40083ea54a33aa2f0ba58831d90fcd190f5bdc47e74e84d2a96ae"
 dependencies = [
  "bech32 0.10.0-beta",
  "bitcoin-internals",
@@ -1045,7 +1099,7 @@ version = "3.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae6371b8bdc8b7d3959e9cf7b22d4435ef3e79e138688421ec654acf8c81b008"
 dependencies = [
- "heck",
+ "heck 0.4.1",
  "proc-macro-error 1.0.4",
  "proc-macro2 1.0.79",
  "quote",
@@ -1071,9 +1125,9 @@ dependencies = [
  "borsh",
  "futures",
  "hex",
- "ibc-types",
- "ics23",
- "jmt",
+ "ibc-types 0.12.0",
+ "ics23 0.11.1",
+ "jmt 0.9.0",
  "metrics",
  "once_cell",
  "parking_lot",
@@ -1083,7 +1137,7 @@ dependencies = [
  "sha2 0.10.8",
  "smallvec",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -1098,7 +1152,7 @@ dependencies = [
  "async-trait",
  "cnidarium",
  "hex",
- "tendermint",
+ "tendermint 0.34.1",
 ]
 
 [[package]]
@@ -1327,7 +1381,7 @@ checksum = "f46882e17999c6cc590af592290432be3bce0428cb0d5f8b6715e4dc7b383eb3"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -1364,7 +1418,7 @@ dependencies = [
  "proc-macro2 1.0.79",
  "quote",
  "strsim",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -1375,7 +1429,7 @@ checksum = "a668eda54683121533a393014d8692171709ff57a7d61f187b6e782719f8933f"
 dependencies = [
  "darling_core",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -1519,9 +1573,9 @@ dependencies = [
 
 [[package]]
 name = "der"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fffa369a668c8af7dbf8b5e56c9f744fbd399949ed171606040001947de40b1c"
+checksum = "f55bf8e7b65898637379c1b74eb1551107c8294ed26d855ceb9fd1a09cfc9bc0"
 dependencies = [
  "const-oid",
  "zeroize",
@@ -1639,7 +1693,7 @@ checksum = "487585f4d0c6655fe74905e2504d8ad6908e4db67f744eb140876906c2f3175d"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -2033,7 +2087,7 @@ checksum = "87750cf4b7a4c0625b1529e4c543c2182106e4dedc60a2a6455e00d212c489ac"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -2165,9 +2219,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.3.25"
+version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fbd2820c5e49886948654ab546d0688ff24530286bdcf8fca3cefb16d4618eb"
+checksum = "81fe527a889e1532da5c525686d96d4c2e74cdd345badf8dfef9f6b39dd5f5e8"
 dependencies = [
  "bytes",
  "fnv",
@@ -2277,6 +2331,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2316,15 +2376,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
 dependencies = [
  "digest 0.10.7",
-]
-
-[[package]]
-name = "home"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3d1354bf6b7235cb4a0576c2619fd4ed18183f689b12b006a0ee7329eeff9a5"
-dependencies = [
- "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2478,11 +2529,11 @@ dependencies = [
  "ibc-relayer",
  "ibc-relayer-types",
  "ibc-test-framework",
- "prost",
+ "prost 0.12.4",
  "serde",
  "serde_json",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-rpc",
  "time",
  "toml 0.8.12",
@@ -2495,15 +2546,15 @@ version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd4ee32b22d3b06f31529b956f4928e5c9a068d71e46cf6abfa19c31ca550553"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "bytes",
  "flex-error",
- "ics23",
- "informalsystems-pbjson",
- "prost",
+ "ics23 0.11.1",
+ "informalsystems-pbjson 0.7.0",
+ "prost 0.12.4",
  "serde",
  "subtle-encoding",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tonic",
 ]
 
@@ -2513,15 +2564,15 @@ version = "0.42.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1a6f2bbf7e1d12f98d8d54d9114231b865418d0f8b619c0873180eafdee07fd"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "bytes",
  "flex-error",
- "ics23",
- "informalsystems-pbjson",
- "prost",
+ "ics23 0.11.1",
+ "informalsystems-pbjson 0.7.0",
+ "prost 0.12.4",
  "serde",
  "subtle-encoding",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tonic",
 ]
 
@@ -2530,6 +2581,8 @@ name = "ibc-relayer"
 version = "0.27.2"
 dependencies = [
  "anyhow",
+ "astria-core",
+ "astria-sequencer-client",
  "async-stream",
  "bech32 0.9.1",
  "bitcoin",
@@ -2540,6 +2593,7 @@ dependencies = [
  "digest 0.10.7",
  "dirs-next",
  "ed25519",
+ "ed25519-consensus",
  "ed25519-dalek",
  "ed25519-dalek-bip32",
  "env_logger",
@@ -2554,7 +2608,9 @@ dependencies = [
  "ibc-proto 0.42.2",
  "ibc-relayer-types",
  "ibc-telemetry",
+ "ibc-types 0.13.0",
  "itertools 0.10.5",
+ "jmt 0.6.0",
  "moka",
  "num-bigint",
  "num-rational",
@@ -2569,7 +2625,7 @@ dependencies = [
  "penumbra-transaction",
  "penumbra-view",
  "penumbra-wallet",
- "prost",
+ "prost 0.12.4",
  "regex",
  "reqwest",
  "retry",
@@ -2584,11 +2640,11 @@ dependencies = [
  "signature",
  "strum",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client",
  "tendermint-light-client-detector",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "tendermint-testgen",
  "test-log",
@@ -2636,7 +2692,7 @@ dependencies = [
  "serial_test",
  "signal-hook",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tendermint-rpc",
  "time",
@@ -2669,19 +2725,19 @@ dependencies = [
  "env_logger",
  "flex-error",
  "ibc-proto 0.42.2",
- "ics23",
+ "ics23 0.11.1",
  "itertools 0.10.5",
  "num-rational",
  "primitive-types",
- "prost",
+ "prost 0.12.4",
  "regex",
  "serde",
  "serde_derive",
  "serde_json",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "tendermint-testgen",
  "test-log",
@@ -2705,7 +2761,7 @@ dependencies = [
  "prometheus",
  "serde",
  "serde_json",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tracing",
 ]
@@ -2727,7 +2783,7 @@ dependencies = [
  "ibc-relayer-types",
  "itertools 0.10.5",
  "once_cell",
- "prost",
+ "prost 0.12.4",
  "rand",
  "semver",
  "serde",
@@ -2749,16 +2805,34 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba606d86e2015991f86a129935dbaeacd94beab72fb90a733c1b1ea76be708a2"
 dependencies = [
- "ibc-types-core-channel",
- "ibc-types-core-client",
- "ibc-types-core-commitment",
- "ibc-types-core-connection",
- "ibc-types-domain-type",
- "ibc-types-identifier",
- "ibc-types-lightclients-tendermint",
- "ibc-types-path",
- "ibc-types-timestamp",
- "ibc-types-transfer",
+ "ibc-types-core-channel 0.12.0",
+ "ibc-types-core-client 0.12.0",
+ "ibc-types-core-commitment 0.12.0",
+ "ibc-types-core-connection 0.12.0",
+ "ibc-types-domain-type 0.12.0",
+ "ibc-types-identifier 0.12.0",
+ "ibc-types-lightclients-tendermint 0.12.0",
+ "ibc-types-path 0.12.0",
+ "ibc-types-timestamp 0.12.0",
+ "ibc-types-transfer 0.12.0",
+]
+
+[[package]]
+name = "ibc-types"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dcf499b03078fe945b03d0167cba4a3db3014d893f2732f12243be82b323d31"
+dependencies = [
+ "ibc-types-core-channel 0.13.0",
+ "ibc-types-core-client 0.13.0",
+ "ibc-types-core-commitment 0.13.0",
+ "ibc-types-core-connection 0.13.0",
+ "ibc-types-domain-type 0.13.0",
+ "ibc-types-identifier 0.13.0",
+ "ibc-types-lightclients-tendermint 0.13.0",
+ "ibc-types-path 0.13.0",
+ "ibc-types-timestamp 0.13.0",
+ "ibc-types-transfer 0.13.0",
 ]
 
 [[package]]
@@ -2772,23 +2846,55 @@ dependencies = [
  "derive_more",
  "displaydoc",
  "ibc-proto 0.41.0",
- "ibc-types-core-client",
- "ibc-types-core-commitment",
- "ibc-types-core-connection",
- "ibc-types-domain-type",
- "ibc-types-identifier",
- "ibc-types-timestamp",
- "ics23",
+ "ibc-types-core-client 0.12.0",
+ "ibc-types-core-commitment 0.12.0",
+ "ibc-types-core-connection 0.12.0",
+ "ibc-types-domain-type 0.12.0",
+ "ibc-types-identifier 0.12.0",
+ "ibc-types-timestamp 0.12.0",
+ "ics23 0.11.1",
  "num-traits",
  "proc-macro2 0.1.10",
- "prost",
+ "prost 0.12.4",
  "safe-regex",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "time",
+ "tracing",
+]
+
+[[package]]
+name = "ibc-types-core-channel"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bad6293fe787300f0f0ca1b77bffe19788aea1a3af7d258168f79d310965c02a"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "derive_more",
+ "displaydoc",
+ "ibc-proto 0.42.2",
+ "ibc-types-core-client 0.13.0",
+ "ibc-types-core-commitment 0.13.0",
+ "ibc-types-core-connection 0.13.0",
+ "ibc-types-domain-type 0.13.0",
+ "ibc-types-identifier 0.13.0",
+ "ibc-types-timestamp 0.13.0",
+ "ics23 0.11.1",
+ "num-traits",
+ "proc-macro2 0.1.10",
+ "prost 0.12.4",
+ "safe-regex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
  "tracing",
 ]
@@ -2804,18 +2910,44 @@ dependencies = [
  "derive_more",
  "displaydoc",
  "ibc-proto 0.41.0",
- "ibc-types-domain-type",
- "ibc-types-identifier",
- "ibc-types-timestamp",
- "ics23",
+ "ibc-types-domain-type 0.12.0",
+ "ibc-types-identifier 0.12.0",
+ "ibc-types-timestamp 0.12.0",
+ "ics23 0.11.1",
  "num-traits",
- "prost",
+ "prost 0.12.4",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "time",
+]
+
+[[package]]
+name = "ibc-types-core-client"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24ac5b54e5d75ad0fbbcf7aa345d4b759e7d10fff7dd3698b183f7e7b6a067aa"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "derive_more",
+ "displaydoc",
+ "ibc-proto 0.42.2",
+ "ibc-types-domain-type 0.13.0",
+ "ibc-types-identifier 0.13.0",
+ "ibc-types-timestamp 0.13.0",
+ "ics23 0.11.1",
+ "num-traits",
+ "prost 0.12.4",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
 ]
 
@@ -2833,21 +2965,55 @@ dependencies = [
  "erased-serde",
  "hex",
  "ibc-proto 0.41.0",
- "ibc-types-domain-type",
- "ibc-types-identifier",
- "ibc-types-timestamp",
- "ics23",
+ "ibc-types-domain-type 0.12.0",
+ "ibc-types-identifier 0.12.0",
+ "ibc-types-timestamp 0.12.0",
+ "ics23 0.11.1",
  "num-traits",
  "primitive-types",
- "prost",
+ "prost 0.12.4",
  "safe-regex",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
+ "time",
+ "tracing",
+ "uint",
+]
+
+[[package]]
+name = "ibc-types-core-commitment"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "029431ff7dfd85736b1d951ae84ab1ecd38b1e0de0cf503c8bcc7b7b8b1ff4ef"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "derive_more",
+ "displaydoc",
+ "dyn-clone",
+ "erased-serde",
+ "hex",
+ "ibc-proto 0.42.2",
+ "ibc-types-domain-type 0.13.0",
+ "ibc-types-identifier 0.13.0",
+ "ibc-types-timestamp 0.13.0",
+ "ics23 0.11.1",
+ "num-traits",
+ "primitive-types",
+ "prost 0.12.4",
+ "safe-regex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-light-client-verifier",
+ "tendermint-proto 0.34.1",
  "time",
  "tracing",
  "uint",
@@ -2864,21 +3030,50 @@ dependencies = [
  "derive_more",
  "displaydoc",
  "ibc-proto 0.41.0",
- "ibc-types-core-client",
- "ibc-types-core-commitment",
- "ibc-types-domain-type",
- "ibc-types-identifier",
- "ibc-types-timestamp",
- "ics23",
+ "ibc-types-core-client 0.12.0",
+ "ibc-types-core-commitment 0.12.0",
+ "ibc-types-domain-type 0.12.0",
+ "ibc-types-identifier 0.12.0",
+ "ibc-types-timestamp 0.12.0",
+ "ics23 0.11.1",
  "num-traits",
- "prost",
+ "prost 0.12.4",
  "safe-regex",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "time",
+]
+
+[[package]]
+name = "ibc-types-core-connection"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "593fff2c4b4cfdb48e38c0dd89d7f2c0d11cda51bca4f72e5fd0ee646e9f0d6e"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "derive_more",
+ "displaydoc",
+ "ibc-proto 0.42.2",
+ "ibc-types-core-client 0.13.0",
+ "ibc-types-core-commitment 0.13.0",
+ "ibc-types-domain-type 0.13.0",
+ "ibc-types-identifier 0.13.0",
+ "ibc-types-timestamp 0.13.0",
+ "ics23 0.11.1",
+ "num-traits",
+ "prost 0.12.4",
+ "safe-regex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
 ]
 
@@ -2890,7 +3085,18 @@ checksum = "3abc9619b9dd7201804f45fc7f335dda72d2e4d6f82d96e8fe3abf4585e6101b"
 dependencies = [
  "anyhow",
  "bytes",
- "prost",
+ "prost 0.12.4",
+]
+
+[[package]]
+name = "ibc-types-domain-type"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "777a22b16fcf9891d845ea9d6f69883f4cd490bbfc7ca74030910f51760a400b"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "prost 0.12.4",
 ]
 
 [[package]]
@@ -2898,6 +3104,16 @@ name = "ibc-types-identifier"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "405880cf06fef65f51c5c91b7efbdcbc8d7eba0ac16b43538b36ebd17f21edea"
+dependencies = [
+ "displaydoc",
+ "serde",
+]
+
+[[package]]
+name = "ibc-types-identifier"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61a082a67bbf2dacb5584d8cb121f25af587e4400b12cbb3efb9b398cdb8a3cc"
 dependencies = [
  "displaydoc",
  "serde",
@@ -2916,24 +3132,60 @@ dependencies = [
  "dyn-clone",
  "erased-serde",
  "ibc-proto 0.41.0",
- "ibc-types-core-client",
- "ibc-types-core-commitment",
- "ibc-types-core-connection",
- "ibc-types-domain-type",
- "ibc-types-identifier",
- "ibc-types-timestamp",
- "ics23",
+ "ibc-types-core-client 0.12.0",
+ "ibc-types-core-commitment 0.12.0",
+ "ibc-types-core-connection 0.12.0",
+ "ibc-types-domain-type 0.12.0",
+ "ibc-types-identifier 0.12.0",
+ "ibc-types-timestamp 0.12.0",
+ "ics23 0.11.1",
  "num-traits",
  "primitive-types",
- "prost",
+ "prost 0.12.4",
  "safe-regex",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
+ "time",
+ "tracing",
+ "uint",
+]
+
+[[package]]
+name = "ibc-types-lightclients-tendermint"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b1444a7fb929e83d3250a1f969cd211abbbbaaba929285d628474327875bc20"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "derive_more",
+ "displaydoc",
+ "dyn-clone",
+ "erased-serde",
+ "ibc-proto 0.42.2",
+ "ibc-types-core-client 0.13.0",
+ "ibc-types-core-commitment 0.13.0",
+ "ibc-types-core-connection 0.13.0",
+ "ibc-types-domain-type 0.13.0",
+ "ibc-types-identifier 0.13.0",
+ "ibc-types-timestamp 0.13.0",
+ "ics23 0.11.1",
+ "num-traits",
+ "primitive-types",
+ "prost 0.12.4",
+ "safe-regex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-light-client-verifier",
+ "tendermint-proto 0.34.1",
  "time",
  "tracing",
  "uint",
@@ -2948,16 +3200,38 @@ dependencies = [
  "bytes",
  "derive_more",
  "displaydoc",
- "ibc-types-core-channel",
- "ibc-types-core-client",
- "ibc-types-core-connection",
+ "ibc-types-core-channel 0.12.0",
+ "ibc-types-core-client 0.12.0",
+ "ibc-types-core-connection 0.12.0",
  "num-traits",
- "prost",
+ "prost 0.12.4",
  "serde",
  "serde_json",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "time",
+]
+
+[[package]]
+name = "ibc-types-path"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fef66d01d7a58d9b4161ef165b68b6aa5963b7170150f07c9870738560290abf"
+dependencies = [
+ "bytes",
+ "derive_more",
+ "displaydoc",
+ "ibc-types-core-channel 0.13.0",
+ "ibc-types-core-client 0.13.0",
+ "ibc-types-core-connection 0.13.0",
+ "num-traits",
+ "prost 0.12.4",
+ "serde",
+ "serde_json",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
 ]
 
@@ -2970,12 +3244,30 @@ dependencies = [
  "bytes",
  "displaydoc",
  "num-traits",
- "prost",
+ "prost 0.12.4",
  "serde",
  "serde_json",
  "subtle-encoding",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
+ "time",
+]
+
+[[package]]
+name = "ibc-types-timestamp"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cad40bbb3c5e821c6fd77946afd16fb6abe15d8f81bfdbac39b045ae450eb314"
+dependencies = [
+ "bytes",
+ "displaydoc",
+ "num-traits",
+ "prost 0.12.4",
+ "serde",
+ "serde_json",
+ "subtle-encoding",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "time",
 ]
 
@@ -2984,6 +3276,16 @@ name = "ibc-types-transfer"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad973ca1fbad8d0d1632ec0a329aecff8731bbb96395b7553d6b9fd749356d34"
+dependencies = [
+ "displaydoc",
+ "serde",
+]
+
+[[package]]
+name = "ibc-types-transfer"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d95292e7b895363ccd4eea820e6bcd6f95ae1225d7342cc3b73fe2be594c9f75"
 dependencies = [
  "displaydoc",
  "serde",
@@ -3003,6 +3305,23 @@ dependencies = [
 
 [[package]]
 name = "ics23"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "442d4bab37956e76f739c864f246c825d87c0bb7f9afa65660c57833c91bf6d4"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "hex",
+ "informalsystems-pbjson 0.6.0",
+ "prost 0.11.9",
+ "ripemd",
+ "serde",
+ "sha2 0.10.8",
+ "sha3",
+]
+
+[[package]]
+name = "ics23"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc3b8be84e7285c73b88effdc3294b552277d6b0ec728ee016c861b7b9a2c19c"
@@ -3012,8 +3331,8 @@ dependencies = [
  "blake3",
  "bytes",
  "hex",
- "informalsystems-pbjson",
- "prost",
+ "informalsystems-pbjson 0.7.0",
+ "prost 0.12.4",
  "ripemd",
  "serde",
  "sha2 0.10.8",
@@ -3110,11 +3429,21 @@ dependencies = [
 
 [[package]]
 name = "informalsystems-pbjson"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4eecd90f87bea412eac91c6ef94f6b1e390128290898cbe14f2b926787ae1fb"
+dependencies = [
+ "base64 0.13.1",
+ "serde",
+]
+
+[[package]]
+name = "informalsystems-pbjson"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9aa4a0980c8379295100d70854354e78df2ee1c6ca0f96ffe89afeb3140e3a3d"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "serde",
 ]
 
@@ -3152,10 +3481,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
+
+[[package]]
+name = "jmt"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1a302f0defd323b833c9848c20ab40c3156128f50d7bf8eebeed2ef58167258"
+dependencies = [
+ "anyhow",
+ "borsh",
+ "hashbrown 0.13.2",
+ "hex",
+ "ics23 0.10.2",
+ "itertools 0.10.5",
+ "mirai-annotations",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "sha2 0.10.8",
+ "thiserror",
+ "tracing",
+]
 
 [[package]]
 name = "jmt"
@@ -3168,7 +3527,7 @@ dependencies = [
  "digest 0.10.7",
  "hashbrown 0.13.2",
  "hex",
- "ics23",
+ "ics23 0.11.1",
  "itertools 0.10.5",
  "mirai-annotations",
  "num-derive",
@@ -3248,13 +3607,12 @@ dependencies = [
 
 [[package]]
 name = "libredox"
-version = "0.0.1"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85c833ca1e66078851dba29046874e38f08b2c883700aa29a03ddd3b23814ee8"
+checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
  "bitflags 2.5.0",
  "libc",
- "redox_syscall",
 ]
 
 [[package]]
@@ -3452,9 +3810,9 @@ dependencies = [
 
 [[package]]
 name = "multimap"
-version = "0.8.3"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
+checksum = "defc4c55412d89136f966bbb339008b474350e5e6e78d2714439c386b3137a03"
 
 [[package]]
 name = "nom"
@@ -3752,7 +4110,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1030c719b0ec2a2d25a5df729d6cff1acf3cc230bf766f4f97833591f7577b90"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "serde",
 ]
 
@@ -3762,9 +4120,9 @@ version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2580e33f2292d34be285c5bc3dba5259542b083cfad6037b6d70345f24dcb735"
 dependencies = [
- "heck",
+ "heck 0.4.1",
  "itertools 0.11.0",
- "prost",
+ "prost 0.12.4",
  "prost-types",
 ]
 
@@ -3778,7 +4136,7 @@ dependencies = [
  "chrono",
  "pbjson",
  "pbjson-build",
- "prost",
+ "prost 0.12.4",
  "prost-build",
  "serde",
 ]
@@ -3843,7 +4201,7 @@ dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "bech32 0.8.1",
  "bincode",
  "bitvec",
@@ -3855,10 +4213,10 @@ dependencies = [
  "futures",
  "hex",
  "ibc-proto 0.41.0",
- "ibc-types",
- "ics23",
+ "ibc-types 0.12.0",
+ "ics23 0.11.1",
  "im",
- "jmt",
+ "jmt 0.9.0",
  "metrics",
  "once_cell",
  "parking_lot",
@@ -3883,7 +4241,7 @@ dependencies = [
  "penumbra-tower-trace",
  "penumbra-transaction",
  "penumbra-txhash",
- "prost",
+ "prost 0.12.4",
  "rand_chacha",
  "regex",
  "serde",
@@ -3892,9 +4250,9 @@ dependencies = [
  "serde_with",
  "sha2 0.10.8",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tokio",
  "tokio-util 0.7.10",
  "tonic",
@@ -3916,7 +4274,7 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
- "base64",
+ "base64 0.21.7",
  "bech32 0.8.1",
  "blake2b_simd 1.0.2",
  "bytes",
@@ -3950,7 +4308,7 @@ dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "blake2b_simd 1.0.2",
  "cnidarium",
  "cnidarium-component",
@@ -3966,10 +4324,10 @@ dependencies = [
  "penumbra-sct",
  "penumbra-shielded-pool",
  "penumbra-txhash",
- "prost",
+ "prost 0.12.4",
  "serde",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tracing",
 ]
@@ -4004,7 +4362,7 @@ dependencies = [
  "rand",
  "rand_core",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -4019,7 +4377,7 @@ dependencies = [
  "anyhow",
  "ark-ff",
  "ark-serialize",
- "base64",
+ "base64 0.21.7",
  "blake2b_simd 1.0.2",
  "bytes",
  "chacha20poly1305",
@@ -4034,7 +4392,7 @@ dependencies = [
  "penumbra-proto",
  "penumbra-transaction",
  "penumbra-txhash",
- "prost",
+ "prost 0.12.4",
  "rand_core",
  "serde",
  "serde_json",
@@ -4058,7 +4416,7 @@ dependencies = [
  "ark-snark",
  "async-stream",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "bincode",
  "blake2b_simd 1.0.2",
  "cnidarium",
@@ -4085,14 +4443,14 @@ dependencies = [
  "penumbra-tct",
  "penumbra-txhash",
  "poseidon377",
- "prost",
+ "prost 0.12.4",
  "rand_core",
  "regex",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "tap",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "thiserror",
  "tokio",
@@ -4114,7 +4472,7 @@ dependencies = [
  "penumbra-proto",
  "penumbra-sct",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tracing",
 ]
 
@@ -4139,7 +4497,7 @@ dependencies = [
  "rand",
  "rand_core",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tonic",
  "tracing",
 ]
@@ -4163,7 +4521,7 @@ dependencies = [
  "penumbra-shielded-pool",
  "penumbra-stake",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tracing",
 ]
 
@@ -4200,7 +4558,7 @@ dependencies = [
  "ark-snark",
  "async-stream",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "blake2b_simd 1.0.2",
  "bytes",
  "cnidarium",
@@ -4208,7 +4566,7 @@ dependencies = [
  "decaf377 0.5.0",
  "decaf377-rdsa",
  "futures",
- "ibc-types",
+ "ibc-types 0.12.0",
  "im",
  "metrics",
  "once_cell",
@@ -4234,7 +4592,7 @@ dependencies = [
  "regex",
  "serde",
  "tap",
- "tendermint",
+ "tendermint 0.34.1",
  "thiserror",
  "tokio",
  "tonic",
@@ -4249,13 +4607,13 @@ dependencies = [
  "anyhow",
  "ark-ff",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "blake2b_simd 1.0.2",
  "cnidarium",
  "hex",
  "ibc-proto 0.41.0",
- "ibc-types",
- "ics23",
+ "ibc-types 0.12.0",
+ "ics23 0.11.1",
  "metrics",
  "num-traits",
  "once_cell",
@@ -4265,11 +4623,11 @@ dependencies = [
  "penumbra-proto",
  "penumbra-sct",
  "penumbra-txhash",
- "prost",
+ "prost 0.12.4",
  "serde",
  "serde_json",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tower",
  "tracing",
@@ -4287,7 +4645,7 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
- "base64",
+ "base64 0.21.7",
  "bech32 0.8.1",
  "bip32",
  "blake2b_simd 1.0.2",
@@ -4332,7 +4690,7 @@ dependencies = [
  "ark-serialize",
  "ark-snark",
  "ark-std",
- "base64",
+ "base64 0.21.7",
  "bech32 0.8.1",
  "blake2b_simd 1.0.2",
  "bytes",
@@ -4397,16 +4755,16 @@ dependencies = [
  "hex",
  "http-body",
  "ibc-proto 0.41.0",
- "ibc-types",
- "ics23",
+ "ibc-types 0.12.0",
+ "ics23 0.11.1",
  "pbjson",
  "pbjson-types",
  "pin-project",
- "prost",
+ "prost 0.12.4",
  "serde",
  "serde_json",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tonic",
  "tower",
  "tracing",
@@ -4441,7 +4799,7 @@ dependencies = [
  "rand",
  "rand_core",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
  "tonic",
  "tracing",
 ]
@@ -4459,7 +4817,7 @@ dependencies = [
  "ark-serialize",
  "ark-snark",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "blake2b_simd 1.0.2",
  "bytes",
  "chacha20poly1305",
@@ -4470,7 +4828,7 @@ dependencies = [
  "decaf377-ka",
  "decaf377-rdsa",
  "hex",
- "ibc-types",
+ "ibc-types 0.12.0",
  "im",
  "metrics",
  "once_cell",
@@ -4484,13 +4842,13 @@ dependencies = [
  "penumbra-tct",
  "penumbra-txhash",
  "poseidon377",
- "prost",
+ "prost 0.12.4",
  "rand",
  "rand_core",
  "serde",
  "serde_json",
  "tap",
- "tendermint",
+ "tendermint 0.34.1",
  "thiserror",
  "tonic",
  "tracing",
@@ -4510,7 +4868,7 @@ dependencies = [
  "ark-snark",
  "async-stream",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "bech32 0.8.1",
  "bitvec",
  "cnidarium",
@@ -4540,7 +4898,7 @@ dependencies = [
  "serde_unit_struct",
  "serde_with",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tonic",
  "tracing",
@@ -4585,8 +4943,8 @@ dependencies = [
  "pin-project",
  "pin-project-lite",
  "sha2 0.10.8",
- "tendermint",
- "tendermint-proto",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "tokio",
  "tokio-stream",
  "tokio-util 0.7.10",
@@ -4604,7 +4962,7 @@ dependencies = [
  "anyhow",
  "ark-ff",
  "ark-serialize",
- "base64",
+ "base64 0.21.7",
  "bech32 0.8.1",
  "blake2b_simd 1.0.2",
  "bytes",
@@ -4616,7 +4974,7 @@ dependencies = [
  "derivative",
  "hex",
  "ibc-proto 0.41.0",
- "ibc-types",
+ "ibc-types 0.12.0",
  "num-bigint",
  "once_cell",
  "pbjson-types",
@@ -4677,7 +5035,7 @@ dependencies = [
  "futures",
  "genawaiter",
  "hex",
- "ibc-types",
+ "ibc-types 0.12.0",
  "metrics",
  "once_cell",
  "parking_lot",
@@ -4699,7 +5057,7 @@ dependencies = [
  "penumbra-stake",
  "penumbra-tct",
  "penumbra-transaction",
- "prost",
+ "prost 0.12.4",
  "r2d2",
  "r2d2_sqlite",
  "rand",
@@ -4707,7 +5065,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.8",
- "tendermint",
+ "tendermint 0.34.1",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -4784,14 +5142,14 @@ checksum = "2f38a4412a78282e09a2cf38d195ea5420d15ba0602cb375210efbc877243965"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
 name = "pin-project-lite"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8afb450f006bf6385ca15ef45d71d2288452bc3683ce2e2cacc0d18e4be60b58"
+checksum = "bda66fc9667c18cb2758a2ac84d1167245054bcf85d5d1aaa6923f45801bdd02"
 
 [[package]]
 name = "pin-utils"
@@ -4934,7 +5292,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d3928fb5db768cb86f891ff014f0144589297e3c6a1aba6ed7cecfdace270c7"
 dependencies = [
  "proc-macro2 1.0.79",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -5058,56 +5416,78 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.12.3"
+version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "146c289cda302b98a28d40c8b3b90498d6e526dd24ac2ecea73e4e491685b94a"
+checksum = "0b82eaa1d779e9a4bc1c3217db8ffbeabaae1dca241bf70183242128d48681cd"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.11.9",
+]
+
+[[package]]
+name = "prost"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0f5d036824e4761737860779c906171497f6d55681139d8312388f8fe398922"
+dependencies = [
+ "bytes",
+ "prost-derive 0.12.4",
 ]
 
 [[package]]
 name = "prost-build"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c55e02e35260070b6f716a2423c2ff1c3bb1642ddca6f99e1f26d06268a0e2d2"
+checksum = "80b776a1b2dc779f5ee0641f8ade0125bc1298dd41a9a0c16d8bd57b42d222b1"
 dependencies = [
  "bytes",
- "heck",
- "itertools 0.11.0",
+ "heck 0.5.0",
+ "itertools 0.12.1",
  "log",
  "multimap",
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost",
+ "prost 0.12.4",
  "prost-types",
  "regex",
- "syn 2.0.55",
+ "syn 2.0.58",
  "tempfile",
- "which",
 ]
 
 [[package]]
 name = "prost-derive"
-version = "0.12.3"
+version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efb6c9a1dd1def8e2124d17e83a20af56f1570d6c2d2bd9e266ccb768df3840e"
+checksum = "e5d2d8d10f3c6ded6da8b05b5fb3b8a5082514344d56c9f871412d29b4e075b4"
 dependencies = [
  "anyhow",
- "itertools 0.11.0",
+ "itertools 0.10.5",
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "prost-derive"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
+dependencies = [
+ "anyhow",
+ "itertools 0.12.1",
+ "proc-macro2 1.0.79",
+ "quote",
+ "syn 2.0.58",
 ]
 
 [[package]]
 name = "prost-types"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "193898f59edcf43c26227dcd4c8427f00d99d61e95dcde58dabd49fa291d470e"
+checksum = "3235c33eb02c1f1e212abdbe34c78b264b038fb58ca612664343271e36e55ffe"
 dependencies = [
- "prost",
+ "prost 0.12.4",
 ]
 
 [[package]]
@@ -5129,9 +5509,9 @@ dependencies = [
 
 [[package]]
 name = "quanta"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ca0b7bac0b97248c40bb77288fc52029cf1459c0461ea1b05ee32ccf011de2c"
+checksum = "8e5167a477619228a0b284fac2674e3c388cba90631d7b7de620e6f1fcd08da5"
 dependencies = [
  "crossbeam-utils 0.8.19",
  "libc",
@@ -5258,9 +5638,9 @@ dependencies = [
 
 [[package]]
 name = "redox_users"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a18479200779601e498ada4e8c1e1f50e3ee19deb0259c25825a98b5603b2cb4"
+checksum = "bd283d9651eeda4b2a83a43c1c91b266c40fd76ecd39a50a8c630ae69dc72891"
 dependencies = [
  "getrandom",
  "libredox",
@@ -5317,7 +5697,7 @@ version = "0.11.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd67538700a17451e7cba03ac727fb961abb7607553461627b97de0b89cf4a62"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "bytes",
  "encoding_rs",
  "futures-core",
@@ -5486,7 +5866,7 @@ version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c74cae0a4cf6ccbbf5f359f08efdf8ee7e1dc532573bf0db71968cb56b1448c"
 dependencies = [
- "base64",
+ "base64 0.21.7",
 ]
 
 [[package]]
@@ -5531,18 +5911,18 @@ dependencies = [
 
 [[package]]
 name = "safe-regex"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a15289bf322e0673d52756a18194167f2378ec1a15fe884af6e2d2cb934822b0"
+checksum = "e6ab4bc484ef480a9ce79b381efd7b6767700f514d47bc599036e9d6f7f3c49d"
 dependencies = [
  "safe-regex-macro",
 ]
 
 [[package]]
 name = "safe-regex-compiler"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fba76fae590a2aa665279deb1f57b5098cbace01a0c5e60e262fcf55f7c51542"
+checksum = "6d71f8c78bffb07962595e1bfa5ed11d24dd855eedc50b6a735f5ef648ce621b"
 dependencies = [
  "safe-proc-macro2",
  "safe-quote",
@@ -5550,9 +5930,9 @@ dependencies = [
 
 [[package]]
 name = "safe-regex-macro"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96c2e96b5c03f158d1b16ba79af515137795f4ad4e8de3f790518aae91f1d127"
+checksum = "0909ab4b77511df24201cd66541d6a028887c77ecc065f277c68a12a663274ef"
 dependencies = [
  "safe-proc-macro2",
  "safe-regex-compiler",
@@ -5648,9 +6028,9 @@ dependencies = [
 
 [[package]]
 name = "security-framework"
-version = "2.9.2"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05b64fb303737d99b81884b2c63433e9ae28abebe5eb5045dcdd175dc2ecf4de"
+checksum = "770452e37cad93e0a50d5abc3990d2bc351c36d0328f86cefec2f2fb206eaef6"
 dependencies = [
  "bitflags 1.3.2",
  "core-foundation",
@@ -5661,9 +6041,9 @@ dependencies = [
 
 [[package]]
 name = "security-framework-sys"
-version = "2.9.1"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e932934257d3b408ed8f30db49d85ea163bfe74961f017f405b025af298f0c7a"
+checksum = "41f3cc463c0ef97e11c3461a9d3787412d30e8e7eb907c79180c4a57bf7c04ef"
 dependencies = [
  "core-foundation-sys",
  "libc",
@@ -5714,7 +6094,7 @@ checksum = "7eb0b34b42edc17f6b7cac84a52a1c5f0e1bb2227e997ca9011ea3dd34e8610b"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -5746,7 +6126,7 @@ checksum = "0b2e6b945e9d3df726b65d6ee24060aff8e3533d431f677a9695db04eff9dfdb"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -5774,7 +6154,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f1b15838534b38fb67ffe60033fe3ffad48f916c175e8baa0400e0cdb958dec"
 dependencies = [
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -5795,7 +6175,7 @@ version = "3.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee80b0e361bbf88fd2f6e242ccd19cfda072cb0faa6ae694ecee08199938569a"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "chrono",
  "hex",
  "indexmap 1.9.3",
@@ -5816,7 +6196,7 @@ dependencies = [
  "darling",
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -5864,7 +6244,7 @@ checksum = "b93fb4adc70021ac1b47f7d45e8cc4169baaa7ea58483bc5b721d19a26202212"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -6070,11 +6450,11 @@ version = "0.25.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23dc1fa9ac9c169a78ba62f0b841814b7abae11bdd047b9c58f893439e309ea0"
 dependencies = [
- "heck",
+ "heck 0.4.1",
  "proc-macro2 1.0.79",
  "quote",
  "rustversion",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -6111,9 +6491,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.55"
+version = "2.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "002a1b3dbf967edfafc32655d0f377ab0bb7b994aa1d32c8cc7e9b8bf3ebb8f0"
+checksum = "44cfb93f38070beee36b3fef7d4f5a16f27751d94b187b666a5cc5e9b0d30687"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
@@ -6196,6 +6576,34 @@ dependencies = [
 
 [[package]]
 name = "tendermint"
+version = "0.32.0"
+source = "git+https://github.com/eigerco/celestia-tendermint-rs?rev=bbe7de8#bbe7de8c777f0c44b338f4bf26f0f6efb18e87f0"
+dependencies = [
+ "bytes",
+ "digest 0.10.7",
+ "ed25519",
+ "ed25519-consensus",
+ "flex-error",
+ "futures",
+ "num-traits",
+ "once_cell",
+ "prost 0.12.4",
+ "prost-types",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_repr",
+ "sha2 0.10.8",
+ "signature",
+ "subtle",
+ "subtle-encoding",
+ "tendermint-proto 0.32.0",
+ "time",
+ "zeroize",
+]
+
+[[package]]
+name = "tendermint"
 version = "0.34.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15ab8f0a25d0d2ad49ac615da054d6a76aa6603ff95f7d18bafdd34450a1a04b"
@@ -6209,7 +6617,7 @@ dependencies = [
  "k256",
  "num-traits",
  "once_cell",
- "prost",
+ "prost 0.12.4",
  "prost-types",
  "ripemd",
  "serde",
@@ -6220,7 +6628,7 @@ dependencies = [
  "signature",
  "subtle",
  "subtle-encoding",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "time",
  "zeroize",
 ]
@@ -6234,7 +6642,7 @@ dependencies = [
  "flex-error",
  "serde",
  "serde_json",
- "tendermint",
+ "tendermint 0.34.1",
  "toml 0.5.11",
  "url",
 ]
@@ -6256,7 +6664,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "static_assertions",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client-verifier",
  "tendermint-rpc",
  "time",
@@ -6279,9 +6687,9 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "static_assertions",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-light-client",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "tendermint-rpc",
  "time",
  "tracing",
@@ -6296,7 +6704,24 @@ dependencies = [
  "derive_more",
  "flex-error",
  "serde",
- "tendermint",
+ "tendermint 0.34.1",
+ "time",
+]
+
+[[package]]
+name = "tendermint-proto"
+version = "0.32.0"
+source = "git+https://github.com/eigerco/celestia-tendermint-rs?rev=bbe7de8#bbe7de8c777f0c44b338f4bf26f0f6efb18e87f0"
+dependencies = [
+ "bytes",
+ "flex-error",
+ "num-derive",
+ "num-traits",
+ "prost 0.12.4",
+ "prost-types",
+ "serde",
+ "serde_bytes",
+ "subtle-encoding",
  "time",
 ]
 
@@ -6310,7 +6735,7 @@ dependencies = [
  "flex-error",
  "num-derive",
  "num-traits",
- "prost",
+ "prost 0.12.4",
  "prost-types",
  "serde",
  "serde_bytes",
@@ -6340,9 +6765,9 @@ dependencies = [
  "serde_json",
  "subtle",
  "subtle-encoding",
- "tendermint",
+ "tendermint 0.34.1",
  "tendermint-config",
- "tendermint-proto",
+ "tendermint-proto 0.34.1",
  "thiserror",
  "time",
  "tokio",
@@ -6364,7 +6789,7 @@ dependencies = [
  "serde_json",
  "simple-error",
  "tempfile",
- "tendermint",
+ "tendermint 0.34.1",
  "time",
 ]
 
@@ -6396,7 +6821,7 @@ checksum = "c8f546451eaa38373f549093fe9fd05e7d2bade739e2ddf834b9968621d60107"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -6422,7 +6847,7 @@ checksum = "c61f3ba182994efc43764a46c018c347bc492c79f024e705f46567b418f6d4f7"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -6547,7 +6972,7 @@ checksum = "5b8a1e28f2deaa14e508979454cb3a223b10b938b45af148bc0986de36f1923b"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -6663,7 +7088,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "axum",
- "base64",
+ "base64 0.21.7",
  "bytes",
  "h2",
  "http",
@@ -6672,7 +7097,7 @@ dependencies = [
  "hyper-timeout",
  "percent-encoding",
  "pin-project",
- "prost",
+ "prost 0.12.4",
  "rustls",
  "rustls-native-certs",
  "rustls-pemfile",
@@ -6715,9 +7140,9 @@ dependencies = [
  "bytes",
  "futures",
  "pin-project",
- "prost",
- "tendermint",
- "tendermint-proto",
+ "prost 0.12.4",
+ "tendermint 0.34.1",
+ "tendermint-proto 0.34.1",
  "tokio",
  "tokio-stream",
  "tokio-util 0.6.10",
@@ -6772,7 +7197,7 @@ checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -7061,7 +7486,7 @@ checksum = "b3fd98999db9227cf28e59d83e1f120f42bc233d4b152e8fab9bc87d5bb1e0f8"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -7119,7 +7544,7 @@ dependencies = [
  "once_cell",
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
  "wasm-bindgen-shared",
 ]
 
@@ -7153,7 +7578,7 @@ checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -7172,18 +7597,6 @@ checksum = "77afa9a11836342370f4817622a2f0f418b134426d91a82dfb48f532d2ec13ef"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "which"
-version = "4.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87ba24419a2078cd2b0f2ede2691b6c66d8e47836da3b6db8265ebad47afbfc7"
-dependencies = [
- "either",
- "home",
- "once_cell",
- "rustix",
 ]
 
 [[package]]
@@ -7412,7 +7825,7 @@ checksum = "9ce1b18ccd8e73a9321186f97e46f9f04b778851177567b1975109d26a08d2a6"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -7432,7 +7845,7 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote",
- "syn 2.0.55",
+ "syn 2.0.58",
 ]
 
 [[package]]

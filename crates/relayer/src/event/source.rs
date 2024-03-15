@@ -4,19 +4,14 @@ pub mod websocket;
 use std::{sync::Arc, time::Duration};
 
 use crossbeam_channel as channel;
-
 use futures::Stream;
+use ibc_relayer_types::core::{ics02_client::height::Height, ics24_host::identifier::ChainId};
 use tendermint_rpc::{
     client::CompatMode, event::Event as RpcEvent, Error as RpcError, HttpClient, WebSocketClientUrl,
 };
 use tokio::runtime::Runtime as TokioRuntime;
 
-use ibc_relayer_types::{
-    core::ics02_client::height::Height, core::ics24_host::identifier::ChainId,
-};
-
 pub use super::error::{Error, ErrorDetail};
-
 use super::IbcEventWithHeight;
 use crate::chain::{handle::Subscription, tracking::TrackingId};
 

@@ -6,13 +6,15 @@ use ibc_relayer_types::core::{
 };
 use tracing::info;
 
-use crate::chain::{counterparty::check_channel_counterparty, requests::QueryConnectionRequest};
-use crate::chain::{handle::ChainHandle, requests::IncludeProof};
-use crate::channel::{Channel, ChannelSide};
-use crate::link::error::LinkError;
 use crate::{
-    chain::requests::{QueryChannelRequest, QueryHeight},
+    chain::{
+        counterparty::check_channel_counterparty,
+        handle::ChainHandle,
+        requests::{IncludeProof, QueryChannelRequest, QueryConnectionRequest, QueryHeight},
+    },
+    channel::{Channel, ChannelSide},
     config::types::ics20_field_size_limit::Ics20FieldSizeLimit,
+    link::error::LinkError,
 };
 
 pub mod cli;
@@ -26,12 +28,10 @@ mod relay_sender;
 mod relay_summary;
 mod tx_hashes;
 
-use tx_hashes::TxHashes;
-
+pub use relay_path::{RelayPath, Resubmit};
 // Re-export the telemetries summary
 pub use relay_summary::RelaySummary;
-
-pub use relay_path::{RelayPath, Resubmit};
+use tx_hashes::TxHashes;
 
 #[derive(Clone, Debug)]
 pub struct LinkParameters {

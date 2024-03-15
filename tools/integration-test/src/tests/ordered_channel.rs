@@ -15,6 +15,9 @@
 
 use ibc_test_framework::prelude::*;
 use ibc_test_framework::util::random::random_u128_range;
+use ibc_test_framework::{
+    ibc::denom::derive_ibc_denom, prelude::*, util::random::random_u128_range,
+};
 
 #[test]
 fn test_ordered_channel() -> Result<(), Error> {

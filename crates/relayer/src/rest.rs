@@ -4,8 +4,7 @@ use tracing::{error, trace};
 
 use crate::{
     config::Config,
-    rest::request::ReplySender,
-    rest::request::{Request, VersionInfo},
+    rest::request::{ReplySender, Request, VersionInfo},
     supervisor::dump_state::SupervisorState,
 };
 

@@ -1,12 +1,18 @@
-use ibc_relayer::chain::tracking::TrackedMsgs;
-use ibc_relayer_types::applications::ics27_ica::msgs::register::LegacyMsgRegisterInterchainAccount;
-use ibc_relayer_types::core::ics04_channel::version::Version;
-use ibc_relayer_types::events::IbcEvent;
-use ibc_relayer_types::tx_msg::Msg;
+use ibc_relayer::chain::{handle::ChainHandle, tracking::TrackedMsgs};
+use ibc_relayer_types::{
+    applications::ics27_ica::msgs::register::LegacyMsgRegisterInterchainAccount,
+    core::ics04_channel::version::Version, events::IbcEvent, tx_msg::Msg,
+};
 
-use crate::chain::cli::ica::{query_interchain_account, register_interchain_account_cli};
-use crate::prelude::*;
-use crate::types::tagged::*;
+use crate::{
+    chain::{
+        cli::ica::{query_interchain_account, register_interchain_account_cli},
+        driver::ChainDriver,
+    },
+    error::Error,
+    prelude::*,
+    types::{tagged::*, wallet::WalletAddress},
+};
 
 pub trait InterchainAccountMethodsExt<Chain> {
     fn register_interchain_account_cli<Counterparty>(

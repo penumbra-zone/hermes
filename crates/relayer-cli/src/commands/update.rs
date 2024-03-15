@@ -1,7 +1,6 @@
 //! `update` subcommand
 
-use abscissa_core::clap::Parser;
-use abscissa_core::{Command, Runnable};
+use abscissa_core::{clap::Parser, Command, Runnable};
 
 use crate::commands::tx::client::TxUpdateClientCmd;
 

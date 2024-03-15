@@ -1,10 +1,15 @@
-use ibc_relayer::chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight};
-use ibc_relayer::client_state::AnyClientState;
-use ibc_relayer::config::ChainConfig;
-use ibc_relayer::foreign_client::CreateOptions;
-use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
-use ibc_relayer_types::core::ics02_client::trust_threshold::TrustThreshold;
+use std::time::Duration;
 
+use ibc_relayer::{
+    chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
+    client_state::AnyClientState,
+    config::ChainConfig,
+    foreign_client::CreateOptions,
+};
+use ibc_relayer_types::{
+    clients::ics07_tendermint::client_state::ClientState as TmClientState,
+    core::ics02_client::trust_threshold::TrustThreshold,
+};
 use ibc_test_framework::prelude::*;
 
 /// A test to exercise default foreign client settings.
@@ -33,6 +38,7 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_a.trust_threshold = TrustThreshold::new(13, 23).unwrap();
             }
             ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Astria(_) => todo!(),
         }
 
         match &mut config.chains[1] {
@@ -43,6 +49,7 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_b.trust_threshold = TrustThreshold::TWO_THIRDS;
             }
             ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Astria(_) => todo!(),
         }
     }
 }

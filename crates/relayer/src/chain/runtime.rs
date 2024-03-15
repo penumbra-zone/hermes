@@ -2,17 +2,13 @@ use alloc::sync::Arc;
 use std::thread;
 
 use crossbeam_channel as channel;
-use tokio::runtime::Runtime as TokioRuntime;
-use tracing::{error, Span};
-
 use ibc_proto::ibc::apps::fee::v1::{
     QueryIncentivizedPacketRequest, QueryIncentivizedPacketResponse,
 };
 use ibc_relayer_types::{
     applications::ics31_icq::response::CrossChainQueryResponse,
     core::{
-        ics02_client::events::UpdateClient,
-        ics02_client::header::AnyHeader,
+        ics02_client::{events::UpdateClient, header::AnyHeader},
         ics03_connection::{
             connection::{ConnectionEnd, IdentifiedConnectionEnd},
             version::Version,
@@ -28,7 +24,17 @@ use ibc_relayer_types::{
     signer::Signer,
     Height,
 };
+use tokio::runtime::Runtime as TokioRuntime;
+use tracing::{error, Span};
 
+use super::{
+    client::ClientSettings,
+    cosmos::version::Specs,
+    endpoint::{ChainEndpoint, ChainStatus, HealthCheck},
+    handle::{ChainHandle, ChainRequest, ReplyTo, Subscription},
+    requests::*,
+    tracking::TrackedMsgs,
+};
 use crate::{
     account::Balance,
     client_state::{AnyClientState, IdentifiedAnyClientState},
@@ -40,15 +46,6 @@ use crate::{
     event::IbcEventWithHeight,
     keyring::AnySigningKeyPair,
     misbehaviour::MisbehaviourEvidence,
-};
-
-use super::{
-    client::ClientSettings,
-    cosmos::version::Specs,
-    endpoint::{ChainEndpoint, ChainStatus, HealthCheck},
-    handle::{ChainHandle, ChainRequest, ReplyTo, Subscription},
-    requests::*,
-    tracking::TrackedMsgs,
 };
 
 pub struct Threads {

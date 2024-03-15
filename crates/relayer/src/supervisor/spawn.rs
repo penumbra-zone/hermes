@@ -1,10 +1,13 @@
-use tracing::{error, info};
-
 use ibc_relayer_types::core::{
     ics03_connection::connection::IdentifiedConnectionEnd,
     ics04_channel::channel::State as ChannelState,
 };
+use tracing::{error, info};
 
+use super::{
+    scan::{ChainScan, ChainsScan, ChannelScan, ClientScan, ConnectionScan},
+    Error,
+};
 use crate::{
     chain::{counterparty::connection_state_on_destination, handle::ChainHandle},
     client_state::IdentifiedAnyClientState,
@@ -14,11 +17,6 @@ use crate::{
     supervisor::error::Error as SupervisorError,
     telemetry,
     worker::WorkerMap,
-};
-
-use super::{
-    scan::{ChainScan, ChainsScan, ChannelScan, ClientScan, ConnectionScan},
-    Error,
 };
 
 /// A context for spawning workers within the supervisor.

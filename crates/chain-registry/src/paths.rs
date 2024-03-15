@@ -1,9 +1,10 @@
+use std::path::PathBuf;
+
+use ibc_relayer_types::core::ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId};
+use serde::{Deserialize, Serialize};
+
 /// Models for serializing and deserializing IBC path JSON data found in the `_IBC/` directory of the registry repository
 use crate::fetchable::Fetchable;
-use ibc_relayer_types::core::ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId};
-use serde::Deserialize;
-use serde::Serialize;
-use std::path::PathBuf;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
@@ -69,9 +70,7 @@ impl Fetchable for IBCPath {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::RegistryError;
-
-    use crate::constants::ALL_PATHS;
+    use crate::{constants::ALL_PATHS, error::RegistryError};
 
     #[tokio::test]
     #[ignore]
@@ -98,10 +97,11 @@ mod tests {
 
     #[test]
     fn paths_deserialize() {
+        use std::str::FromStr;
+
         use ibc_relayer_types::core::ics24_host::identifier::{
             ChannelId, ClientId, ConnectionId, PortId,
         };
-        use std::str::FromStr;
 
         let path = r#"{
             "$schema": "https://github.com/cosmos/chain-registry/blob/master/ibc_data.schema.json",

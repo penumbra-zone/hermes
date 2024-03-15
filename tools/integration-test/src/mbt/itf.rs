@@ -101,8 +101,7 @@ mod test {
     #[test]
     #[cfg(feature = "manual")]
     fn parse_itf() {
-        use super::super::itf::InformalTrace;
-        use super::super::state::State;
+        use super::super::{itf::InformalTrace, state::State};
 
         let itf_path = concat!(
             env!("CARGO_MANIFEST_DIR"),

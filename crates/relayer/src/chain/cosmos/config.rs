@@ -4,22 +4,28 @@ use std::path::PathBuf;
 
 use byte_unit::Byte;
 use ibc_relayer_types::core::ics04_channel::packet::Sequence;
+
+use ibc_relayer_types::core::{
+    ics23_commitment::specs::ProofSpecs,
+    ics24_host::identifier::{ChainId, ChannelId},
+};
 use serde_derive::{Deserialize, Serialize};
 use tendermint_rpc::Url;
 
-use ibc_relayer_types::core::ics23_commitment::specs::ProofSpecs;
-use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId};
-
-use crate::chain::cosmos::config::error::Error as ConfigError;
-use crate::config::compat_mode::CompatMode;
-use crate::config::dynamic_gas::DynamicGasPrice;
-use crate::config::gas_multiplier::GasMultiplier;
-use crate::config::types::{MaxMsgNum, MaxTxSize, Memo, TrustThreshold};
-use crate::config::{
-    self, AddressType, EventSourceMode, ExtensionOption, GasPrice, GenesisRestart, PacketFilter,
+use crate::{
+    chain::cosmos::config::error::Error as ConfigError,
+    config::{
+        self,
+        compat_mode::CompatMode,
+        default,
+        dynamic_gas::DynamicGasPrice,
+        gas_multiplier::GasMultiplier,
+        types::{MaxMsgNum, MaxTxSize, Memo, TrustThreshold},
+        AddressType, EventSourceMode, ExtensionOption, GasPrice, GenesisRestart, PacketFilter,
+        RefreshRate,
+    },
+    keyring::Store,
 };
-use crate::config::{default, RefreshRate};
-use crate::keyring::Store;
 
 pub mod error;
 

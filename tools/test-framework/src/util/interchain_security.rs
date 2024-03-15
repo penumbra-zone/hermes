@@ -1,8 +1,8 @@
-use crate::chain::config::set_voting_period;
-use crate::prelude::*;
+use ibc_relayer::config::ChainConfig;
+
+use crate::{chain::config::set_voting_period, prelude::*};
 
 use ibc_relayer::chain::tracking::TrackedMsgs;
-use ibc_relayer::config::ChainConfig;
 use ibc_relayer::event::IbcEventWithHeight;
 use ibc_relayer_types::applications::ics27_ica::msgs::send_tx::MsgSendTx;
 use ibc_relayer_types::applications::ics27_ica::packet_data::InterchainAccountPacketData;
@@ -29,13 +29,13 @@ pub fn update_relayer_config_for_consumer_chain(config: &mut Config) {
     // the proposal.
     for chain_config in config.chains.iter_mut() {
         match chain_config {
-            ChainConfig::CosmosSdk(chain_config)
+            ChainConfig::CosmosSdk(chain_config) | ChainConfig::Astria(chain_config)
                 if chain_config.id == ChainId::from_string("ibcconsumer") =>
             {
                 chain_config.ccv_consumer_chain = true;
                 chain_config.trusting_period = Some(Duration::from_secs(99));
             }
-            ChainConfig::CosmosSdk(_) => {}
+            ChainConfig::CosmosSdk(_) | ChainConfig::Astria(_) => {}
             ChainConfig::Penumbra(_) => todo!(),
         }
     }

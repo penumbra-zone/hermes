@@ -10,12 +10,6 @@
 //! then processed.
 
 use ibc_relayer::config::{self, ModeConfig};
-
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::util::interchain_security::{
-    update_genesis_for_consumer_chain, update_relayer_config_for_consumer_chain,
-};
-use ibc_test_framework::util::random::random_u128_range;
 use ibc_test_framework::{
     chain::{
         cli::host_zone::register_host_zone,
@@ -26,6 +20,13 @@ use ibc_test_framework::{
         ext::crosschainquery::CrossChainQueryMethodsExt,
     },
     framework::binary::channel::run_binary_interchain_security_channel_test,
+    prelude::*,
+    util::{
+        interchain_security::{
+            update_genesis_for_consumer_chain, update_relayer_config_for_consumer_chain,
+        },
+        random::random_u128_range,
+    },
 };
 
 #[test]

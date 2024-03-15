@@ -2,8 +2,7 @@ use flex_error::{define_error, TraceError};
 use prost::EncodeError;
 use serde::Serialize;
 
-use crate::core::ics23_commitment::commitment::CommitmentProofBytes;
-use crate::Height;
+use crate::{core::ics23_commitment::commitment::CommitmentProofBytes, Height};
 
 define_error! {
     #[derive(Debug, PartialEq, Eq)]

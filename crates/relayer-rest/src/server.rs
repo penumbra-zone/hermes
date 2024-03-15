@@ -10,11 +10,10 @@ use axum::{
     Extension, Json, Router, Server,
 };
 use crossbeam_channel as channel;
+use ibc_relayer::rest::{request::Request, RestApiError};
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use serde::{Deserialize, Serialize};
 use tokio::task::JoinHandle;
-
-use ibc_relayer::rest::{request::Request, RestApiError};
 
 use crate::handle::{
     all_chain_ids, assemble_version_info, chain_config, supervisor_state, trigger_clear_packets,

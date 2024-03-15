@@ -6,8 +6,7 @@ use abscissa_core::{
     application::{self, AppCell},
     component::Component,
     config::{self, CfgCell},
-    terminal::component::Terminal,
-    terminal::ColorChoice,
+    terminal::{component::Terminal, ColorChoice},
     Application, Configurable, FrameworkError, FrameworkErrorKind, StandardPaths,
 };
 use ibc_relayer::{

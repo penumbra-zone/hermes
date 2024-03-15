@@ -16,15 +16,19 @@
 //! is allowed through the filter. It then asserts that client workers were
 //! established as a result of the connection being allowed through.
 
-use ibc_relayer::supervisor::client_state_filter::{FilterPolicy, Permission};
-use ibc_relayer_types::core::ics02_client::trust_threshold::TrustThreshold;
+use std::time::Duration;
 
-use ibc_relayer::chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight};
-use ibc_relayer::client_state::AnyClientState;
-use ibc_relayer::foreign_client::CreateOptions;
-use ibc_relayer::object::ObjectType;
-use ibc_relayer_types::clients::ics07_tendermint::client_state::ClientState as TmClientState;
-
+use ibc_relayer::{
+    chain::requests::{IncludeProof, QueryClientStateRequest, QueryHeight},
+    client_state::AnyClientState,
+    foreign_client::CreateOptions,
+    object::ObjectType,
+    supervisor::client_state_filter::{FilterPolicy, Permission},
+};
+use ibc_relayer_types::{
+    clients::ics07_tendermint::client_state::ClientState as TmClientState,
+    core::ics02_client::trust_threshold::TrustThreshold,
+};
 use ibc_test_framework::prelude::*;
 
 struct ClientFilterBlocksConnectionTest;

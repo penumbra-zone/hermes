@@ -55,8 +55,7 @@ impl Fetchable for AssetList {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::constants::ALL_CHAINS;
-    use crate::error::RegistryError;
+    use crate::{constants::ALL_CHAINS, error::RegistryError};
 
     #[tokio::test]
     #[ignore]

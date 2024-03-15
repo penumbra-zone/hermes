@@ -11,8 +11,14 @@
    ```
 */
 
+use core::time::Duration;
 use ibc_relayer::config::{types::MaxMsgNum, ChainConfig};
 use ibc_relayer::transfer::{build_and_send_transfer_messages, TransferOptions};
+
+use ibc_relayer::{
+    config::{types::MaxMsgNum, ChainConfig, Config},
+    transfer::{build_and_send_transfer_messages, TransferOptions},
+};
 use ibc_relayer_types::events::IbcEvent;
 use ibc_test_framework::prelude::*;
 

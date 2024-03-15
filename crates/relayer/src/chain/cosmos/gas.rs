@@ -1,15 +1,13 @@
 use core::cmp::min;
-use ibc_proto::cosmos::base::v1beta1::Coin;
-use ibc_proto::cosmos::tx::v1beta1::Fee;
+
+use ibc_proto::cosmos::{base::v1beta1::Coin, tx::v1beta1::Fee};
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use num_bigint::BigInt;
 use num_rational::BigRational;
 use tendermint_rpc::Url;
 use tracing::warn;
 
-use crate::chain::cosmos::types::gas::GasConfig;
-use crate::config::GasPrice;
-use crate::telemetry;
+use crate::{chain::cosmos::types::gas::GasConfig, config::GasPrice, telemetry};
 
 use super::eip_base_fee::query_eip_base_fee;
 

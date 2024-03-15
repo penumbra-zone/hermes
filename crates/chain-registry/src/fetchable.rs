@@ -1,12 +1,14 @@
 //! Contains the trait required to fetch and deserialize data from the chain repository
+use std::path::PathBuf;
+
+use async_trait::async_trait;
+use http::uri::Builder;
+use serde::de::DeserializeOwned;
+
 use crate::{
     constants::{DEFAULT_REF, HOST, PROTOCOL, REGISTRY_PATH},
     error::RegistryError,
 };
-use async_trait::async_trait;
-use http::uri::Builder;
-use serde::de::DeserializeOwned;
-use std::path::PathBuf;
 
 /// `Fetchable` represents the basic expectations for external data or resources that
 /// can be fetched.

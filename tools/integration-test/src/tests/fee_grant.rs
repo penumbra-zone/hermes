@@ -14,8 +14,7 @@ use std::thread;
 
 use ibc_relayer::config::ChainConfig;
 use ibc_relayer_types::bigint::U256;
-use ibc_test_framework::chain::ext::fee_grant::FeeGrantMethodsExt;
-use ibc_test_framework::prelude::*;
+use ibc_test_framework::{chain::ext::fee_grant::FeeGrantMethodsExt, prelude::*};
 
 #[test]
 fn test_fee_grant() -> Result<(), Error> {
@@ -82,6 +81,8 @@ impl BinaryChannelTest for FeeGrantTest {
             .ok_or_else(|| eyre!("chain configuration is empty"))?
         {
             ChainConfig::CosmosSdk(chain_config) => chain_config.gas_price.denom.clone(),
+            ChainConfig::Penumbra(chain_config) => todo!(),
+            ChainConfig::Astria(chain_config) => todo!(),
         };
 
         let gas_denom: MonoTagged<ChainA, Denom> = MonoTagged::new(Denom::Base(gas_denom_str));
@@ -107,6 +108,8 @@ impl BinaryChannelTest for FeeGrantTest {
                         ChainConfig::CosmosSdk(c) => {
                             c.fee_granter = Some("user2".to_owned());
                         }
+                        ChainConfig::Penumbra(c) => todo!(),
+                        ChainConfig::Astria(c) => todo!(),
                     }
                 }
             });
@@ -225,6 +228,8 @@ impl BinaryChannelTest for NoFeeGrantTest {
             .ok_or_else(|| eyre!("chain configuration is empty"))?
         {
             ChainConfig::CosmosSdk(chain_config) => chain_config.gas_price.denom.clone(),
+            ChainConfig::Penumbra(chain_config) => todo!(),
+            ChainConfig::Astria(chain_config) => todo!(),
         };
 
         let gas_denom: MonoTagged<ChainA, Denom> = MonoTagged::new(Denom::Base(gas_denom_str));

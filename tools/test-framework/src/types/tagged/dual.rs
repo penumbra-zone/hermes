@@ -12,9 +12,12 @@
       corresponds to a channel connected to a counterparty chain `ChainB`.
 */
 
-use core::cmp::Ordering;
-use core::fmt::{self, Debug, Display};
-use core::marker::PhantomData;
+use core::{
+    cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
+    fmt::{self, Debug, Display},
+    iter::{IntoIterator, Iterator},
+    marker::PhantomData,
+};
 
 /**
    Tag a `Value` type with a two type tags `TagA` and `TagB`.

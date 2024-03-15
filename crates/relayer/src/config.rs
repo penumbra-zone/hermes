@@ -9,40 +9,40 @@ pub mod proof_specs;
 pub mod refresh_rate;
 pub mod types;
 
-use alloc::collections::BTreeMap;
-use core::cmp::Ordering;
-use core::fmt::{Display, Error as FmtError, Formatter};
-use core::str::FromStr;
-use core::time::Duration;
+use core::{
+    cmp::Ordering,
+    fmt::{Display, Error as FmtError, Formatter},
+    str::FromStr,
+    time::Duration,
+};
 use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::BTreeMap};
 use std::{fs, fs::File, io::Write, ops::Range, path::Path};
 
 use byte_unit::Byte;
+pub use error::Error;
+pub use filter::PacketFilter;
+use ibc_proto::google::protobuf::Any;
+use ibc_relayer_types::{
+    core::{
+        ics23_commitment::specs::ProofSpecs,
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
+    },
+    timestamp::ZERO_DURATION,
+};
+pub use refresh_rate::RefreshRate;
 use serde::{Deserialize, Serialize};
 use tendermint::block::Height as BlockHeight;
-use tendermint_rpc::Url;
-use tendermint_rpc::WebSocketClientUrl;
-
-use ibc_proto::google::protobuf::Any;
-use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
-use ibc_relayer_types::timestamp::ZERO_DURATION;
-
-use crate::chain::cosmos::config::CosmosSdkConfig;
-use crate::chain::penumbra::config::PenumbraConfig;
-use crate::config::types::ics20_field_size_limit::Ics20FieldSizeLimit;
-use crate::config::types::TrustThreshold;
-use crate::error::Error as RelayerError;
-use crate::extension_options::ExtensionOptionDynamicFeeTx;
-use crate::keyring::{AnySigningKeyPair, KeyRing, Store};
-
-use crate::keyring;
+use tendermint_rpc::{Url, WebSocketClientUrl};
 
 pub use crate::config::Error as ConfigError;
-pub use error::Error;
-
-pub use filter::PacketFilter;
-pub use refresh_rate::RefreshRate;
+use crate::{
+    chain::{cosmos::config::CosmosSdkConfig, penumbra::config::PenumbraConfig},
+    config::types::{ics20_field_size_limit::Ics20FieldSizeLimit, TrustThreshold},
+    error::Error as RelayerError,
+    extension_options::ExtensionOptionDynamicFeeTx,
+    keyring::{self, AnySigningKeyPair, KeyRing, Store},
+};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct GasPrice {
@@ -172,7 +172,7 @@ pub mod default {
     }
 
     pub fn rpc_timeout() -> Duration {
-        Duration::from_secs(10)
+        Duration::from_secs(60)
     }
 
     pub fn poll_interval() -> Duration {
@@ -315,10 +315,11 @@ impl Config {
             }
 
             match chain_config {
-                ChainConfig::CosmosSdk(cosmos_config) => {
-                    cosmos_config
-                        .validate()
-                        .map_err(Into::<Diagnostic<Error>>::into)?;
+                ChainConfig::CosmosSdk(config) => {
+                    config.validate().map_err(Into::<Diagnostic<Error>>::into)?;
+                }
+                ChainConfig::Astria(config) => {
+                    config.validate().map_err(Into::<Diagnostic<Error>>::into)?;
                 }
                 // TODO: define a PenumbraConfig::validate
                 ChainConfig::Penumbra(_) => { /* no-op, for now */ }
@@ -588,10 +589,11 @@ impl Default for RestConfig {
 #[derive(Default)]
 pub enum AddressType {
     #[default]
-    Cosmos,
+    Cosmos, // secp256k1?
     Ethermint {
         pk_type: String,
     },
+    Astria, // ed25519
 }
 
 impl Display for AddressType {
@@ -599,6 +601,7 @@ impl Display for AddressType {
         match self {
             AddressType::Cosmos => write!(f, "cosmos"),
             AddressType::Ethermint { .. } => write!(f, "ethermint"),
+            AddressType::Astria => write!(f, "astria"),
         }
     }
 }
@@ -647,6 +650,7 @@ pub enum EventSourceMode {
 #[serde(tag = "type")]
 pub enum ChainConfig {
     CosmosSdk(CosmosSdkConfig),
+    Astria(CosmosSdkConfig), // TODO: if the config is the cometbft config, it's the same
     Penumbra(PenumbraConfig),
 }
 
@@ -654,13 +658,23 @@ impl ChainConfig {
     pub fn id(&self) -> &ChainId {
         match self {
             Self::CosmosSdk(config) => &config.id,
+            Self::Astria(config) => &config.id,
             Self::Penumbra(config) => &config.id,
+        }
+    }
+
+    pub fn rpc_addr(&self) -> &Url {
+        match self {
+            Self::CosmosSdk(config) => &config.rpc_addr,
+            Self::Astria(config) => &config.rpc_addr,
+            Self::Penumbra(config) => &config.rpc_addr,
         }
     }
 
     pub fn packet_filter(&self) -> &PacketFilter {
         match self {
             Self::CosmosSdk(config) => &config.packet_filter,
+            Self::Astria(config) => &config.packet_filter,
             Self::Penumbra(config) => &config.packet_filter,
         }
     }
@@ -668,6 +682,7 @@ impl ChainConfig {
     pub fn max_block_time(&self) -> Duration {
         match self {
             Self::CosmosSdk(config) => config.max_block_time,
+            Self::Astria(config) => config.max_block_time,
             Self::Penumbra(config) => config.max_block_time,
         }
     }
@@ -675,6 +690,7 @@ impl ChainConfig {
     pub fn key_name(&self) -> &str {
         match self {
             Self::CosmosSdk(config) => &config.key_name,
+            Self::Astria(config) => &config.key_name,
             Self::Penumbra(_) => "",
         }
     }
@@ -682,6 +698,7 @@ impl ChainConfig {
     pub fn set_key_name(&mut self, key_name: String) {
         match self {
             Self::CosmosSdk(config) => config.key_name = key_name,
+            Self::Astria(config) => config.key_name = key_name,
             Self::Penumbra(_) => { /* no-op */ }
         }
     }
@@ -690,6 +707,19 @@ impl ChainConfig {
         let keys = match self {
             ChainConfig::CosmosSdk(config) => {
                 let keyring = KeyRing::new_secp256k1(
+                    Store::Test,
+                    &config.account_prefix,
+                    &config.id,
+                    &config.key_store_folder,
+                )?;
+                keyring
+                    .keys()?
+                    .into_iter()
+                    .map(|(key_name, keys)| (key_name, keys.into()))
+                    .collect()
+            }
+            ChainConfig::Astria(config) => {
+                let keyring = KeyRing::new_ed25519(
                     Store::Test,
                     &config.account_prefix,
                     &config.id,
@@ -710,13 +740,39 @@ impl ChainConfig {
     pub fn clear_interval(&self) -> Option<u64> {
         match self {
             Self::CosmosSdk(config) => config.clear_interval,
+            Self::Astria(config) => config.clear_interval,
             Self::Penumbra(config) => config.clear_interval,
+        }
+    }
+
+    pub fn max_grpc_decoding_size(&self) -> Byte {
+        match self {
+            Self::CosmosSdk(config) => config.max_grpc_decoding_size,
+            Self::Astria(config) => config.max_grpc_decoding_size,
+            Self::Penumbra(_config) => todo!(),
+        }
+    }
+
+    pub fn proof_specs(&self) -> &Option<ProofSpecs> {
+        match self {
+            Self::CosmosSdk(config) => &config.proof_specs,
+            Self::Astria(config) => &config.proof_specs,
+            Self::Penumbra(_config) => todo!(),
+        }
+    }
+
+    pub fn event_source_mode(&self) -> &EventSourceMode {
+        match self {
+            Self::CosmosSdk(config) => &config.event_source,
+            Self::Astria(config) => &config.event_source,
+            Self::Penumbra(config) => &config.event_source,
         }
     }
 
     pub fn query_packets_chunk_size(&self) -> usize {
         match self {
             Self::CosmosSdk(config) => config.query_packets_chunk_size,
+            Self::Astria(config) => config.query_packets_chunk_size,
             Self::Penumbra(config) => config.query_packets_chunk_size,
         }
     }
@@ -724,6 +780,7 @@ impl ChainConfig {
     pub fn set_query_packets_chunk_size(&mut self, query_packets_chunk_size: usize) {
         match self {
             Self::CosmosSdk(config) => config.query_packets_chunk_size = query_packets_chunk_size,
+            Self::Astria(config) => config.query_packets_chunk_size = query_packets_chunk_size,
             Self::Penumbra(config) => config.query_packets_chunk_size = query_packets_chunk_size,
         }
     }
@@ -736,12 +793,14 @@ impl ChainConfig {
                 .map(|seqs| Cow::Borrowed(seqs.as_slice()))
                 .unwrap_or_else(|| Cow::Owned(Vec::new())),
             Self::Penumbra(config) => todo!(),
+            Self::Astria(config) => todo!(),
         }
     }
 
     pub fn clock_drift(&self) -> Duration {
         match self {
             Self::CosmosSdk(config) => config.clock_drift,
+            Self::Astria(config) => config.clock_drift,
             Self::Penumbra(config) => config.clock_drift,
         }
     }
@@ -749,6 +808,7 @@ impl ChainConfig {
     pub fn trust_threshold(&self) -> TrustThreshold {
         match self {
             Self::CosmosSdk(config) => config.trust_threshold,
+            Self::Astria(config) => config.trust_threshold,
             Self::Penumbra(config) => config.trust_threshold,
         }
     }
@@ -781,6 +841,11 @@ impl<'de> Deserialize<'de> for ChainConfig {
             "Penumbra" => PenumbraConfig::deserialize(value)
                 .map(Self::Penumbra)
                 .map_err(|e| serde::de::Error::custom(format!("invalid Penumbra config: {e}"))),
+            "Astria" => CosmosSdkConfig::deserialize(value)
+                .map(Self::Astria)
+                .map_err(|e| {
+                    serde::de::Error::custom(format!("invalid Astria CosmosSdk config: {e}"))
+                }),
 
             //
             // <-- Add new chain types here -->
@@ -865,9 +930,10 @@ impl From<CosmosConfigError> for Error {
 mod tests {
     use core::str::FromStr;
 
+    use test_log::test;
+
     use super::{load, parse_gas_prices, store_writer};
     use crate::config::GasPrice;
-    use test_log::test;
 
     #[test]
     fn parse_valid_config() {

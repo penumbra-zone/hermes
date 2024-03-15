@@ -54,6 +54,8 @@ impl TestOverrides for FilterClearOnStartTest {
             ChainConfig::CosmosSdk(chain_config) => {
                 chain_config.excluded_sequences = excluded_sequences;
             }
+            ChainConfig::Astria(_) => todo!(),
+            ChainConfig::Penumbra(_) => todo!(),
         }
         config.mode.channels.enabled = true;
 
@@ -91,6 +93,8 @@ impl TestOverrides for FilterClearIntervalTest {
             ChainConfig::CosmosSdk(chain_config) => {
                 chain_config.excluded_sequences = excluded_sequences;
             }
+            ChainConfig::Astria(_) => todo!(),
+            ChainConfig::Penumbra(_) => todo!(),
         }
         config.mode.channels.enabled = true;
 
@@ -250,6 +254,8 @@ impl TestOverrides for StandardRelayingNoFilterTest {
             ChainConfig::CosmosSdk(chain_config) => {
                 chain_config.excluded_sequences = excluded_sequences;
             }
+            ChainConfig::Astria(_) => todo!(),
+            ChainConfig::Penumbra(_) => todo!(),
         }
         config.mode.packets.clear_on_start = true;
         config.mode.packets.clear_interval = 0;

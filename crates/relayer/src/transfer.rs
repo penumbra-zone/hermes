@@ -1,27 +1,31 @@
-use ibc_relayer_types::signer::SignerError;
-use std::ops::Add;
-use std::str::FromStr;
-
 use core::time::Duration;
+use std::{ops::Add, str::FromStr};
 
+use astria_core::sequencer::v1alpha1::asset::default_native_asset_id;
 use flex_error::{define_error, DetailOnly};
-use ibc_proto::cosmos::base::v1beta1::Coin;
-use ibc_proto::google::protobuf::Any;
-use ibc_relayer_types::applications::transfer::error::Error as Ics20Error;
-use ibc_relayer_types::applications::transfer::msgs::transfer::MsgTransfer;
-use ibc_relayer_types::applications::transfer::Amount;
-use ibc_relayer_types::core::ics04_channel::timeout::TimeoutHeight;
-use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
-use ibc_relayer_types::events::IbcEvent;
-use ibc_relayer_types::signer::Signer;
-use ibc_relayer_types::timestamp::{Timestamp, TimestampOverflowError};
-use ibc_relayer_types::tx_msg::Msg;
+use ibc_proto::{cosmos::base::v1beta1::Coin, google::protobuf::Any};
+use ibc_relayer_types::{
+    applications::transfer::{
+        error::Error as Ics20Error,
+        msgs::{transfer::MsgTransfer, ASTRIA_WITHDRAWAL_TYPE_URL},
+        Amount,
+    },
+    core::{
+        ics04_channel::timeout::TimeoutHeight,
+        ics24_host::identifier::{ChainId, ChannelId, PortId},
+    },
+    events::IbcEvent,
+    signer::{Signer, SignerError},
+    timestamp::{Timestamp, TimestampOverflowError},
+    tx_msg::Msg,
+};
+use prost::Message;
 
-use crate::chain::endpoint::ChainStatus;
-use crate::chain::handle::ChainHandle;
-use crate::chain::tracking::TrackedMsgs;
-use crate::error::Error;
-use crate::event::IbcEventWithHeight;
+use crate::{
+    chain::{endpoint::ChainStatus, handle::ChainHandle, tracking::TrackedMsgs},
+    error::Error,
+    event::IbcEventWithHeight,
+};
 
 define_error! {
     TransferError {
@@ -157,6 +161,48 @@ pub fn build_transfer_message(
     msg.to_any()
 }
 
+fn build_transfer_message_astria(
+    src_channel_id: ChannelId,
+    amount: Amount,
+    denom: String,
+    sender: Signer,
+    receiver: Signer,
+    timeout_height: TimeoutHeight,
+    timeout_timestamp: Timestamp,
+) -> Any {
+    let timeout_height = match timeout_height {
+        // TODO: update astria IbcHeight to support optional?
+        TimeoutHeight::At(height) => astria_core::generated::sequencer::v1alpha1::IbcHeight {
+            revision_number: height.revision_number(),
+            revision_height: height.revision_height(),
+        },
+        TimeoutHeight::Never => astria_core::generated::sequencer::v1alpha1::IbcHeight {
+            revision_number: 0,
+            revision_height: u64::MAX,
+        },
+    };
+
+    let msg = astria_core::generated::sequencer::v1alpha1::Ics20Withdrawal {
+        source_channel: src_channel_id.to_string(),
+        denom,
+        amount: Some(
+            u128::try_from(amount.0)
+                .expect("amount can fit into u128")
+                .into(),
+        ),
+        destination_chain_address: receiver.to_string(),
+        return_address: hex::decode(sender.to_string()).expect("sender address is hex"),
+        timeout_height: Some(timeout_height),
+        timeout_time: timeout_timestamp.nanoseconds(),
+        fee_asset_id: default_native_asset_id().as_bytes().into(),
+    };
+
+    Any {
+        type_url: ASTRIA_WITHDRAWAL_TYPE_URL.to_string(),
+        value: msg.encode_to_vec(),
+    }
+}
+
 pub fn build_transfer_messages<SrcChain: ChainHandle, DstChain: ChainHandle>(
     src_chain: &SrcChain, // the chain whose account is debited
     dst_chain: &DstChain, // the chain whose account eventually gets credited
@@ -179,20 +225,31 @@ pub fn build_transfer_messages<SrcChain: ChainHandle, DstChain: ChainHandle>(
         &destination_chain_status,
     )?;
 
-    let message = build_transfer_message(
-        opts.src_port_id.clone(),
-        opts.src_channel_id.clone(),
-        opts.amount,
-        opts.denom.clone(),
-        sender,
-        receiver,
-        timeout.timeout_height,
-        timeout.timeout_timestamp,
-        opts.memo.clone(),
-    );
+    let message = if src_chain.id().as_str() == "astria" {
+        build_transfer_message_astria(
+            opts.src_channel_id.clone(),
+            opts.amount,
+            opts.denom.clone(),
+            sender,
+            receiver,
+            timeout.timeout_height,
+            timeout.timeout_timestamp,
+        )
+    } else {
+        build_transfer_message(
+            opts.src_port_id.clone(),
+            opts.src_channel_id.clone(),
+            opts.amount,
+            opts.denom.clone(),
+            sender,
+            receiver,
+            timeout.timeout_height,
+            timeout.timeout_timestamp,
+            opts.memo.clone(),
+        )
+    };
 
     let msgs = vec![message; opts.number_msgs];
-
     Ok(msgs)
 }
 

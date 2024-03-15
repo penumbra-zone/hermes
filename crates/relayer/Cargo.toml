@@ -24,6 +24,8 @@ ibc-proto = { workspace = true, features = ["serde"] }
 ibc-telemetry = { workspace = true, optional = true }
 ibc-relayer-types = { workspace = true, features = ["clock"] }
 
+astria-core = { workspace = true }
+astria-sequencer-client = { workspace = true }
 anyhow = { workspace = true }
 async-stream = { workspace = true }
 bech32 = { workspace = true }
@@ -35,6 +37,7 @@ crossbeam-channel = { workspace = true }
 digest = { workspace = true }
 dirs-next = { workspace = true }
 ed25519 = { workspace = true }
+ed25519-consensus = { workspace = true }
 ed25519-dalek = { workspace = true, features = ["serde"] }
 ed25519-dalek-bip32 = { workspace = true }
 flex-error = { workspace = true }
@@ -45,7 +48,9 @@ hex = { workspace = true }
 http = { workspace = true }
 humantime = { workspace = true }
 humantime-serde = { workspace = true }
+ibc-types = { workspace = true }
 itertools = { workspace = true }
+jmt = { workspace = true }
 moka = { workspace = true, features = ["sync"] }
 num-bigint = { workspace = true, features = ["serde"] }
 num-rational = { workspace = true, features = ["num-bigint", "serde"] }

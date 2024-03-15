@@ -4,14 +4,15 @@
 //! You can find a more thorough walkthrough of this test at
 //! `tools/test-framework/src/docs/walkthroughs/memo.rs`.
 
-use ibc_relayer::config::types::Memo;
-use ibc_relayer::config::ChainConfig;
-use serde_json as json;
-
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::util::random::{random_string, random_u128_range};
-
 const OVERWRITE_MEMO: &str = "Overwritten memo";
+
+use ibc_relayer::config::{types::Memo, ChainConfig, Config};
+use ibc_test_framework::{
+    ibc::denom::derive_ibc_denom,
+    prelude::*,
+    util::random::{random_string, random_u128_range},
+};
+use serde_json as json;
 
 #[test]
 fn test_memo() -> Result<(), Error> {
@@ -39,6 +40,7 @@ impl TestOverrides for MemoTest {
                     chain_config.memo_prefix = self.memo.clone();
                 }
                 ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }
@@ -103,6 +105,8 @@ impl TestOverrides for MemoOverwriteTest {
                     chain_config.memo_prefix = self.memo.clone();
                     chain_config.memo_overwrite = Some(Memo::new(OVERWRITE_MEMO).unwrap())
                 }
+                ChainConfig::Astria(_) => todo!(),
+                ChainConfig::Penumbra(_) => todo!(),
             }
         }
     }

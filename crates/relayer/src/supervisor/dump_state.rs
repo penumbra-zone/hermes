@@ -1,5 +1,7 @@
-use alloc::collections::BTreeMap;
-use alloc::fmt::{Display, Error as FmtError, Formatter};
+use alloc::{
+    collections::BTreeMap,
+    fmt::{Display, Error as FmtError, Formatter},
+};
 
 use ibc_relayer_types::core::ics24_host::identifier::ChainId;
 use itertools::Itertools;
