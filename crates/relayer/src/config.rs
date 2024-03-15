@@ -731,22 +731,6 @@ impl ChainConfig {
         }
     }
 
-    pub fn max_grpc_decoding_size(&self) -> Byte {
-        match self {
-            Self::CosmosSdk(config) => config.max_grpc_decoding_size,
-            Self::Astria(config) => config.max_grpc_decoding_size,
-            Self::Penumbra(_config) => todo!(),
-        }
-    }
-
-    pub fn proof_specs(&self) -> &Option<ProofSpecs> {
-        match self {
-            Self::CosmosSdk(config) => &config.proof_specs,
-            Self::Astria(config) => &config.proof_specs,
-            Self::Penumbra(_config) => todo!(),
-        }
-    }
-
     pub fn event_source_mode(&self) -> &EventSourceMode {
         match self {
             Self::CosmosSdk(config) => &config.event_source,
