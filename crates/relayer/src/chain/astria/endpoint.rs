@@ -115,15 +115,15 @@ impl AstriaEndpoint {
         let ibc_client_grpc_client = rt
             .block_on(IbcClientQueryClient::connect(grpc_addr.clone()))
             .map_err(Error::grpc_transport)?
-            .max_decoding_message_size(config.max_grpc_decoding_size().get_bytes() as usize);
+            .max_decoding_message_size(cosmos_config.max_grpc_decoding_size.get_bytes() as usize);
         let ibc_connection_grpc_client = rt
             .block_on(IbcConnectionQueryClient::connect(grpc_addr.clone()))
             .map_err(Error::grpc_transport)?
-            .max_decoding_message_size(config.max_grpc_decoding_size().get_bytes() as usize);
+            .max_decoding_message_size(cosmos_config.max_grpc_decoding_size.get_bytes() as usize);
         let ibc_channel_grpc_client = rt
             .block_on(IbcChannelQueryClient::connect(grpc_addr))
             .map_err(Error::grpc_transport)?
-            .max_decoding_message_size(config.max_grpc_decoding_size().get_bytes() as usize);
+            .max_decoding_message_size(cosmos_config.max_grpc_decoding_size.get_bytes() as usize);
 
         Ok(Self {
             config,
