@@ -522,25 +522,17 @@ impl ChainEndpoint for PenumbraChain {
             .map_err(|e| Error::grpc_status(e, "app_parameters query".to_owned()))?
             .into_inner();
 
-        let epoch_duration = app_parameters
-            .clone()
-            .app_parameters
-            .expect("should have app parameters")
-            .sct_params
-            .expect("should have sct parameters")
-            .epoch_duration;
-
-        let unbonding_epochs = app_parameters
+        let epoch_delay_blocks = app_parameters
             .app_parameters
             .expect("should have app parameters")
             .stake_params
             .expect("should have stake parameters")
-            .unbonding_epochs;
+            .unbonding_delay;
 
         // here we assume roughly 5s block time, which is not part of consensus but should be
         // roughly correct. it would really be better if the ibc protocol gave the client's
         // trusting period in terms of blocks instead of duration.
-        let unbonding_period = Duration::from_secs(epoch_duration * unbonding_epochs * 5);
+        let unbonding_period = Duration::from_secs(epoch_delay_blocks * 5);
 
         tracing::info!("starting view service sync");
 
