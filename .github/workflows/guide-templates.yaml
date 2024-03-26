@@ -9,7 +9,7 @@ on:
       - guide/src/templates/**
 
   push:
-    branches: master
+    branches: main
     paths:
       - .github/workflows/guide-templates.yaml
       - crates/relayer-cli/**
