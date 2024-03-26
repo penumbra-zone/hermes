@@ -3,7 +3,7 @@ name: API Docs
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - .github/workflows/cargo-doc.yml
       - Cargo.toml
@@ -38,7 +38,7 @@ jobs:
           args: --all-features
 
       - name: Push API documentation to GitHub Pages
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.IBC_RS_DOC_PRIVATE_KEY }}
