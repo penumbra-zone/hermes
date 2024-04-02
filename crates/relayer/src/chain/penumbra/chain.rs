@@ -559,13 +559,7 @@ impl ChainEndpoint for PenumbraChain {
             .block_on(IbcChannelQueryClient::connect(grpc_addr.clone()))
             .map_err(Error::grpc_transport)?;
 
-        let tendermint_light_client = TmLightClient::from_rpc_parameters(
-            config.id.clone(),
-            config.rpc_addr.clone(),
-            config.rpc_timeout,
-            node_info.id,
-            true,
-        )?;
+        let tendermint_light_client = TmLightClient::from_penumbra_config(&config, node_info.id)?;
 
         tracing::info!("ibc grpc query clients connected");
 

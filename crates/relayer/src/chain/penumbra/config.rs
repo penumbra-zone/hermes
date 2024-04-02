@@ -6,8 +6,8 @@ use serde_derive::{Deserialize, Serialize};
 use tendermint_rpc::Url;
 
 use crate::config::{
-    compat_mode::CompatMode, default, types::TrustThreshold, EventSourceMode, PacketFilter,
-    RefreshRate,
+    compat_mode::CompatMode, default, types::TrustThreshold, EventSourceMode, GenesisRestart,
+    PacketFilter, RefreshRate,
 };
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -48,6 +48,11 @@ pub struct PenumbraConfig {
     pub query_packets_chunk_size: usize,
     #[serde(default = "default::max_block_time", with = "humantime_serde")]
     pub max_block_time: Duration,
+
+    // This field is only meant to be set via the `update client` command,
+    // for when we need to ugprade a client across a genesis restart and
+    // therefore need and archive node to fetch blocks from.
+    pub genesis_restart: Option<GenesisRestart>,
 
     /// A correction parameter that helps deal with clocks that are only approximately synchronized
     /// between the source and destination chains for a client.
