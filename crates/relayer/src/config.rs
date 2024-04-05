@@ -653,6 +653,7 @@ pub enum EventSourceMode {
 // below when adding a new chain type.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
+#[allow(clippy::large_enum_variant)]
 pub enum ChainConfig {
     CosmosSdk(CosmosSdkConfig),
     Astria(CosmosSdkConfig), // TODO: if the config is the cometbft config, it's the same
@@ -781,8 +782,8 @@ impl ChainConfig {
                 .get(channel_id)
                 .map(|seqs| Cow::Borrowed(seqs.as_slice()))
                 .unwrap_or_else(|| Cow::Owned(Vec::new())),
-            Self::Penumbra(config) => todo!(),
-            Self::Astria(config) => todo!(),
+            Self::Penumbra(_config) => todo!(),
+            Self::Astria(_config) => todo!(),
         }
     }
 
