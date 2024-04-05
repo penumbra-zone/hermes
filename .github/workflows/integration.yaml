@@ -31,6 +31,7 @@ env:
   RUST_BACKTRACE: short
   CARGO_NET_RETRY: 10
   RUSTUP_MAX_RETRIES: 10
+  RUSTFLAGS: --cfg tokio_unstable
 
 # Cancel previous runs of this workflow when a new commit is added to the PR, branch or tag
 concurrency:

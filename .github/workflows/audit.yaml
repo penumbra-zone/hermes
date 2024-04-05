@@ -15,5 +15,7 @@ jobs:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-audit-v0.11.2
       - uses: actions-rs/audit-check@v1.2.0
+        env:
+          RUSTFLAGS: --cfg tokio_unstable
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

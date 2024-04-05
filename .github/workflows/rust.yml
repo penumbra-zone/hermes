@@ -27,6 +27,7 @@ env:
   RUST_BACKTRACE: short
   CARGO_NET_RETRY: 10
   RUSTUP_MAX_RETRIES: 10
+  RUSTFLAGS: -D warnings --cfg tokio_unstable
 
 # Cancel previous runs of this workflow when a new commit is added to the PR, branch or tag
 concurrency:
@@ -55,8 +56,6 @@ jobs:
           toolchain: stable
           components: clippy
       - uses: actions-rs/clippy-check@v1
-        env:
-          RUSTFLAGS: -D warnings --cfg tokio_unstable
         with:
           name: clippy-all-features
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,8 +70,6 @@ jobs:
           toolchain: stable
           components: clippy
       - uses: actions-rs/clippy-check@v1
-        env:
-          RUSTFLAGS: -D warnings --cfg tokio_unstable
         with:
           name: clippy-no-default-features
           token: ${{ secrets.GITHUB_TOKEN }}
