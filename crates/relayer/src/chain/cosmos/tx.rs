@@ -2,8 +2,7 @@ use ibc_proto::{cosmos::tx::v1beta1::Fee, google::protobuf::Any};
 use ibc_relayer_types::events::IbcEvent;
 use tendermint_rpc::{endpoint::broadcast::tx_sync::Response, Client, HttpClient, Url};
 
-use super::batch::send_batched_messages_and_wait_commit;
-use super::estimate::EstimatedGas;
+use super::{batch::send_batched_messages_and_wait_commit, estimate::EstimatedGas};
 use crate::{
     chain::cosmos::{
         encode::sign_and_encode_tx,

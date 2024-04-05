@@ -9,15 +9,20 @@ pub mod proof_specs;
 pub mod refresh_rate;
 pub mod types;
 
+use alloc::collections::BTreeMap;
 use core::{
     cmp::Ordering,
     fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
     time::Duration,
 };
-use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use std::{borrow::Cow, collections::BTreeMap};
-use std::{fs, fs::File, io::Write, ops::Range, path::Path};
+use std::{
+    borrow::Cow,
+    fs::{self, File},
+    io::Write,
+    ops::Range,
+    path::Path,
+};
 
 use byte_unit::Byte;
 pub use error::Error;
@@ -25,7 +30,7 @@ pub use filter::PacketFilter;
 use ibc_proto::google::protobuf::Any;
 use ibc_relayer_types::{
     core::{
-        ics23_commitment::specs::ProofSpecs,
+        ics04_channel::packet::Sequence,
         ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     timestamp::ZERO_DURATION,

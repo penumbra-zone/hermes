@@ -4,11 +4,10 @@ use ibc_proto::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::core::ics04_channel::channel::Ordering;
 use crate::{
     applications::ics27_ica::error::Error,
     core::{
-        ics04_channel::version::Version,
+        ics04_channel::{channel::Ordering, version::Version},
         ics24_host::{error::ValidationError, identifier::ConnectionId},
     },
     signer::Signer,

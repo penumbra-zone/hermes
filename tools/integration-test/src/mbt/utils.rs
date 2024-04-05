@@ -5,8 +5,6 @@ use ibc_relayer::chain::requests::{
     QueryUnreceivedPacketsRequest,
 };
 use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use ibc_test_framework::prelude::*;
-use ibc_test_framework::types::tagged::mono::Tagged;
 use ibc_test_framework::{ibc::denom::Denom, prelude::*, types::tagged::mono::Tagged};
 
 use super::{

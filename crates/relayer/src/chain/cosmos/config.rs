@@ -3,9 +3,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use byte_unit::Byte;
-use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-
 use ibc_relayer_types::core::{
+    ics04_channel::packet::Sequence,
     ics23_commitment::specs::ProofSpecs,
     ics24_host::identifier::{ChainId, ChannelId},
 };

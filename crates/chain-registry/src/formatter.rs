@@ -2,7 +2,6 @@
 //! Contains struct to build a `tendermint_rpc::Url` representing a
 //! WebSocket URL from a RPC URL and to parse or build a valid `http::Uri`
 //! from an (in)complete GRPC URL.
-
 use std::str::FromStr;
 
 use http::{uri::Scheme, Uri};

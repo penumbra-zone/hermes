@@ -3,11 +3,12 @@
 */
 
 use core::{str::FromStr, time::Duration};
-use eyre::eyre;
-use eyre::Report as Error;
-use std::collections::BTreeMap;
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::BTreeMap,
+    sync::{Arc, RwLock},
+};
 
+use eyre::{eyre, Report as Error};
 use ibc_relayer::{
     chain::cosmos::config::CosmosSdkConfig,
     config::{

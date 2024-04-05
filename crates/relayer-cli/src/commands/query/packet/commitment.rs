@@ -10,6 +10,7 @@ use ibc_relayer_types::{
     },
     Height,
 };
+use serde::Serialize;
 use subtle_encoding::{Encoding, Hex};
 
 use crate::{
@@ -18,6 +19,12 @@ use crate::{
     error::Error,
     prelude::*,
 };
+
+#[derive(Serialize, Debug)]
+struct PacketSeqs {
+    height: Height,
+    seqs: Vec<u64>,
+}
 
 #[derive(Clone, Command, Debug, Parser, PartialEq, Eq)]
 pub struct QueryPacketCommitmentCmd {

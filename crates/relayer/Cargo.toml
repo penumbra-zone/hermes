@@ -1,16 +1,17 @@
 [package]
-name = "ibc-relayer"
+
 version = "0.27.2"
 edition = "2021"
+rust-version = "1.71.1"
+description = """
+    Implementation of an IBC Relayer in Rust, as a library
+"""
+name = "ibc-relayer"
 license = "Apache-2.0"
 readme = "README.md"
 keywords = ["blockchain", "consensus", "cosmos", "ibc", "tendermint"]
 repository = "https://github.com/informalsystems/hermes"
 authors = ["Informal Systems <hello@informal.systems>"]
-rust-version = "1.71.1"
-description = """
-    Implementation of an IBC Relayer in Rust, as a library
-"""
 
 [package.metadata.docs.rs]
 all-features = true

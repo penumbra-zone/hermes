@@ -1,31 +1,37 @@
 use core::time::Duration;
-use std::borrow::BorrowMut;
-use std::sync::{Arc, Mutex};
+use std::{
+    borrow::BorrowMut,
+    sync::{Arc, Mutex},
+};
 
 use crossbeam_channel::Receiver;
+use ibc_proto::ibc::{
+    apps::fee::v1::{IdentifiedPacketFees, QueryIncentivizedPacketRequest},
+    core::channel::v1::PacketId,
+};
+use ibc_relayer_types::{
+    applications::{
+        ics29_fee::events::IncentivizedPacket,
+        transfer::{Amount, Coin, RawCoin},
+    },
+    core::ics04_channel::{channel::Ordering, events::WriteAcknowledgement, packet::Sequence},
+    events::{IbcEvent, IbcEventType},
+    Height,
+};
 use itertools::Itertools;
 use moka::sync::Cache;
 use tracing::{debug, error, error_span, info, trace, warn};
-
-use ibc_proto::ibc::apps::fee::v1::{IdentifiedPacketFees, QueryIncentivizedPacketRequest};
-use ibc_proto::ibc::core::channel::v1::PacketId;
-use ibc_relayer_types::applications::ics29_fee::events::IncentivizedPacket;
-use ibc_relayer_types::applications::transfer::{Amount, Coin, RawCoin};
-use ibc_relayer_types::core::ics04_channel::channel::Ordering;
-use ibc_relayer_types::core::ics04_channel::events::WriteAcknowledgement;
-use ibc_relayer_types::core::ics04_channel::packet::Sequence;
-use ibc_relayer_types::core::ics24_host::identifier::ChannelId;
-use ibc_relayer_types::core::ics24_host::identifier::PortId;
-use ibc_relayer_types::events::{IbcEvent, IbcEventType};
-use ibc_relayer_types::Height;
+#[cfg(feature = "telemetry")]
+use {
+    ibc_relayer_types::core::ics24_host::identifier::ChannelId,
+    ibc_relayer_types::core::ics24_host::identifier::PortId,
+};
 
 use super::{error::RunError, WorkerCmd};
-use crate::chain::requests::QueryHeight;
-use crate::event::IbcEventWithHeight;
 use crate::{
-    chain::handle::ChainHandle,
+    chain::{handle::ChainHandle, requests::QueryHeight},
     config::filter::FeePolicy,
-    event::source::EventBatch,
+    event::{source::EventBatch, IbcEventWithHeight},
     foreign_client::HasExpiredOrFrozenError,
     link::{error::LinkError, Link, Resubmit},
     object::Packet,

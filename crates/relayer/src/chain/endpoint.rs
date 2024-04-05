@@ -1,4 +1,5 @@
 use alloc::sync::Arc;
+use core::convert::TryFrom;
 
 use ibc_proto::ibc::apps::fee::v1::{
     QueryIncentivizedPacketRequest, QueryIncentivizedPacketResponse,

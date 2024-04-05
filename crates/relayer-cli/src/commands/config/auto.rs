@@ -2,7 +2,6 @@ use std::{collections::HashSet, path::PathBuf};
 
 use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::config::{store, ChainConfig, Config};
-
 use itertools::Itertools;
 use tracing::{error, info, warn};
 

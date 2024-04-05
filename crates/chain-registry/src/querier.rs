@@ -7,9 +7,8 @@ use std::{fmt::Debug, str::FromStr};
 use async_trait::async_trait;
 use futures::{stream::FuturesUnordered, StreamExt};
 use http::Uri;
-
 use ibc_proto::cosmos::bank::v1beta1::query_client::QueryClient;
-use tendermint_rpc::{Client as _, HttpClient, HttpClientUrl, Url};
+use tendermint_rpc::{Client, HttpClient, HttpClientUrl, Url};
 use tracing::{debug, info};
 
 use crate::error::RegistryError;

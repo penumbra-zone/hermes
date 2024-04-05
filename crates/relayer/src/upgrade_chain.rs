@@ -22,7 +22,6 @@ use ibc_relayer_types::{
     downcast, Height,
 };
 use tendermint::Hash as TxHash;
-
 use tracing::warn;
 
 use crate::{

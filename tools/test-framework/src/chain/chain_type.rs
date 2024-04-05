@@ -87,7 +87,6 @@ impl ChainType {
                 pk_type: "/injective.crypto.v1beta1.ethsecp256k1.PubKey".to_string(),
             },
             Self::Astria => AddressType::Astria,
-            Self::Provenance => AddressType::default(),
             // Self::Penumbra => todo!(),
         }
     }

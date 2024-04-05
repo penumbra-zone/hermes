@@ -1,5 +1,4 @@
 use alloc::collections::{BTreeMap as HashMap, VecDeque};
-use ibc_relayer_types::core::ics04_channel::packet::Sequence;
 use std::{
     ops::Sub,
     time::{Duration, Instant},
@@ -20,7 +19,7 @@ use ibc_relayer_types::{
                 recv_packet::MsgRecvPacket, timeout::MsgTimeout,
                 timeout_on_close::MsgTimeoutOnClose,
             },
-            packet::{Packet, PacketMsgType},
+            packet::{Packet, PacketMsgType, Sequence},
         },
         ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId},
     },

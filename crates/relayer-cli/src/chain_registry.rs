@@ -1,13 +1,13 @@
 //! Contains functions to generate a relayer config for a given chain
 
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt::Display,
+    marker::Send,
+};
+
 use futures::future::join_all;
 use http::Uri;
-use tendermint_rpc::Url;
-use tokio::task::{JoinError, JoinHandle};
-use tracing::{error, trace};
-
-use std::{collections::BTreeMap, collections::HashMap, fmt::Display, marker::Send};
-
 use ibc_chain_registry::{
     asset_list::AssetList,
     chain::ChainData,
@@ -29,6 +29,10 @@ use ibc_relayer::{
     },
     keyring::Store,
 };
+
+use tendermint_rpc::Url;
+use tokio::task::{JoinError, JoinHandle};
+use tracing::{error, trace};
 
 const MAX_HEALTHY_QUERY_RETRIES: u8 = 5;
 

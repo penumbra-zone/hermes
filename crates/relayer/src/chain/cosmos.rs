@@ -11,9 +11,12 @@ use bytes::{Buf, Bytes};
 use futures::future::join_all;
 use ibc_proto::{
     cosmos::{
-        base::node::v1beta1::ConfigResponse,
-        base::tendermint::v1beta1::service_client::ServiceClient,
-        base::tendermint::v1beta1::{GetSyncingRequest, GetSyncingResponse},
+        base::{
+            node::v1beta1::ConfigResponse,
+            tendermint::v1beta1::{
+                service_client::ServiceClient, GetSyncingRequest, GetSyncingResponse,
+            },
+        },
         staking::v1beta1::Params as StakingParams,
     },
     ibc::apps::fee::v1::{QueryIncentivizedPacketRequest, QueryIncentivizedPacketResponse},
@@ -70,10 +73,6 @@ use self::{
     types::{app_state::GenesisAppState, gas::GasConfig},
     version::Specs,
 };
-use crate::util::pretty::PrettySlice;
-use crate::util::pretty::{
-    PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
-};
 use crate::{
     account::Balance,
     chain::{
@@ -125,7 +124,13 @@ use crate::{
     keyring::{KeyRing, Secp256k1KeyPair, SigningKeyPair},
     light_client::{tendermint::LightClient as TmLightClient, LightClient, Verified},
     misbehaviour::MisbehaviourEvidence,
-    util::compat_mode::compat_mode_from_version,
+    util::{
+        compat_mode::compat_mode_from_version,
+        pretty::{
+            PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
+            PrettySlice,
+        },
+    },
 };
 
 pub mod batch;

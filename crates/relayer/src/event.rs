@@ -1,7 +1,4 @@
 use core::fmt::{Display, Error as FmtError, Formatter};
-use serde::Serialize;
-use subtle_encoding::hex;
-use tendermint::abci::Event as AbciEvent;
 
 use ibc_relayer_types::{
     applications::{
@@ -29,6 +26,8 @@ use ibc_relayer_types::{
     events::{Error as IbcEventError, IbcEvent, IbcEventType},
     Height,
 };
+use serde::Serialize;
+use tendermint::abci::Event as AbciEvent;
 
 pub mod bus;
 pub mod error;
