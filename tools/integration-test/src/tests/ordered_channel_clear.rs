@@ -56,6 +56,7 @@ impl TestOverrides for OrderedChannelClearTest {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.sequential_batch_tx = self.sequential_batch_tx;
                 }
+                ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
             }
         }
 
@@ -64,6 +65,7 @@ impl TestOverrides for OrderedChannelClearTest {
             ChainConfig::CosmosSdk(chain_config) => {
                 chain_config.sequential_batch_tx = self.sequential_batch_tx;
             }
+            ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
         }
     }
 
@@ -200,6 +202,7 @@ impl TestOverrides for OrderedChannelClearEqualCLITest {
                     chain_config.sequential_batch_tx = true;
                     chain_config.max_msg_num = MaxMsgNum::new(3).unwrap();
                 }
+                ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
             }
         }
 
@@ -209,6 +212,7 @@ impl TestOverrides for OrderedChannelClearEqualCLITest {
                 chain_config.sequential_batch_tx = true;
                 chain_config.max_msg_num = MaxMsgNum::new(3).unwrap();
             }
+            ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
         }
     }
 

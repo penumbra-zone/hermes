@@ -143,8 +143,8 @@ fn assert_eventual_async_icq_success<ChainA: ChainHandle, ChainB: ChainHandle>(
 ) -> Result<(), Error> {
     let rpc_addr = match relayer.config.chains.first().unwrap() {
         ChainConfig::CosmosSdk(c) => c.rpc_addr.clone(),
-        ChainConfig::Penumbra(c) => todo!(),
-        ChainConfig::Astria(c) => todo!(),
+        ChainConfig::Penumbra(_c) => todo!(),
+        ChainConfig::Astria(_c) => todo!(),
     };
 
     let mut rpc_client = HttpClient::new(rpc_addr).unwrap();
