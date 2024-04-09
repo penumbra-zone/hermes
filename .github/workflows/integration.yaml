@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
   integration-test:
-    runs-on: ubuntu-20.04
+    runs-on: buildjet-16vcpu-ubuntu-2204
     timeout-minutes: 180
     strategy:
       fail-fast: false
