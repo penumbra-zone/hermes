@@ -1,5 +1,4 @@
 use alloc::collections::BTreeMap as HashMap;
-use core::convert::TryFrom;
 
 use ibc_relayer_types::{
     applications::{ics29_fee::events::DistributionType, ics31_icq::events::CrossChainQueryPacket},

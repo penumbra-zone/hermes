@@ -1,6 +1,5 @@
 use std::ops::RangeInclusive;
 
-use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::handle::ChainHandle,
     link::{Link, LinkParameters},

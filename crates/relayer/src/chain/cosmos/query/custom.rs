@@ -1,4 +1,3 @@
-use hex;
 use ibc_relayer_types::applications::ics31_icq::{
     error::Error as CrossChainQueryError, response::CrossChainQueryResponse,
 };

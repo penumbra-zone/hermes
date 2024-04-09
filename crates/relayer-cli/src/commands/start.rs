@@ -1,6 +1,5 @@
 use std::{error::Error, io};
 
-use abscissa_core::{clap::Parser, Command, Runnable};
 use crossbeam_channel::Sender;
 use ibc_relayer::{
     chain::handle::{CachingChainHandle, ChainHandle},

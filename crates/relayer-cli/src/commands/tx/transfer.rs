@@ -1,6 +1,6 @@
 use core::time::Duration;
 
-use abscissa_core::{clap::Parser, config::Override, Command, FrameworkErrorKind, Runnable};
+use abscissa_core::{config::Override, FrameworkErrorKind};
 use eyre::eyre;
 use ibc_relayer::{
     chain::handle::ChainHandle,

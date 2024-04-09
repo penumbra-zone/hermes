@@ -372,8 +372,6 @@ impl<'de> Deserialize<'de> for ChannelFilterMatch {
 }
 
 pub(crate) mod port {
-    use ibc_relayer_types::core::ics24_host::identifier::PortId;
-
     use super::*;
 
     pub struct PortFilterMatchVisitor;
@@ -401,8 +399,6 @@ pub(crate) mod port {
 }
 
 pub(crate) mod channel {
-    use ibc_relayer_types::core::ics24_host::identifier::ChannelId;
-
     use super::*;
 
     pub struct ChannelFilterMatchVisitor;

@@ -23,7 +23,6 @@ use tracing::info;
 use crate::chain::client::ClientSettings;
 use crate::chain::cosmos::query::{abci_query, QueryResponse};
 use crate::chain::endpoint::ChainStatus;
-use crate::chain::requests::IncludeProof;
 use crate::chain::requests::*;
 use crate::chain::tracking::TrackedMsgs;
 use crate::client_state::{AnyClientState, IdentifiedAnyClientState};

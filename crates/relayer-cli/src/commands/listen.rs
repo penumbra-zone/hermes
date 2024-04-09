@@ -5,7 +5,7 @@ use core::{
 };
 use std::thread;
 
-use abscissa_core::{application::fatal_error, clap::Parser, Runnable};
+use abscissa_core::application::fatal_error;
 use eyre::eyre;
 use ibc_relayer::{
     chain::handle::Subscription,

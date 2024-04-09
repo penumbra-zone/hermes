@@ -1,10 +1,5 @@
 use alloc::sync::Arc;
-use core::{
-    convert::{TryFrom, TryInto},
-    future::Future,
-    str::FromStr,
-    time::Duration,
-};
+use core::{future::Future, str::FromStr, time::Duration};
 use std::{cmp::Ordering, thread};
 
 use bytes::{Buf, Bytes};

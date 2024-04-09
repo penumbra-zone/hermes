@@ -1,4 +1,3 @@
-use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::chain::{counterparty::acknowledgements_on_chain, handle::BaseChainHandle};
 use ibc_relayer_types::core::ics24_host::identifier::{ChainId, ChannelId, PortId};
 

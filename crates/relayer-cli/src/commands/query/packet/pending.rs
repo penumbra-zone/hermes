@@ -1,6 +1,5 @@
 use core::fmt;
 
-use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::chain::{
     counterparty::{channel_on_destination, pending_packet_summary, PendingPackets},
     handle::{BaseChainHandle, ChainHandle},

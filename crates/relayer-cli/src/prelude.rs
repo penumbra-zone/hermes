@@ -4,6 +4,7 @@
 //! which are generally useful and should be available in every module with
 //! `use crate::prelude::*;
 
+pub use abscissa_core::clap::Parser;
 /// Abscissa core prelude
 pub use abscissa_core::prelude::*;
 pub use abscissa_core::Command;
