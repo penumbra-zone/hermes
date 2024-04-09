@@ -40,7 +40,7 @@ jobs:
         env:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options --cfg docsrs"
         with:
-          command: +nightly doc
+          command: doc
           args: --all-features --no-deps
       # Disabled on penumbra hermes fork
       # - name: Push API documentation to GitHub Pages
