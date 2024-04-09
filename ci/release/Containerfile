@@ -1,0 +1,41 @@
+FROM docker.io/rust:1-bookworm AS builder
+# Install build dependencies. These packages should match what's recommended on
+# https://guide.penumbra.zone/main/pcli/install.html
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git-lfs \
+        build-essential \
+        pkg-config \
+        libssl-dev \
+        clang \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+
+# Install toml-cli, so we can munge config.toml files, e.g. updating chain ids.
+RUN cargo install --quiet toml-cli
+
+WORKDIR /usr/src/hermes
+COPY . .
+# In the future we may want to support building against multiple versions of Penumbra,
+# so we can get early warning about breaking changes in CI. Not hooking that up now:
+# we'll use the Penumbra versions specified in the `Cargo.toml` workspace settings.
+# ARG PENUMBRA_VERSION="v0.71.0"
+# Set the desired PENUMBRA_VERSION in the Cargo.toml file prior to building.
+# This regex intentionally ignores the renamespaced Astria deps.
+# RUN sed -i -e "/^penumbra-.*-astria/! s/^\(penumbra-.*\)\(tag = \".*\"\)\(.*\)$/\1branch = \"${PENUMBRA_VERSION}\"\3/" Cargo.toml && cat Cargo.toml
+RUN cargo build --release
+
+# Runtime container, with binary and normal user account.
+FROM docker.io/debian:bookworm-slim
+LABEL maintainer="team@penumbralabs.xyz"
+
+COPY --from=builder /usr/local/cargo/bin/toml /usr/local/bin/toml
+COPY --from=builder /usr/src/hermes/target/release/hermes /usr/bin/hermes
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid 1000 hermes \
+        && useradd -m -d /home/hermes -g 1000 -u 1000 hermes
+WORKDIR /home/hermes
+USER hermes
+ENTRYPOINT ["/usr/bin/hermes"]
