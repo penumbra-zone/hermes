@@ -184,16 +184,16 @@ impl AstriaEndpoint {
 
     async fn broadcast_messages(&mut self, tracked_msgs: TrackedMsgs) -> Result<TxResponse, Error> {
         use astria_core::{
-            generated::sequencer::v1alpha1::Ics20Withdrawal as RawIcs20Withdrawal,
-            sequencer::v1alpha1::{
+            generated::sequencer::v1::Ics20Withdrawal as RawIcs20Withdrawal,
+            sequencer::v1::{
                 transaction::{action::Ics20Withdrawal, Action},
                 Address, UnsignedTransaction,
             },
         };
         use astria_sequencer_client::SequencerClientExt as _;
         use ibc_relayer_types::applications::transfer::msgs::ASTRIA_WITHDRAWAL_TYPE_URL;
-        use penumbra_ibc::IbcRelay;
-        use penumbra_proto::core::component::ibc::v1::IbcRelay as RawIbcRelay;
+        use penumbra_ibc_astria::IbcRelay;
+        use penumbra_proto_astria::core::component::ibc::v1::IbcRelay as RawIbcRelay;
 
         let msg_len = tracked_msgs.msgs.len();
         let mut actions: Vec<Action> = Vec::with_capacity(msg_len);
@@ -535,7 +535,7 @@ impl ChainEndpoint for AstriaEndpoint {
         _key_name: Option<&str>,
         denom: Option<&str>,
     ) -> Result<Balance, Error> {
-        use astria_core::sequencer::v1alpha1::account::AssetBalance;
+        use astria_core::sequencer::v1::account::AssetBalance;
         use astria_sequencer_client::{Address, SequencerClientExt as _};
 
         let signing_key: ed25519_consensus::SigningKey =
@@ -545,8 +545,7 @@ impl ChainEndpoint for AstriaEndpoint {
             .block_on(self.sequencer_client.get_latest_balance(address))
             .map_err(|e| Error::other(Box::new(e)))?;
 
-        let denom =
-            denom.unwrap_or(astria_core::sequencer::v1alpha1::asset::DEFAULT_NATIVE_ASSET_DENOM);
+        let denom = denom.unwrap_or(astria_core::sequencer::v1::asset::DEFAULT_NATIVE_ASSET_DENOM);
 
         let balance: Vec<AssetBalance> = balance
             .balances

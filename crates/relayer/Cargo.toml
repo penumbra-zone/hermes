@@ -61,8 +61,10 @@ penumbra-asset = { workspace = true }
 penumbra-custody = { workspace = true }
 penumbra-fee = { workspace = true }
 penumbra-ibc = { workspace = true }
+penumbra-ibc-astria = { workspace = true }
 penumbra-keys = { workspace = true }
 penumbra-proto = { workspace = true }
+penumbra-proto-astria = { workspace = true }
 penumbra-transaction = { workspace = true }
 penumbra-view = { workspace = true }
 penumbra-wallet = { workspace = true }
