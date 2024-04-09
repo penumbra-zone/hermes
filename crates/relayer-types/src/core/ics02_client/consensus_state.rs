@@ -1,7 +1,4 @@
-use core::{
-    fmt::Debug,
-    marker::{Send, Sync},
-};
+use core::fmt::Debug;
 
 use crate::{
     core::{ics02_client::client_type::ClientType, ics23_commitment::commitment::CommitmentRoot},

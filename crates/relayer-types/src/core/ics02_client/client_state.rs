@@ -1,8 +1,5 @@
 use core::fmt::Debug;
-use std::{
-    marker::{Send, Sync},
-    time::Duration,
-};
+use std::time::Duration;
 
 use crate::{
     core::{ics02_client::client_type::ClientType, ics24_host::identifier::ChainId},

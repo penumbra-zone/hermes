@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, str::FromStr};
+use std::str::FromStr;
 
 use ibc_proto::ibc::core::channel::v1::PacketId as ProtoPacketId;
 

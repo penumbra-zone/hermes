@@ -1,5 +1,5 @@
 use std::{
-    convert::{From, Infallible},
+    convert::Infallible,
     fmt::{Debug, Display, Error as FmtError, Formatter},
     str::FromStr,
 };

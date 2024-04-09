@@ -1,6 +1,5 @@
 use std::{
     borrow::Cow,
-    convert::TryFrom,
     fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };
