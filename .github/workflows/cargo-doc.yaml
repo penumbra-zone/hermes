@@ -29,17 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: nightly-2024-03-21
+      - name: Install rust toolchain
+        # The script for rustdoc build requires nightly toolchain.
+        uses: dtolnay/rust-toolchain@nightly
+      # Loading cache takes ~15s, but saves us minutes of build.
+      - name: Load rust cache
+        uses: astriaorg/buildjet-rust-cache@v2.5.1
       - name: Build API documentation
         uses: actions-rs/cargo@v1
         env:
-          RUSTDOCFLAGS: "--cfg docsrs"
+          RUSTDOCFLAGS: "--enable-index-page -Zunstable-options --cfg docsrs"
         with:
           command: doc
           args: --all-features
-
       - name: Push API documentation to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
