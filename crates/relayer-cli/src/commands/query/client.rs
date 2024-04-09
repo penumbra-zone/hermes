@@ -1,5 +1,4 @@
 use abscissa_core::{clap::Parser, Command, Runnable};
-use color_eyre::eyre::eyre;
 use ibc_relayer::chain::{
     handle::ChainHandle,
     requests::{
@@ -322,24 +321,10 @@ fn client_status(
         return Ok(Status::Frozen);
     }
 
-    let consensus_state_heights =
-        chain.query_consensus_state_heights(QueryConsensusStateHeightsRequest {
-            client_id: client_id.clone(),
-            pagination: Some(PageRequest::all()),
-        })?;
-
-    let latest_consensus_height = consensus_state_heights.last().copied().ok_or_else(|| {
-        eyre!(
-            "no consensus state found for client '{}' on chain '{}'",
-            client_id,
-            chain.id()
-        )
-    })?;
-
     let (latest_consensus_state, _) = chain.query_consensus_state(
         QueryConsensusStateRequest {
             client_id: client_id.clone(),
-            consensus_height: latest_consensus_height,
+            consensus_height: client_state.latest_height(),
             query_height: QueryHeight::Latest,
         },
         IncludeProof::No,

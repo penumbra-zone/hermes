@@ -29,6 +29,7 @@ env:
   RUST_BACKTRACE: short
   CARGO_NET_RETRY: 10
   RUSTUP_MAX_RETRIES: 10
+  RUSTFLAGS: --cfg tokio_unstable
 
 # Cancel previous runs of this workflow when a new commit is added to the PR, branch or tag
 concurrency:
@@ -49,16 +50,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Nix
-        uses: cachix/install-nix-action@v25
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-      - name: Use cachix cache
-        uses: cachix/cachix-action@v14
-        with:
-          name: cosmos
+        uses: DeterminateSystems/nix-installer-action@main
+        with: 
+          extra-conf: |
+            substituters = https://cache.nixos.org https://cosmosnix-store.s3.us-east-2.amazonaws.com
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= cosmosnix.store-1:O28HneR1MPtgY3WYruWFuXCimRPwY7em5s0iynkQxdk=
       - name: Install sconfig
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/sconfig
           platform: linux
@@ -67,7 +65,7 @@ jobs:
           rename-to: sconfig
           chmod: 0755
       - name: Install stoml
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/stoml
           platform: linux
@@ -76,12 +74,9 @@ jobs:
           rename-to: stoml
           chmod: 0755
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-      - name: Use Rust cache
-        uses: Swatinem/rust-cache@v2
       - name: Build Hermes
         uses: actions-rs/cargo@v1
         with:
@@ -103,16 +98,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Nix
-        uses: cachix/install-nix-action@v25
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-      - name: Use cachix cache
-        uses: cachix/cachix-action@v14
-        with:
-          name: cosmos
+        uses: DeterminateSystems/nix-installer-action@main
+        with: 
+          extra-conf: |
+            substituters = https://cache.nixos.org https://cosmosnix-store.s3.us-east-2.amazonaws.com
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= cosmosnix.store-1:O28HneR1MPtgY3WYruWFuXCimRPwY7em5s0iynkQxdk=
       - name: Install sconfig
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/sconfig
           platform: linux
@@ -121,7 +113,7 @@ jobs:
           rename-to: sconfig
           chmod: 0755
       - name: Install stoml
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/stoml
           platform: linux
@@ -130,12 +122,9 @@ jobs:
           rename-to: stoml
           chmod: 0755
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-      - name: Use Rust cache
-        uses: Swatinem/rust-cache@v2
       - name: Build Hermes
         uses: actions-rs/cargo@v1
         with:
@@ -157,16 +146,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Nix
-        uses: cachix/install-nix-action@v25
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-      - name: Use cachix cache
-        uses: cachix/cachix-action@v14
-        with:
-          name: cosmos
+        uses: DeterminateSystems/nix-installer-action@main
+        with: 
+          extra-conf: |
+            substituters = https://cache.nixos.org https://cosmosnix-store.s3.us-east-2.amazonaws.com
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= cosmosnix.store-1:O28HneR1MPtgY3WYruWFuXCimRPwY7em5s0iynkQxdk=
       - name: Install sconfig
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/sconfig
           platform: linux
@@ -175,7 +161,7 @@ jobs:
           rename-to: sconfig
           chmod: 0755
       - name: Install stoml
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/stoml
           platform: linux
@@ -184,12 +170,9 @@ jobs:
           rename-to: stoml
           chmod: 0755
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-      - name: Use Rust cache
-        uses: Swatinem/rust-cache@v2
       - name: Build Hermes
         uses: actions-rs/cargo@v1
         with:
@@ -212,16 +195,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Nix
-        uses: cachix/install-nix-action@v25
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-      - name: Use cachix cache
-        uses: cachix/cachix-action@v14
-        with:
-          name: cosmos
+        uses: DeterminateSystems/nix-installer-action@main
+        with: 
+          extra-conf: |
+            substituters = https://cache.nixos.org https://cosmosnix-store.s3.us-east-2.amazonaws.com
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= cosmosnix.store-1:O28HneR1MPtgY3WYruWFuXCimRPwY7em5s0iynkQxdk=
       - name: Install sconfig
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/sconfig
           platform: linux
@@ -230,7 +210,7 @@ jobs:
           rename-to: sconfig
           chmod: 0755
       - name: Install stoml
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
         with:
           repo: freshautomations/stoml
           platform: linux
@@ -239,12 +219,9 @@ jobs:
           rename-to: stoml
           chmod: 0755
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-      - name: Use Rust cache
-        uses: Swatinem/rust-cache@v2
       - name: Build Hermes
         uses: actions-rs/cargo@v1
         with:

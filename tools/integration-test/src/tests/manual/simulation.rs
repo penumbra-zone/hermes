@@ -36,6 +36,7 @@ impl TestOverrides for SimulationTest {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.max_msg_num = MaxMsgNum::new(MAX_MSGS).unwrap();
                 }
+                ChainConfig::Penumbra(_) | ChainConfig::Astria(_) => todo!(),
             }
         }
     }

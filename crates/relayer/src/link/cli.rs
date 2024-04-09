@@ -1,5 +1,4 @@
 use std::{
-    convert::TryInto,
     ops::RangeInclusive,
     thread,
     time::{Duration, Instant},

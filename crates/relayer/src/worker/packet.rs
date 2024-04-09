@@ -14,7 +14,7 @@ use ibc_relayer_types::{
         ics29_fee::events::IncentivizedPacket,
         transfer::{Amount, Coin, RawCoin},
     },
-    core::ics04_channel::{events::WriteAcknowledgement, packet::Sequence},
+    core::ics04_channel::{channel::Ordering, events::WriteAcknowledgement, packet::Sequence},
     events::{IbcEvent, IbcEventType},
     Height,
 };
@@ -29,9 +29,9 @@ use {
 
 use super::{error::RunError, WorkerCmd};
 use crate::{
-    chain::handle::ChainHandle,
+    chain::{handle::ChainHandle, requests::QueryHeight},
     config::filter::FeePolicy,
-    event::source::EventBatch,
+    event::{source::EventBatch, IbcEventWithHeight},
     foreign_client::HasExpiredOrFrozenError,
     link::{error::LinkError, Link, Resubmit},
     object::Packet,
@@ -168,7 +168,7 @@ pub fn spawn_incentivized_packet_cmd_worker<ChainA: ChainHandle, ChainB: ChainHa
     // This Cache will store the IncentivizedPacket observed. They will then be used in order
     // to verify if a SendPacket event is incentivized.
     let incentivized_recv_cache: RwArc<Cache<Sequence, IncentivizedPacket>> = RwArc::new_lock(
-        moka::sync::Cache::builder()
+        Cache::builder()
             .time_to_live(INCENTIVIZED_CACHE_TTL)
             .max_capacity(INCENTIVIZED_CACHE_MAX_CAPACITY)
             .build(),
@@ -210,6 +210,24 @@ fn handle_packet_cmd<ChainA: ChainHandle, ChainB: ChainHandle>(
 ) -> Result<(), TaskError<RunError>> {
     // Handle packet clearing which is triggered from a command
     let (do_clear, maybe_height) = match &cmd {
+        WorkerCmd::IbcEvents { batch } if link.a_to_b.channel().ordering == Ordering::Ordered => {
+            let lowest_sequence = lowest_sequence(&batch.events);
+
+            let next_sequence = query_next_sequence_receive(
+                link.a_to_b.dst_chain(),
+                link.a_to_b.dst_port_id(),
+                link.a_to_b.dst_channel_id(),
+                QueryHeight::Specific(batch.height),
+            )
+            .ok();
+
+            if *should_clear_on_start || next_sequence < lowest_sequence {
+                (true, Some(batch.height))
+            } else {
+                (false, None)
+            }
+        }
+
         WorkerCmd::IbcEvents { batch } => {
             if *should_clear_on_start {
                 (true, Some(batch.height))
@@ -443,6 +461,34 @@ fn handle_execute_schedule<ChainA: ChainHandle, ChainB: ChainHandle>(
     }
 
     Ok(())
+}
+
+fn query_next_sequence_receive<Chain: ChainHandle>(
+    chain: &Chain,
+    port_id: &PortId,
+    channel_id: &ChannelId,
+    height: QueryHeight,
+) -> Result<Sequence, LinkError> {
+    use crate::chain::requests::{IncludeProof, QueryNextSequenceReceiveRequest};
+
+    chain
+        .query_next_sequence_receive(
+            QueryNextSequenceReceiveRequest {
+                port_id: port_id.clone(),
+                channel_id: channel_id.clone(),
+                height,
+            },
+            IncludeProof::No,
+        )
+        .map(|(seq, _height)| seq)
+        .map_err(|e| LinkError::query(chain.id(), e))
+}
+
+fn lowest_sequence(events: &[IbcEventWithHeight]) -> Option<Sequence> {
+    events
+        .iter()
+        .flat_map(|event| event.event.packet().map(|p| p.sequence))
+        .min()
 }
 
 #[cfg(feature = "telemetry")]

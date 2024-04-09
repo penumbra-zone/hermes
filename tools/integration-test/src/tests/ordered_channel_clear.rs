@@ -56,6 +56,7 @@ impl TestOverrides for OrderedChannelClearTest {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.sequential_batch_tx = self.sequential_batch_tx;
                 }
+                ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
             }
         }
 
@@ -64,6 +65,7 @@ impl TestOverrides for OrderedChannelClearTest {
             ChainConfig::CosmosSdk(chain_config) => {
                 chain_config.sequential_batch_tx = self.sequential_batch_tx;
             }
+            ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
         }
     }
 
@@ -123,6 +125,7 @@ impl BinaryChannelTest for OrderedChannelClearTest {
             src_channel_id: channel.channel_id_a.clone().into_value(),
             max_memo_size: packet_config.ics20_max_memo_size,
             max_receiver_size: packet_config.ics20_max_receiver_size,
+            exclude_src_sequences: vec![],
         };
 
         let chain_a_link = Link::new_from_opts(
@@ -138,6 +141,7 @@ impl BinaryChannelTest for OrderedChannelClearTest {
             src_channel_id: channel.channel_id_b.clone().into_value(),
             max_memo_size: packet_config.ics20_max_memo_size,
             max_receiver_size: packet_config.ics20_max_receiver_size,
+            exclude_src_sequences: vec![],
         };
 
         let chain_b_link = Link::new_from_opts(
@@ -198,6 +202,7 @@ impl TestOverrides for OrderedChannelClearEqualCLITest {
                     chain_config.sequential_batch_tx = true;
                     chain_config.max_msg_num = MaxMsgNum::new(3).unwrap();
                 }
+                ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
             }
         }
 
@@ -207,6 +212,7 @@ impl TestOverrides for OrderedChannelClearEqualCLITest {
                 chain_config.sequential_batch_tx = true;
                 chain_config.max_msg_num = MaxMsgNum::new(3).unwrap();
             }
+            ChainConfig::Astria(_) | ChainConfig::Penumbra(_) => todo!(),
         }
     }
 
@@ -274,6 +280,7 @@ impl BinaryChannelTest for OrderedChannelClearEqualCLITest {
             src_channel_id: channel.channel_id_a.into_value(),
             max_memo_size: packet_config.ics20_max_memo_size,
             max_receiver_size: packet_config.ics20_max_receiver_size,
+            exclude_src_sequences: vec![],
         };
 
         let chain_a_link = Link::new_from_opts(

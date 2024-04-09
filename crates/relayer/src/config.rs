@@ -16,7 +16,13 @@ use core::{
     str::FromStr,
     time::Duration,
 };
-use std::{fs, fs::File, io::Write, ops::Range, path::Path};
+use std::{
+    borrow::Cow,
+    fs::{self, File},
+    io::Write,
+    ops::Range,
+    path::Path,
+};
 
 use byte_unit::Byte;
 pub use error::Error;
@@ -24,7 +30,7 @@ pub use filter::PacketFilter;
 use ibc_proto::google::protobuf::Any;
 use ibc_relayer_types::{
     core::{
-        ics23_commitment::specs::ProofSpecs,
+        ics04_channel::packet::Sequence,
         ics24_host::identifier::{ChainId, ChannelId, PortId},
     },
     timestamp::ZERO_DURATION,
@@ -175,7 +181,11 @@ pub mod default {
     }
 
     pub fn poll_interval() -> Duration {
-        Duration::from_secs(1)
+        Duration::from_millis(500)
+    }
+
+    pub fn max_retries() -> u32 {
+        4
     }
 
     pub fn batch_delay() -> Duration {
@@ -419,6 +429,9 @@ pub struct Packets {
     pub ics20_max_memo_size: Ics20FieldSizeLimit,
     #[serde(default = "default::ics20_max_receiver_size")]
     pub ics20_max_receiver_size: Ics20FieldSizeLimit,
+
+    #[serde(skip)]
+    pub force_disable_clear_on_start: bool,
 }
 
 impl Default for Packets {
@@ -431,6 +444,7 @@ impl Default for Packets {
             auto_register_counterparty_payee: default::auto_register_counterparty_payee(),
             ics20_max_memo_size: default::ics20_max_memo_size(),
             ics20_max_receiver_size: default::ics20_max_receiver_size(),
+            force_disable_clear_on_start: false,
         }
     }
 }
@@ -623,6 +637,11 @@ pub enum EventSourceMode {
         /// The polling interval
         #[serde(default = "default::poll_interval", with = "humantime_serde")]
         interval: Duration,
+
+        /// The maximum retries to collect the block results
+        /// before giving up and moving to the next block
+        #[serde(default = "default::max_retries")]
+        max_retries: u32,
     },
 }
 
@@ -634,6 +653,7 @@ pub enum EventSourceMode {
 // below when adding a new chain type.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
+#[allow(clippy::large_enum_variant)]
 pub enum ChainConfig {
     CosmosSdk(CosmosSdkConfig),
     Astria(CosmosSdkConfig), // TODO: if the config is the cometbft config, it's the same
@@ -755,6 +775,18 @@ impl ChainConfig {
         }
     }
 
+    pub fn excluded_sequences(&self, channel_id: &ChannelId) -> Cow<'_, [Sequence]> {
+        match self {
+            Self::CosmosSdk(config) => config
+                .excluded_sequences
+                .get(channel_id)
+                .map(|seqs| Cow::Borrowed(seqs.as_slice()))
+                .unwrap_or_else(|| Cow::Owned(Vec::new())),
+            Self::Penumbra(_config) => todo!(),
+            Self::Astria(_config) => todo!(),
+        }
+    }
+
     pub fn clock_drift(&self) -> Duration {
         match self {
             Self::CosmosSdk(config) => config.clock_drift,
@@ -817,7 +849,7 @@ impl<'de> Deserialize<'de> for ChainConfig {
 
 /// Attempt to load and parse the TOML config file as a `Config`.
 pub fn load(path: impl AsRef<Path>) -> Result<Config, Error> {
-    let config_toml = std::fs::read_to_string(&path).map_err(Error::io)?;
+    let config_toml = fs::read_to_string(&path).map_err(Error::io)?;
 
     let config = toml::from_str::<Config>(&config_toml[..]).map_err(Error::decode)?;
 

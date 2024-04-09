@@ -1,6 +1,5 @@
 use core::fmt::{Debug, Error, Formatter};
 
-use abscissa_core::{clap::Parser, Runnable};
 use eyre::eyre;
 use ibc_relayer::{
     chain::{

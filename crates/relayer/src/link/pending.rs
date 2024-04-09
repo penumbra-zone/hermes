@@ -1,4 +1,4 @@
-use core::{iter::Iterator, time::Duration};
+use core::time::Duration;
 use std::time::Instant;
 
 use ibc_relayer_types::{

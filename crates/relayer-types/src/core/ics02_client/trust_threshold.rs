@@ -3,7 +3,6 @@
 //! range `[0, 1)`.
 
 use std::{
-    convert::TryFrom,
     fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };

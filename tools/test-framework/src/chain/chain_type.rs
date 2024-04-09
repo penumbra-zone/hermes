@@ -18,13 +18,14 @@ pub enum ChainType {
     Evmos,
     Astria,
     Provenance,
+    Injective,
 }
 
 impl ChainType {
     pub fn hd_path(&self) -> &str {
         match self {
             Self::Cosmos => COSMOS_HD_PATH,
-            Self::Evmos => EVMOS_HD_PATH,
+            Self::Evmos | Self::Injective => EVMOS_HD_PATH,
             Self::Astria => todo!("Astria HD path not yet implemented"),
             Self::Provenance => PROVENANCE_HD_PATH,
         }
@@ -39,6 +40,7 @@ impl ChainType {
                     ChainId::from_string(&format!("ibc{prefix}"))
                 }
             }
+            Self::Injective => ChainId::from_string(&format!("injective-{prefix}")),
             Self::Evmos => ChainId::from_string(&format!("evmos_9000-{prefix}")),
             Self::Astria => todo!("Astria chain id not yet implemented"),
             Self::Provenance => ChainId::from_string(&format!("pio-mainnet-{prefix}")),
@@ -50,25 +52,42 @@ impl ChainType {
         let mut res = vec![];
         let json_rpc_port = random_unused_tcp_port();
         match self {
-            Self::Cosmos => {}
+            Self::Cosmos | Self::Injective | Self::Provenance => {}
             Self::Evmos => {
                 res.push("--json-rpc.address".to_owned());
                 res.push(format!("localhost:{json_rpc_port}"));
             }
+            ChainType::Astria => todo!(),
+        }
+        res
+    }
+
+    // Extra arguments required to run `<chain binary> add-genesis-account`
+    pub fn extra_add_genesis_account_args(&self, chain_id: &ChainId) -> Vec<String> {
+        let mut res = vec![];
+        match self {
+            Self::Cosmos | Self::Evmos | Self::Provenance => {}
+            Self::Injective => {
+                res.push("--chain-id".to_owned());
+                res.push(format!("{chain_id}"));
+            }
             Self::Astria => todo!("Astria extra start args not yet implemented"),
-            Self::Provenance => {}
+            // Self::Penumbra => todo!("Penumbra extra start args not yet implemented"),
         }
         res
     }
 
     pub fn address_type(&self) -> AddressType {
         match self {
-            Self::Cosmos => AddressType::default(),
+            Self::Cosmos | Self::Provenance => AddressType::default(),
             Self::Evmos => AddressType::Ethermint {
                 pk_type: "/ethermint.crypto.v1.ethsecp256k1.PubKey".to_string(),
             },
+            Self::Injective => AddressType::Ethermint {
+                pk_type: "/injective.crypto.v1beta1.ethsecp256k1.PubKey".to_string(),
+            },
             Self::Astria => AddressType::Astria,
-            Self::Provenance => AddressType::default(),
+            // Self::Penumbra => todo!(),
         }
     }
 }
@@ -78,13 +97,11 @@ impl FromStr for ChainType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            name if name.contains("gaiad") => Ok(ChainType::Cosmos),
-            name if name.contains("simd") => Ok(ChainType::Cosmos),
-            name if name.contains("wasmd") => Ok(ChainType::Cosmos),
-            name if name.contains("icad") => Ok(ChainType::Cosmos),
             name if name.contains("evmosd") => Ok(ChainType::Evmos),
+            name if name.contains("injectived") => Ok(ChainType::Injective),
             name if name.contains("astria") => Ok(ChainType::Astria),
             name if name.contains("provenanced") => Ok(ChainType::Provenance),
+            // name if name.contains("penumbra") => Ok(ChainType::Penumbra),
             _ => Ok(ChainType::Cosmos),
         }
     }

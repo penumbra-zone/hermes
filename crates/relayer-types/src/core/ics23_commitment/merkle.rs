@@ -100,7 +100,7 @@ impl MerkleProof {
                     ) {
                         return Err(Error::verification_failure());
                     }
-                    value = subroot.clone();
+                    value.clone_from(&subroot);
                 }
                 _ => return Err(Error::invalid_merkle_proof()),
             }

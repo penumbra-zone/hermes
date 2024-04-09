@@ -26,7 +26,7 @@ pub const COUNTERPARTY_PORT_ID_ATTRIBUTE_KEY: &str = "counterparty_port_id";
 
 /// Packet event attribute keys
 pub const PKT_SEQ_ATTRIBUTE_KEY: &str = "packet_sequence";
-pub const PKT_DATA_ATTRIBUTE_KEY: &str = "packet_data";
+pub const PKT_DATA_ATTRIBUTE_KEY: &str = "packet_data_hex";
 pub const PKT_SRC_PORT_ATTRIBUTE_KEY: &str = "packet_src_port";
 pub const PKT_SRC_CHANNEL_ATTRIBUTE_KEY: &str = "packet_src_channel";
 pub const PKT_DST_PORT_ATTRIBUTE_KEY: &str = "packet_dst_port";

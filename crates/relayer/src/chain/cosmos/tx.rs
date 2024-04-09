@@ -2,7 +2,7 @@ use ibc_proto::{cosmos::tx::v1beta1::Fee, google::protobuf::Any};
 use ibc_relayer_types::events::IbcEvent;
 use tendermint_rpc::{endpoint::broadcast::tx_sync::Response, Client, HttpClient, Url};
 
-use super::batch::send_batched_messages_and_wait_commit;
+use super::{batch::send_batched_messages_and_wait_commit, estimate::EstimatedGas};
 use crate::{
     chain::cosmos::{
         encode::sign_and_encode_tx,
@@ -24,13 +24,16 @@ pub async fn estimate_fee_and_send_tx(
     account: &Account,
     tx_memo: &Memo,
     messages: &[Any],
-) -> Result<Response, Error> {
-    let fee = estimate_tx_fees(config, key_pair, account, tx_memo, messages).await?;
+) -> Result<(Response, EstimatedGas), Error> {
+    let (fee, estimated_gas) =
+        estimate_tx_fees(config, key_pair, account, tx_memo, messages).await?;
 
-    send_tx_with_fee(
+    let tx_result = send_tx_with_fee(
         rpc_client, config, key_pair, account, tx_memo, messages, &fee,
     )
-    .await
+    .await?;
+
+    Ok((tx_result, estimated_gas))
 }
 
 async fn send_tx_with_fee(
@@ -86,7 +89,7 @@ pub async fn simple_send_tx(
         .await?
         .into();
 
-    let response = estimate_fee_and_send_tx(
+    let (response, _) = estimate_fee_and_send_tx(
         rpc_client,
         config,
         key_pair,

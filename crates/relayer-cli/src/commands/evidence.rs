@@ -6,7 +6,6 @@ use std::{
     time::Duration,
 };
 
-use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::{
         cosmos::CosmosSdkChain,

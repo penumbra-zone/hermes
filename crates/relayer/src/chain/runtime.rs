@@ -37,7 +37,6 @@ use super::{
 };
 use crate::{
     account::Balance,
-    chain::requests::QueryPacketEventDataRequest,
     client_state::{AnyClientState, IdentifiedAnyClientState},
     config::ChainConfig,
     connection::ConnectionMsgType,

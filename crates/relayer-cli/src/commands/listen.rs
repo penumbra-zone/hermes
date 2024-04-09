@@ -5,7 +5,7 @@ use core::{
 };
 use std::thread;
 
-use abscissa_core::{application::fatal_error, clap::Parser, Runnable};
+use abscissa_core::application::fatal_error;
 use eyre::eyre;
 use ibc_relayer::{
     chain::handle::Subscription,
@@ -154,10 +154,14 @@ fn subscribe(
                     *batch_delay,
                     rt,
                 ),
-                EventSourceMode::Pull { interval } => EventSource::rpc(
+                EventSourceMode::Pull {
+                    interval,
+                    max_retries,
+                } => EventSource::rpc(
                     chain_config.id().clone(),
                     HttpClient::new(config.rpc_addr.clone())?,
                     *interval,
+                    *max_retries,
                     rt,
                 ),
             }?;
@@ -176,10 +180,14 @@ fn subscribe(
                     *batch_delay,
                     rt,
                 ),
-                EventSourceMode::Pull { interval } => EventSource::rpc(
+                EventSourceMode::Pull {
+                    interval,
+                    max_retries,
+                } => EventSource::rpc(
                     chain_config.id().clone(),
                     HttpClient::new(config.rpc_addr.clone())?,
                     *interval,
+                    *max_retries,
                     rt,
                 ),
             }?;

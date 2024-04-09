@@ -1,16 +1,19 @@
 use alloc::sync::Arc;
-use core::{
-    convert::{TryFrom, TryInto},
-    future::Future,
-    str::FromStr,
-    time::Duration,
-};
+use core::{future::Future, str::FromStr, time::Duration};
 use std::{cmp::Ordering, thread};
 
 use bytes::{Buf, Bytes};
 use futures::future::join_all;
 use ibc_proto::{
-    cosmos::{base::node::v1beta1::ConfigResponse, staking::v1beta1::Params as StakingParams},
+    cosmos::{
+        base::{
+            node::v1beta1::ConfigResponse,
+            tendermint::v1beta1::{
+                service_client::ServiceClient, GetSyncingRequest, GetSyncingResponse,
+            },
+        },
+        staking::v1beta1::Params as StakingParams,
+    },
     ibc::apps::fee::v1::{QueryIncentivizedPacketRequest, QueryIncentivizedPacketResponse},
     interchain_security::ccv::v1::ConsumerParams as CcvConsumerParams,
     Protobuf,
@@ -120,6 +123,7 @@ use crate::{
         compat_mode::compat_mode_from_version,
         pretty::{
             PrettyIdentifiedChannel, PrettyIdentifiedClientState, PrettyIdentifiedConnection,
+            PrettySlice,
         },
     },
 };
@@ -155,6 +159,7 @@ pub mod wait;
 ///
 /// [tm-37-max]: https://github.com/tendermint/tendermint/blob/v0.37.0-rc1/types/params.go#L79
 pub const BLOCK_MAX_BYTES_MAX_FRACTION: f64 = 0.9;
+
 pub struct CosmosSdkChain {
     config: config::CosmosSdkConfig,
     tx_config: TxConfig,
@@ -301,19 +306,23 @@ impl CosmosSdkChain {
             ));
         }
 
-        // Query /genesis RPC endpoint to retrieve the `max_expected_time_per_block` value
-        // to use as `max_block_time`.
+        // Query /genesis RPC endpoint to retrieve the `max_expected_time_per_block` value to use as `max_block_time`.
         // If it is not found, keep the configured `max_block_time`.
         match self.block_on(self.rpc_client.genesis::<GenesisAppState>()) {
             Ok(genesis_reponse) => {
                 let old_max_block_time = self.config.max_block_time;
-                self.config.max_block_time =
+                let new_max_block_time =
                     Duration::from_nanos(genesis_reponse.app_state.max_expected_time_per_block());
-                info!(
-                    "Updated `max_block_time` using /genesis endpoint. Old value: `{}s`, new value: `{}s`",
-                    old_max_block_time.as_secs(),
-                    self.config.max_block_time.as_secs()
-                );
+
+                if old_max_block_time.as_secs() != new_max_block_time.as_secs() {
+                    self.config.max_block_time = new_max_block_time;
+
+                    info!(
+                        "Updated `max_block_time` using /genesis endpoint. Old value: `{}s`, new value: `{}s`",
+                        old_max_block_time.as_secs(),
+                        self.config.max_block_time.as_secs()
+                    );
+                }
             }
             Err(e) => {
                 warn!(
@@ -344,10 +353,14 @@ impl CosmosSdkChain {
                 *batch_delay,
                 self.rt.clone(),
             ),
-            Mode::Pull { interval } => EventSource::rpc(
+            Mode::Pull {
+                interval,
+                max_retries,
+            } => EventSource::rpc(
                 self.config.id.clone(),
                 self.rpc_client.clone(),
                 *interval,
+                *max_retries,
                 self.rt.clone(),
             ),
         }
@@ -490,7 +503,7 @@ impl CosmosSdkChain {
     }
 
     /// The minimum gas price that this node accepts
-    pub fn min_gas_price(&self) -> Result<Vec<GasPrice>, Error> {
+    pub fn min_gas_price(&self) -> Result<Option<Vec<GasPrice>>, Error> {
         crate::time!(
             "min_gas_price",
             {
@@ -498,10 +511,9 @@ impl CosmosSdkChain {
             }
         );
 
-        let min_gas_price: Vec<GasPrice> =
-            self.query_config_params()?.map_or(vec![], |cfg_response| {
-                parse_gas_prices(cfg_response.minimum_gas_price)
-            });
+        let min_gas_price: Option<Vec<GasPrice>> = self
+            .query_config_params()?
+            .map(|cfg_response| parse_gas_prices(cfg_response.minimum_gas_price));
 
         Ok(min_gas_price)
     }
@@ -641,6 +653,69 @@ impl CosmosSdkChain {
     ///
     /// Returns an error if the node is still syncing and has not caught up,
     /// ie. if `sync_info.catching_up` is `true`.
+    fn chain_rpc_status(&self) -> Result<status::Response, Error> {
+        crate::time!(
+            "chain_rpc_status",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "rpc_status");
+
+        let status = self
+            .block_on(self.rpc_client.status())
+            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+
+        if status.sync_info.catching_up {
+            Err(Error::chain_not_caught_up(
+                self.config.rpc_addr.to_string(),
+                self.config().id.clone(),
+            ))
+        } else {
+            Ok(status)
+        }
+    }
+
+    /// Query the chain syncing status via a gRPC query.
+    ///
+    /// Returns an error if the node is still syncing and has not caught up,
+    /// ie. if `sync_info.syncing` is `true`.
+    fn chain_grpc_status(&self) -> Result<GetSyncingResponse, Error> {
+        crate::time!(
+            "chain_grpc_status",
+            {
+                "src_chain": self.config().id.to_string(),
+            }
+        );
+        crate::telemetry!(query, self.id(), "grpc_status");
+
+        let grpc_addr = self.grpc_addr.clone();
+        let grpc_addr_string = grpc_addr.to_string();
+
+        let mut client = self
+            .block_on(ServiceClient::connect(grpc_addr.clone()))
+            .map_err(Error::grpc_transport)?;
+
+        let request = tonic::Request::new(GetSyncingRequest {});
+
+        let sync_info = self
+            .block_on(client.get_syncing(request))
+            .map_err(|e| Error::grpc_status(e, "get_syncing".to_string()))?
+            .into_inner();
+
+        if sync_info.syncing {
+            Err(Error::chain_not_caught_up(
+                grpc_addr_string,
+                self.config().id.clone(),
+            ))
+        } else {
+            Ok(sync_info)
+        }
+    }
+
+    /// Query the chain status of the RPC and gRPC nodes.
+    ///
+    /// Returns an error if any of the node is still syncing and has not caught up.
     fn chain_status(&self) -> Result<status::Response, Error> {
         crate::time!(
             "chain_status",
@@ -650,18 +725,25 @@ impl CosmosSdkChain {
         );
         crate::telemetry!(query, self.id(), "status");
 
-        let status = self
-            .block_on(self.rpc_client.status())
-            .map_err(|e| Error::rpc(self.config.rpc_addr.clone(), e))?;
+        let rpc_status = self.chain_rpc_status()?;
 
-        if status.sync_info.catching_up {
+        if rpc_status.sync_info.catching_up {
             return Err(Error::chain_not_caught_up(
                 self.config.rpc_addr.to_string(),
                 self.config().id.clone(),
             ));
         }
 
-        Ok(status)
+        let grpc_status = self.chain_grpc_status()?;
+
+        if grpc_status.syncing {
+            return Err(Error::chain_not_caught_up(
+                self.config.grpc_addr.to_string(),
+                self.config().id.clone(),
+            ));
+        }
+
+        Ok(rpc_status)
     }
 
     /// Query the chain's latest height
@@ -1005,17 +1087,17 @@ impl ChainEndpoint for CosmosSdkChain {
     /// further checks.
     fn health_check(&mut self) -> Result<HealthCheck, Error> {
         if let Err(e) = do_health_check(self) {
-            warn!("Health checkup for chain '{}' failed", self.id());
-            warn!("    Reason: {}", e.detail());
-            warn!("    Some Hermes features may not work in this mode!");
+            warn!("health check failed for chain '{}'", self.id());
+            warn!("reason: {}", e.detail());
+            warn!("some Hermes features may not work in this mode!");
 
             return Ok(HealthCheck::Unhealthy(Box::new(e)));
         }
 
         if let Err(e) = self.validate_params() {
-            warn!("Hermes might be misconfigured for chain '{}'", self.id());
-            warn!("    Reason: {}", e.detail());
-            warn!("    Some Hermes features may not work in this mode!");
+            warn!("found potential misconfiguration for chain '{}'", self.id());
+            warn!("reason: {}", e.detail());
+            warn!("some Hermes features may not work in this mode!");
 
             return Ok(HealthCheck::Unhealthy(Box::new(e)));
         }
@@ -2371,6 +2453,17 @@ fn do_health_check(chain: &CosmosSdkChain) -> Result<(), Error> {
     let grpc_address = chain.grpc_addr.to_string();
     let rpc_address = chain.config.rpc_addr.to_string();
 
+    if !chain.config.excluded_sequences.is_empty() {
+        for (channel_id, seqs) in chain.config.excluded_sequences.iter() {
+            if !seqs.is_empty() {
+                warn!(
+                    "chain '{chain_id}' will not clear packets on channel '{channel_id}' with sequences: {}. \
+                    Ignore this warning if this configuration is correct.", PrettySlice(seqs)
+                );
+            }
+        }
+    }
+
     chain.block_on(chain.rpc_client.health()).map_err(|e| {
         Error::health_check_json_rpc(
             chain_id.clone(),
@@ -2396,44 +2489,50 @@ fn do_health_check(chain: &CosmosSdkChain) -> Result<(), Error> {
     }
 
     let relayer_gas_price = &chain.config.gas_price;
-    let node_min_gas_prices = chain.min_gas_price()?;
+    let node_min_gas_prices_result = chain.min_gas_price()?;
 
-    if !node_min_gas_prices.is_empty() {
-        let mut found_matching_denom = false;
+    match node_min_gas_prices_result {
+        Some(node_min_gas_prices) if !node_min_gas_prices.is_empty() => {
+            let mut found_matching_denom = false;
 
-        for price in node_min_gas_prices {
-            match relayer_gas_price.partial_cmp(&price) {
-                Some(Ordering::Less) => return Err(Error::gas_price_too_low(chain_id.clone())),
-                Some(_) => {
-                    found_matching_denom = true;
-                    break;
+            for price in node_min_gas_prices {
+                match relayer_gas_price.partial_cmp(&price) {
+                    Some(Ordering::Less) => return Err(Error::gas_price_too_low(chain_id.clone())),
+                    Some(_) => {
+                        found_matching_denom = true;
+                        break;
+                    }
+                    None => continue,
                 }
-                None => continue,
+            }
+
+            if !found_matching_denom {
+                warn!(
+                        "chain '{}' has no minimum gas price of denomination '{}' \
+                        that is strictly less than the `gas_price` specified for that chain in the Hermes configuration. \
+                        This is usually a sign of misconfiguration, please check your chain and Hermes configurations",
+                        chain_id, relayer_gas_price.denom
+                    );
             }
         }
 
-        if !found_matching_denom {
-            warn!(
-                "Chain '{}' has no minimum gas price of denomination '{}' \
-                that is strictly less than the `gas_price` specified for \
-                that chain in the Hermes configuration. \
-                This is usually a sign of misconfiguration, please check your chain and Hermes configurations",
-                chain_id, relayer_gas_price.denom
-            );
-        }
-    } else {
-        warn!(
-            "Chain '{}' has no minimum gas price value configured for denomination '{}'. \
-            This is usually a sign of misconfiguration, please check your chain and \
-            relayer configurations",
+        Some(_) => warn!(
+            "chain '{}' has no minimum gas price value configured for denomination '{}'. \
+            This is usually a sign of misconfiguration, please check your chain and relayer configurations",
             chain_id, relayer_gas_price.denom
-        );
+        ),
+
+        None => warn!(
+            "chain '{}' does not implement the `cosmos.base.node.v1beta1.Service/Params` endpoint. \
+            It is impossible to check whether the chain's minimum-gas-prices matches the ones specified in config",
+            chain_id,
+        ),
     }
 
     let version_specs = chain.block_on(fetch_version_specs(&chain.config.id, &chain.grpc_addr))?;
 
     if let Err(diagnostic) = compatibility::run_diagnostic(&version_specs) {
-        return Err(Error::sdk_module_version(
+        return Err(Error::compat_check_failed(
             chain_id.clone(),
             grpc_address,
             diagnostic.to_string(),

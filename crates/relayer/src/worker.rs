@@ -111,6 +111,12 @@ pub fn spawn_worker_tasks<ChainA: ChainHandle, ChainB: ChainHandle>(
             (Some(cmd_tx), None)
         }
         Object::Packet(path) => {
+            let exclude_src_sequences = config
+                .find_chain(&chains.a.id())
+                .map(|chain_config| chain_config.excluded_sequences(&path.src_channel_id))
+                .unwrap_or_default()
+                .to_vec();
+
             let packets_config = config.mode.packets;
             let link_res = Link::new_from_opts(
                 chains.a.clone(),
@@ -120,6 +126,7 @@ pub fn spawn_worker_tasks<ChainA: ChainHandle, ChainB: ChainHandle>(
                     src_channel_id: path.src_channel_id.clone(),
                     max_memo_size: packets_config.ics20_max_memo_size,
                     max_receiver_size: packets_config.ics20_max_receiver_size,
+                    exclude_src_sequences,
                 },
                 packets_config.tx_confirmation,
                 packets_config.auto_register_counterparty_payee,
@@ -129,7 +136,7 @@ pub fn spawn_worker_tasks<ChainA: ChainHandle, ChainB: ChainHandle>(
                 Ok(link) => {
                     let channel_ordering = link.a_to_b.channel().ordering;
                     let should_clear_on_start =
-                        packets_config.clear_on_start || channel_ordering == Ordering::Ordered;
+                        should_clear_on_start(&packets_config, channel_ordering);
 
                     let (cmd_tx, cmd_rx) = crossbeam_channel::unbounded();
                     let link = Arc::new(Mutex::new(link));
@@ -217,4 +224,12 @@ pub fn spawn_worker_tasks<ChainA: ChainHandle, ChainB: ChainHandle>(
     };
 
     WorkerHandle::new(id, object, data, cmd_tx, task_handles)
+}
+
+fn should_clear_on_start(config: &crate::config::Packets, channel_ordering: Ordering) -> bool {
+    if config.force_disable_clear_on_start {
+        false
+    } else {
+        config.clear_on_start || channel_ordering == Ordering::Ordered
+    }
 }

@@ -20,3 +20,4 @@ v                     without deliberation
 - [ ] Create a new release in the changelog, using [`unclog`](https://github.com/informalsystems/unclog)
   - If doing a release candidate (`rc`) version, then skip the `unclog release` step
 - [ ] Reassign unfinished issues of previous milestone to the next milestone
+- [ ] Notify the comms team about the pending new release by tagging [@isa-belch](https://github.com/isa-belch) as a reviewer here

@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, fmt};
+use std::fmt;
 
 use ibc_proto::ibc::core::commitment::v1::MerkleProof as RawMerkleProof;
 use serde::{Deserialize, Serialize};

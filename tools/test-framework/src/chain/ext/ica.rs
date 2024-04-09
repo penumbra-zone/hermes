@@ -1,6 +1,6 @@
 use ibc_relayer::chain::{handle::ChainHandle, tracking::TrackedMsgs};
 use ibc_relayer_types::{
-    applications::ics27_ica::msgs::register::MsgRegisterInterchainAccount,
+    applications::ics27_ica::msgs::register::LegacyMsgRegisterInterchainAccount,
     core::ics04_channel::version::Version, events::IbcEvent, tx_msg::Msg,
 };
 
@@ -82,7 +82,7 @@ pub fn register_interchain_account<Chain: ChainHandle, Counterparty: ChainHandle
     let owner = handle.get_signer()?;
 
     let version_str = format!("{{\"version\":\"ics27-1\",\"encoding\":\"proto3\",\"tx_type\":\"sdk_multi_msg\",\"controller_connection_id\":\"{}\",\"host_connection_id\":\"{}\"}}", connection.connection_id_a.0, connection.connection_id_b.0);
-    let msg = MsgRegisterInterchainAccount {
+    let msg = LegacyMsgRegisterInterchainAccount {
         owner,
         connection_id: connection.connection_id_a.0.clone(),
         version: Version::new(version_str),

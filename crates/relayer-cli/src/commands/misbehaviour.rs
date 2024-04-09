@@ -1,6 +1,5 @@
 use std::ops::Deref;
 
-use abscissa_core::{clap::Parser, Command, Runnable};
 use eyre::eyre;
 use ibc_relayer::{
     chain::{

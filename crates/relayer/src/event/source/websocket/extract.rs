@@ -1,5 +1,4 @@
 use alloc::collections::BTreeMap as HashMap;
-use core::convert::TryFrom;
 
 use ibc_relayer_types::{
     applications::{ics29_fee::events::DistributionType, ics31_icq::events::CrossChainQueryPacket},
@@ -318,7 +317,7 @@ fn extract_block_events(
     );
     append_events::<ChannelEvents::SendPacket>(
         &mut events,
-        extract_events(height, block_events, "send_packet", "packet_data"),
+        extract_events(height, block_events, "send_packet", "packet_data_hex"),
         height,
     );
     append_events::<ChannelEvents::CloseInit>(

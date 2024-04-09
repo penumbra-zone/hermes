@@ -1,6 +1,5 @@
 use std::{
     borrow::Cow,
-    convert::TryFrom,
     fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };
@@ -74,9 +73,9 @@ define_error! {
             [ TraceError<prost::DecodeError> ]
             | _ | { "error decoding protobuf" },
 
-        SubtleEncoding
-            [ TraceError<subtle_encoding::Error> ]
-            | _ | { "error decoding hex" },
+        InvalidPacketData
+            { data: String }
+            | e | { format_args!("error decoding hex-encoded packet data: {}", e.data) },
 
         MissingActionString
             | _ | { "missing action string" },

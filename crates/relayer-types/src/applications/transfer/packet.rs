@@ -1,8 +1,4 @@
-use std::{
-    convert::TryFrom,
-    str::FromStr,
-    string::{String, ToString},
-};
+use std::str::FromStr;
 
 use ibc_proto::ibc::applications::transfer::v2::FungibleTokenPacketData as RawPacketData;
 use serde::{Deserialize, Serialize};

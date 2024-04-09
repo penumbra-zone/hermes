@@ -1,6 +1,5 @@
 #![allow(clippy::redundant_closure_call)]
 
-use abscissa_core::{clap::Parser, Command, Runnable};
 use ibc_relayer::{
     chain::{
         handle::ChainHandle,
