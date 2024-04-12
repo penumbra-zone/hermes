@@ -1,0 +1,60 @@
+---
+name: Build container image
+on:
+  workflow_call:
+  workflow_dispatch:
+  # Support triggering builds from penumbra-zone/penumbra CI.
+  repository_dispatch:
+    types:
+      - container-build
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+jobs:
+  hermes:
+    runs-on: buildjet-16vcpu-ubuntu-2004
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Docker Hub container registry (for pulls)
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to the GitHub container registry (for pushes)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/penumbra-zone/hermes
+
+      # Grab the tag from the Cargo.toml file, so we can use it as a tag on the container image.
+      - name: Look up Penumbra dep version
+        id: penumbra_version
+        run: echo "PENUMBRA_VERSION=$(grep -P '^penumbra-proto ' Cargo.toml | grep -oP 'v[\d.]+')" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          file: ci/release/Containerfile
+          push: true
+          # We include a tag with the associated Penumbra, e.g. `penumbra-v0.61.0`.
+          # This is important to maintain compatibility with a long-running testnet.
+          tags: ${{ steps.meta.outputs.tags }},ghcr.io/penumbra-zone/hermes:penumbra-${{ steps.penumbra_version.outputs.PENUMBRA_VERSION }}
+          labels: ${{ steps.meta.outputs.labels }}

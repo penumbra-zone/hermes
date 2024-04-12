@@ -1,10 +1,7 @@
-/.changelog/
-/.git/
-/.gitignore
-/.github
-/ci/
-/docs/
-/e2e/
-/guide/
-/scripts/
-/target/
+# ignore everything
+**
+# selectively un-ignore rust files
+!crates/
+!tools/
+!Cargo.*
+!.cargo/config.toml
