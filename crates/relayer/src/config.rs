@@ -777,13 +777,12 @@ impl ChainConfig {
 
     pub fn excluded_sequences(&self, channel_id: &ChannelId) -> Cow<'_, [Sequence]> {
         match self {
-            Self::CosmosSdk(config) => config
+            Self::CosmosSdk(config) | Self::Astria(config) => config
                 .excluded_sequences
                 .get(channel_id)
                 .map(|seqs| Cow::Borrowed(seqs.as_slice()))
                 .unwrap_or_else(|| Cow::Owned(Vec::new())),
-            Self::Penumbra(_config) => todo!(),
-            Self::Astria(_config) => todo!(),
+            Self::Penumbra(_config) => Cow::Owned(Vec::new()),
         }
     }
 
