@@ -18,7 +18,8 @@ impl TestOverrides for PythonTest {
                     // with external relayer commands.
                     chain_config.key_store_type = Store::Test;
                 }
-                ChainConfig::Penumbra(_) => todo!(),
+                // No key support for Penumbra
+                ChainConfig::Penumbra(_) => {}
                 ChainConfig::Astria(_) => todo!(),
             }
         }

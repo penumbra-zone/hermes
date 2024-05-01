@@ -19,6 +19,7 @@ use crate::{
     prelude::*,
 };
 
+#[allow(dead_code)]
 #[derive(Serialize, Debug)]
 struct PacketSeqs {
     height: Height,

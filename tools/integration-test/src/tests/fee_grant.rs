@@ -81,7 +81,9 @@ impl BinaryChannelTest for FeeGrantTest {
             .ok_or_else(|| eyre!("chain configuration is empty"))?
         {
             ChainConfig::CosmosSdk(chain_config) => chain_config.gas_price.denom.clone(),
-            ChainConfig::Penumbra(_chain_config) => todo!(),
+            ChainConfig::Penumbra(_chain_config) => {
+                todo!("need to implement gas support for penumbra chains")
+            }
             ChainConfig::Astria(_chain_config) => todo!(),
         };
 
@@ -108,7 +110,9 @@ impl BinaryChannelTest for FeeGrantTest {
                         ChainConfig::CosmosSdk(c) => {
                             c.fee_granter = Some("user2".to_owned());
                         }
-                        ChainConfig::Penumbra(_c) => todo!(),
+                        ChainConfig::Penumbra(_chain_config) => {
+                            todo!("need to implement gas support for penumbra chains")
+                        }
                         ChainConfig::Astria(_c) => todo!(),
                     }
                 }
@@ -228,7 +232,9 @@ impl BinaryChannelTest for NoFeeGrantTest {
             .ok_or_else(|| eyre!("chain configuration is empty"))?
         {
             ChainConfig::CosmosSdk(chain_config) => chain_config.gas_price.denom.clone(),
-            ChainConfig::Penumbra(_chain_config) => todo!(),
+            ChainConfig::Penumbra(_chain_config) => {
+                todo!("need to implement gas support for penumbra chains")
+            }
             ChainConfig::Astria(_chain_config) => todo!(),
         };
 

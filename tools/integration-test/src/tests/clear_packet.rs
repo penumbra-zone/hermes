@@ -325,7 +325,7 @@ impl TestOverrides for ClearPacketOverrideTest {
             match chain_config {
                 // Use a small clear interval in the chain configurations to override the global high interval
                 ChainConfig::CosmosSdk(chain_config) => chain_config.clear_interval = Some(10),
-                ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Penumbra(chain_config) => chain_config.clear_interval = Some(10),
                 ChainConfig::Astria(_) => todo!(),
             }
         }

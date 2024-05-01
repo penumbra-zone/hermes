@@ -235,7 +235,7 @@ pub fn add_key(
             keyring.add_key(key_name, key_pair.clone())?;
             key_pair.into()
         }
-        ChainConfig::Penumbra(_) => todo!(),
+        ChainConfig::Penumbra(_) => unimplemented!("no key storage support for penumbra"),
     };
 
     Ok(key_pair)
@@ -292,7 +292,7 @@ pub fn restore_key(
             keyring.add_key(key_name, key_pair.clone())?;
             key_pair.into()
         }
-        ChainConfig::Penumbra(_) => todo!(),
+        ChainConfig::Penumbra(_) => unimplemented!("no key storage support for penumbra"),
     };
 
     Ok(key_pair)

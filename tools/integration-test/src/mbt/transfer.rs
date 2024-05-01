@@ -164,7 +164,8 @@ impl TestOverrides for IbcTransferMBT {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.trusting_period = Some(CLIENT_EXPIRY);
                 }
-                ChainConfig::Penumbra(_) | ChainConfig::Astria(_) => todo!(),
+                ChainConfig::Penumbra(_chain_config) => {}
+                ChainConfig::Astria(_) => todo!(),
             }
         }
     }

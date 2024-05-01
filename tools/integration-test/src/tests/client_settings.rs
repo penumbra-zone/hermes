@@ -37,7 +37,11 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_a.trusting_period = Some(Duration::from_secs(120_000));
                 chain_config_a.trust_threshold = TrustThreshold::new(13, 23).unwrap();
             }
-            ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Penumbra(chain_config_a) => {
+                chain_config_a.clock_drift = Duration::from_secs(3);
+                chain_config_a.max_block_time = Duration::from_secs(5);
+                chain_config_a.trust_threshold = TrustThreshold::new(13, 23).unwrap();
+            }
             ChainConfig::Astria(_) => todo!(),
         }
 
@@ -48,7 +52,11 @@ impl TestOverrides for ClientDefaultsTest {
                 chain_config_b.trusting_period = Some(Duration::from_secs(340_000));
                 chain_config_b.trust_threshold = TrustThreshold::TWO_THIRDS;
             }
-            ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Penumbra(chain_config_b) => {
+                chain_config_b.clock_drift = Duration::from_secs(6);
+                chain_config_b.max_block_time = Duration::from_secs(15);
+                chain_config_b.trust_threshold = TrustThreshold::TWO_THIRDS;
+            }
             ChainConfig::Astria(_) => todo!(),
         }
     }

@@ -78,7 +78,7 @@ fn get_balance(chain: impl ChainHandle, key_name: Option<String>, denom: Option<
                 match chain_config {
                     ChainConfig::CosmosSdk(chain_config) => chain_config.key_name,
                     ChainConfig::Astria(chain_config) => chain_config.key_name,
-                    ChainConfig::Penumbra(_) => todo!(),
+                    ChainConfig::Penumbra(_) => unimplemented!("no key support for penumbra"),
                 }
             });
 
@@ -102,7 +102,7 @@ fn get_balances(chain: impl ChainHandle, key_name: Option<String>) {
                 match chain_config {
                     ChainConfig::CosmosSdk(chain_config) => chain_config.key_name,
                     ChainConfig::Astria(chain_config) => chain_config.key_name,
-                    ChainConfig::Penumbra(_) => todo!(),
+                    ChainConfig::Penumbra(_) => unimplemented!("no key support for penumbra"),
                 }
             });
 
