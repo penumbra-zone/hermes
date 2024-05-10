@@ -26,7 +26,7 @@ host = '127.0.0.1'
 port = 3001
 
 [[chains]]
-id = 'penumbra-testnet-deimos-5'
+id = 'penumbra-testnet-deimos-8'
 type = 'Penumbra'
 stub_key_name = 'fake'
 rpc_addr = 'https://rpc.testnet.penumbra.zone'
