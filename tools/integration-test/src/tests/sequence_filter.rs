@@ -55,7 +55,7 @@ impl TestOverrides for FilterClearOnStartTest {
                 chain_config.excluded_sequences = excluded_sequences;
             }
             ChainConfig::Astria(_) => todo!(),
-            ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Penumbra(_) => {}
         }
         config.mode.channels.enabled = true;
 
@@ -94,7 +94,7 @@ impl TestOverrides for FilterClearIntervalTest {
                 chain_config.excluded_sequences = excluded_sequences;
             }
             ChainConfig::Astria(_) => todo!(),
-            ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Penumbra(_) => {}
         }
         config.mode.channels.enabled = true;
 
@@ -255,7 +255,7 @@ impl TestOverrides for StandardRelayingNoFilterTest {
                 chain_config.excluded_sequences = excluded_sequences;
             }
             ChainConfig::Astria(_) => todo!(),
-            ChainConfig::Penumbra(_) => todo!(),
+            ChainConfig::Penumbra(_) => {}
         }
         config.mode.packets.clear_on_start = true;
         config.mode.packets.clear_interval = 0;

@@ -52,7 +52,9 @@ impl TestOverrides for DynamicGasTest {
                     GasPrice::new(0.1, chain_config_a.gas_price.denom.clone());
                 chain_config_a.dynamic_gas_price = DynamicGasPrice::unsafe_new(false, 1.1, 0.6);
             }
-            ChainConfig::Penumbra(_chain_config_a) => todo!(),
+            ChainConfig::Penumbra(_chain_config_a) => {
+                todo!("need to implement gas support for penumbra chains")
+            }
             ChainConfig::Astria(_chain_config_a) => todo!(),
         }
 
@@ -63,7 +65,9 @@ impl TestOverrides for DynamicGasTest {
                 chain_config_b.dynamic_gas_price =
                     DynamicGasPrice::unsafe_new(self.dynamic_gas_enabled, 1.1, 0.6);
             }
-            ChainConfig::Penumbra(_chain_config_b) => todo!(),
+            ChainConfig::Penumbra(_chain_config_a) => {
+                todo!("need to implement gas support for penumbra chains")
+            }
             ChainConfig::Astria(_chain_config_b) => todo!(),
         }
     }

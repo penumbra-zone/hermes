@@ -38,7 +38,7 @@ impl TestOverrides for MemoTest {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.memo_prefix = self.memo.clone();
                 }
-                ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Penumbra(_) => {}
                 ChainConfig::Astria(_) => todo!(),
             }
         }
@@ -105,7 +105,7 @@ impl TestOverrides for MemoOverwriteTest {
                     chain_config.memo_overwrite = Some(Memo::new(OVERWRITE_MEMO).unwrap())
                 }
                 ChainConfig::Astria(_) => todo!(),
-                ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Penumbra(_) => {}
             }
         }
     }

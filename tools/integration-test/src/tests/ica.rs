@@ -69,7 +69,9 @@ impl TestOverrides for IcaFilterTestAllow {
                 ChainConfig::CosmosSdk(chain_config) => {
                     chain_config.packet_filter = self.packet_filter.clone();
                 }
-                ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Penumbra(chain_config) => {
+                    chain_config.packet_filter = self.packet_filter.clone();
+                }
                 ChainConfig::Astria(_) => todo!(),
             }
         }
@@ -202,7 +204,13 @@ impl TestOverrides for IcaFilterTestDeny {
                             FilterPattern::Wildcard("*".parse().unwrap()),
                         )]));
                 }
-                ChainConfig::Penumbra(_) => todo!(),
+                ChainConfig::Penumbra(chain_config) => {
+                    chain_config.packet_filter.channel_policy =
+                        ChannelPolicy::Deny(ChannelFilters::new(vec![(
+                            FilterPattern::Wildcard("ica*".parse().unwrap()),
+                            FilterPattern::Wildcard("*".parse().unwrap()),
+                        )]));
+                }
                 ChainConfig::Astria(_) => todo!(),
             }
         }

@@ -103,7 +103,8 @@ impl Runnable for EvidenceCmd {
             ChainConfig::CosmosSdk(ref _cfg) => {
                 CosmosSdkChain::bootstrap(chain_config, rt.clone()).unwrap()
             }
-            ChainConfig::Penumbra(_) => todo!(),
+            // TODO: Will need to rewrite this function to work with non-cosmosSDK chains
+            ChainConfig::Penumbra(_) => todo!("current implementation expects a cosmosSDK chain"),
         };
 
         let res = monitor_misbehaviours(

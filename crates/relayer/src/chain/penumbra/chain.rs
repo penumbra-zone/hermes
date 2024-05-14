@@ -21,7 +21,7 @@ use tendermint_proto::Protobuf;
 use tracing::info;
 
 use crate::chain::client::ClientSettings;
-use crate::chain::cosmos::query::{abci_query, QueryResponse};
+use crate::chain::cosmos::query::{abci_query, fetch_version_specs, QueryResponse};
 use crate::chain::endpoint::ChainStatus;
 use crate::chain::requests::*;
 use crate::chain::tracking::TrackedMsgs;
@@ -587,7 +587,11 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn shutdown(self) -> Result<(), Error> {
-        todo!()
+        if let Some(monitor_tx) = self.tx_monitor_cmd {
+            monitor_tx.shutdown().map_err(Error::event_source)?;
+        }
+
+        Ok(())
     }
 
     fn health_check(&mut self) -> Result<HealthCheck, Error> {
@@ -626,11 +630,11 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn keybase(&self) -> &KeyRing<Self::SigningKeyPair> {
-        todo!()
+        unimplemented!("no key storage support for penumbra")
     }
 
     fn keybase_mut(&mut self) -> &mut KeyRing<Self::SigningKeyPair> {
-        todo!()
+        unimplemented!("no key storage support for penumbra")
     }
 
     fn get_signer(&self) -> Result<ibc_relayer_types::signer::Signer, Error> {
@@ -642,7 +646,13 @@ impl ChainEndpoint for PenumbraChain {
     }
 
     fn version_specs(&self) -> Result<crate::chain::cosmos::version::Specs, Error> {
-        todo!()
+        let version_specs = self.rt.block_on(fetch_version_specs(
+            self.id(),
+            &format!("{}", self.config.grpc_addr)
+                .parse::<Uri>()
+                .map_err(|_| Error::config(ConfigError::wrong_type()))?,
+        ))?;
+        Ok(version_specs)
     }
 
     fn send_messages_and_wait_commit(
@@ -731,11 +741,11 @@ impl ChainEndpoint for PenumbraChain {
         &self,
         _key_name: Option<&str>,
     ) -> Result<Vec<crate::account::Balance>, Error> {
-        todo!()
+        unimplemented!("cannot query balance of a shielded chain >:}}")
     }
 
     fn query_denom_trace(&self, _hash: String) -> Result<crate::denom::DenomTrace, Error> {
-        todo!()
+        todo!("penumbra doesn't support denom trace querying yet")
     }
 
     fn query_commitment_prefix(
@@ -913,14 +923,14 @@ impl ChainEndpoint for PenumbraChain {
         &self,
         _request: QueryUpgradedClientStateRequest,
     ) -> Result<(AnyClientState, MerkleProof), Error> {
-        todo!()
+        todo!("need to implement corresponding state query in penumbra")
     }
 
     fn query_upgraded_consensus_state(
         &self,
         _request: QueryUpgradedConsensusStateRequest,
     ) -> Result<(AnyConsensusState, MerkleProof), Error> {
-        todo!()
+        todo!("need to implement corresponding state query in penumbra")
     }
 
     fn query_connections(
@@ -1445,7 +1455,7 @@ impl ChainEndpoint for PenumbraChain {
         &self,
         _request: QueryHostConsensusStateRequest,
     ) -> Result<Self::ConsensusState, Error> {
-        todo!()
+        todo!("need to implement corresponding state query on penumbra")
     }
 
     fn build_client_state(
@@ -1510,7 +1520,9 @@ impl ChainEndpoint for PenumbraChain {
         _port_id: &ibc_relayer_types::core::ics24_host::identifier::PortId,
         _counterparty_payee: &ibc_relayer_types::signer::Signer,
     ) -> Result<(), Error> {
-        todo!()
+        // the payee is an optional payee to which reverse and timeout relayer packet
+        // fees will be paid out.
+        todo!("currently unimplemented in penumbra")
     }
 
     fn cross_chain_query(
@@ -1520,18 +1532,20 @@ impl ChainEndpoint for PenumbraChain {
         Vec<ibc_relayer_types::applications::ics31_icq::response::CrossChainQueryResponse>,
         Error,
     > {
-        todo!()
+        // https://github.com/cosmos/ibc/blob/main/spec/app/ics-031-crosschain-queries/README.md
+        todo!("not currently implemented in penumbra")
     }
 
     fn query_incentivized_packet(
         &self,
         _request: ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketRequest,
     ) -> Result<ibc_proto::ibc::apps::fee::v1::QueryIncentivizedPacketResponse, Error> {
-        todo!()
+        // https://buf.build/cosmos/ibc/docs/e769eb46d1e742e8b0368510479161df:ibc.applications.fee.v1#ibc.applications.fee.v1.Query.IncentivizedPackets
+        todo!("not currently implemented in penumbra")
     }
 
     fn query_consumer_chains(&self) -> Result<Vec<(ChainId, ClientId)>, Error> {
-        todo!()
+        todo!("not currently implemented in penumbra")
     }
 }
 
