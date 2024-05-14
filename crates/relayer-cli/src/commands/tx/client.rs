@@ -213,9 +213,8 @@ impl Runnable for TxUpdateClientCmd {
                     ChainConfig::CosmosSdk(chain_config) | ChainConfig::Astria(chain_config) => {
                         chain_config.genesis_restart = Some(restart_params)
                     }
-                    // TODO: Will probably need to support setting restart params on Penumbra somehow
-                    ChainConfig::Penumbra(_) => {
-                        todo!("penumbra doesn't support genesis restart params")
+                    ChainConfig::Penumbra(chain_config) => {
+                        chain_config.genesis_restart = Some(restart_params)
                     }
                 },
                 None => {
