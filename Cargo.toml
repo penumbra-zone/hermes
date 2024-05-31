@@ -42,18 +42,18 @@ astria-sequencer-client = { git = "https://github.com/astriaorg/astria", rev = "
 ] }
 
 # Penumbra dependencies.
-penumbra-asset = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-custody = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-fee = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-ibc = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-keys = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0", features = [
+penumbra-asset = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-custody = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-fee = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-ibc = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-keys = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0", features = [
     "box-grpc",
     "rpc",
 ] }
-penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-wallet = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
-penumbra-view = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.76.0" }
+penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-wallet = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-view = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
 # Penumbra dependencies, specifically for Astria support. Renamespaced, to avoid conflicts with Penumbra support.
 penumbra-ibc-astria = { git = "https://github.com/penumbra-zone/penumbra", package = "penumbra-ibc", tag = "v0.69.1" }
 penumbra-proto-astria = { git = "https://github.com/penumbra-zone/penumbra", package = "penumbra-proto", tag = "v0.69.1", features = [
