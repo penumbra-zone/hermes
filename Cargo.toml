@@ -51,7 +51,9 @@ penumbra-proto = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.
     "box-grpc",
     "rpc",
 ] }
-penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
+penumbra-transaction = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0", features = [
+    "download-proving-keys",
+] }
 penumbra-wallet = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
 penumbra-view = { git = "https://github.com/penumbra-zone/penumbra", tag = "v0.77.0" }
 # Penumbra dependencies, specifically for Astria support. Renamespaced, to avoid conflicts with Penumbra support.
