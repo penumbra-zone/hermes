@@ -190,7 +190,13 @@ impl PenumbraChain {
             .tx_result
             .events
             .iter()
-            .map(|ev| IbcEventWithHeight::new(ibc_event_try_from_abci_event(ev).unwrap(), height))
+            .filter_map(|ev| {
+                if let Ok(ibc_event) = ibc_event_try_from_abci_event(ev) {
+                    Some(IbcEventWithHeight::new(ibc_event, height))
+                } else {
+                    None
+                }
+            })
             .collect();
 
         Ok(events)
