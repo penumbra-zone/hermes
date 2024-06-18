@@ -79,6 +79,8 @@ use tokio::runtime::Runtime as TokioRuntime;
 use tokio::sync::Mutex;
 use tonic::IntoRequest;
 
+use std::path::PathBuf;
+
 use crate::{
     chain::{
         endpoint::{ChainEndpoint, HealthCheck},
@@ -501,9 +503,28 @@ impl ChainEndpoint for PenumbraChain {
 
         let fvk = config.kms_config.spend_key.full_viewing_key();
 
+        // Identify filepath for storing Penumbra view database locally.
+        // The directory might not be specified, in which case we'll preserve None,
+        // which causes the ViewServiceClient to use an in-memory database.
+        let view_file: Option<String> = match config.view_service_storage_dir {
+            Some(ref dir_string) => {
+                let p = PathBuf::from(dir_string)
+                    .join("relayer-view.sqlite")
+                    .to_str()
+                    .ok_or_else(|| Error::temp_penumbra_error("Non-UTF8 view path".to_owned()))?
+                    .to_owned();
+                tracing::info!("using view database at {}", p);
+                Some(p)
+            }
+            None => {
+                tracing::warn!("using in-memory view database for penumbra; consider setting 'view_service_storage_dir'");
+                None
+            }
+        };
+
         let svc = rt
             .block_on(ViewServer::load_or_initialize(
-                config.view_service_storage_dir.clone(),
+                view_file,
                 fvk,
                 config.grpc_addr.clone().into(),
             ))
