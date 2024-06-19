@@ -51,6 +51,8 @@ use crate::{
     misbehaviour::MisbehaviourEvidence,
 };
 
+use super::{astria::AstriaEndpoint, cosmos::CosmosSdkChain, penumbra::chain::PenumbraChain};
+
 /// The result of a health check.
 #[derive(Debug)]
 pub enum HealthCheck {
@@ -63,6 +65,13 @@ pub enum HealthCheck {
 pub struct ChainStatus {
     pub height: ICSHeight,
     pub timestamp: Timestamp,
+}
+
+/// Abstracts different chain endpoint implementations.
+pub enum ChainEndpointWrap {
+    Cosmos(CosmosSdkChain),
+    Penumbra(PenumbraChain),
+    Astria(AstriaEndpoint),
 }
 
 /// Defines a blockchain as understood by the relayer
