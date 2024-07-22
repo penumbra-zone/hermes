@@ -108,6 +108,14 @@ where
         (handle, thread)
     }
 
+    /// Bootstraps a new runtime for a specific Chain implementation, but does not run it.
+    pub fn bootstrap(config: ChainConfig, rt: Arc<TokioRuntime>) -> Result<Endpoint, Error> {
+        // Similar to `from_config`.
+        let chain = Endpoint::bootstrap(config, rt.clone())?;
+
+        Ok(chain)
+    }
+
     /// Basic constructor
     fn new(chain: Endpoint, rt: Arc<TokioRuntime>) -> Self {
         let (request_sender, request_receiver) = channel::unbounded();
