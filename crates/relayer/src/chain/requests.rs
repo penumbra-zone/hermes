@@ -8,8 +8,11 @@ use ibc_proto::{
             QueryChannelsRequest as RawQueryChannelsRequest,
             QueryConnectionChannelsRequest as RawQueryConnectionChannelsRequest,
             QueryNextSequenceReceiveRequest as RawQueryNextSequenceReceiveRequest,
+            QueryPacketAcknowledgementRequest as RawQueryPacketAcknowledgementRequest,
             QueryPacketAcknowledgementsRequest as RawQueryPacketAcknowledgementsRequest,
+            QueryPacketCommitmentRequest as RawQueryPacketCommitmentRequest,
             QueryPacketCommitmentsRequest as RawQueryPacketCommitmentsRequest,
+            QueryPacketReceiptRequest as RawQueryPacketReceiptRequest,
             QueryUnreceivedAcksRequest as RawQueryUnreceivedAcksRequest,
             QueryUnreceivedPacketsRequest as RawQueryUnreceivedPacketsRequest,
         },
@@ -22,6 +25,7 @@ use ibc_proto::{
         },
         connection::v1::{
             QueryClientConnectionsRequest as RawQueryClientConnectionsRequest,
+            QueryConnectionRequest as RawQueryConnectionRequest,
             QueryConnectionsRequest as RawQueryConnectionsRequest,
         },
     },
@@ -264,6 +268,14 @@ pub struct QueryConnectionRequest {
     pub height: QueryHeight,
 }
 
+impl From<QueryConnectionRequest> for RawQueryConnectionRequest {
+    fn from(request: QueryConnectionRequest) -> Self {
+        Self {
+            connection_id: request.connection_id.to_string(),
+        }
+    }
+}
+
 /// gRPC query to fetch all channels associated with the specified connection.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct QueryConnectionChannelsRequest {
@@ -325,6 +337,16 @@ pub struct QueryPacketCommitmentRequest {
     pub height: QueryHeight,
 }
 
+impl From<QueryPacketCommitmentRequest> for RawQueryPacketCommitmentRequest {
+    fn from(request: QueryPacketCommitmentRequest) -> Self {
+        RawQueryPacketCommitmentRequest {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+            sequence: request.sequence.into(),
+        }
+    }
+}
+
 /// gRPC query to fetch the packet commitment hashes associated with the specified channel.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct QueryPacketCommitmentsRequest {
@@ -349,6 +371,16 @@ pub struct QueryPacketReceiptRequest {
     pub channel_id: ChannelId,
     pub sequence: Sequence,
     pub height: QueryHeight,
+}
+
+impl From<QueryPacketReceiptRequest> for RawQueryPacketReceiptRequest {
+    fn from(request: QueryPacketReceiptRequest) -> Self {
+        Self {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+            sequence: request.sequence.as_u64(),
+        }
+    }
 }
 
 /// gRPC query to fetch all unreceived packet sequences associated with the specified channel.
@@ -379,6 +411,16 @@ pub struct QueryPacketAcknowledgementRequest {
     pub channel_id: ChannelId,
     pub sequence: Sequence,
     pub height: QueryHeight,
+}
+
+impl From<QueryPacketAcknowledgementRequest> for RawQueryPacketAcknowledgementRequest {
+    fn from(request: QueryPacketAcknowledgementRequest) -> Self {
+        RawQueryPacketAcknowledgementRequest {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+            sequence: request.sequence.as_u64(),
+        }
+    }
 }
 
 /// gRPC query to fetch all packet acknowledgements associated with the specified channel.

@@ -4,13 +4,15 @@ use futures::{FutureExt, StreamExt, TryStreamExt};
 use http::Uri;
 use ibc_proto::ics23;
 
+use ibc_proto::ibc::core::channel::v1::QueryPacketAcknowledgementRequest as RawQueryPacketAcknowledgementRequest;
+use ibc_proto::ibc::core::channel::v1::QueryPacketCommitmentRequest as RawQueryPacketCommitmentRequest;
+use ibc_proto::ibc::core::channel::v1::QueryPacketReceiptRequest as RawQueryPacketReceiptRequest;
 use ibc_proto::ibc::core::client::v1::QueryClientStateRequest as RawQueryClientStateRequest;
 use ibc_proto::ibc::core::client::v1::QueryConsensusStateRequest as RawQueryConsensusStatesRequest;
+use ibc_proto::ibc::core::connection::v1::QueryConnectionRequest as RawQueryConnectionRequest;
 
 use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
-use ibc_relayer_types::core::ics24_host::path::{
-    AcksPath, ChannelEndsPath, CommitmentsPath, ReceiptsPath, SeqRecvsPath,
-};
+use ibc_relayer_types::core::ics24_host::path::{ChannelEndsPath, SeqRecvsPath};
 use ibc_relayer_types::core::ics24_host::Path;
 use once_cell::sync::Lazy;
 use penumbra_proto::core::app::v1::AppParametersRequest;
@@ -1093,26 +1095,28 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_connection(
         &self,
-        request: QueryConnectionRequest,
+        req: QueryConnectionRequest,
         include_proof: IncludeProof,
     ) -> Result<(ConnectionEnd, Option<MerkleProof>), Error> {
+        crate::telemetry!(query, self.id(), "query_connection");
         let mut client = self.ibc_connection_grpc_client.clone();
-        let mut req = ibc_proto::ibc::core::connection::v1::QueryConnectionRequest {
-            connection_id: request.connection_id.to_string(),
-            // TODO height is ignored
-        }
-        .into_request();
 
-        let map = req.metadata_mut();
-        let height_str: String = match request.height {
+        let height = match req.height {
             QueryHeight::Latest => 0.to_string(),
             QueryHeight::Specific(h) => h.to_string(),
         };
-        map.insert("height", height_str.parse().expect("valid ascii string"));
+        let connection_id = req.connection_id.clone();
 
-        let response = self.rt.block_on(client.connection(req)).map_err(|e| {
+        let proto_request: RawQueryConnectionRequest = req.into();
+        let mut request = proto_request.into_request();
+
+        request
+            .metadata_mut()
+            .insert("height", height.parse().unwrap());
+
+        let response = self.rt.block_on(client.connection(request)).map_err(|e| {
             if e.code() == tonic::Code::NotFound {
-                Error::connection_not_found(request.connection_id.clone())
+                Error::connection_not_found(connection_id.clone())
             } else {
                 Error::grpc_status(e, "query_connection".to_owned())
             }
@@ -1126,7 +1130,7 @@ impl ChainEndpoint for PenumbraChain {
                 // the NotFound error code. Nevertheless even if the call is successful,
                 // the connection field may not be present, because in protobuf3
                 // everything is optional.
-                return Err(Error::connection_not_found(request.connection_id.clone()));
+                return Err(Error::connection_not_found(connection_id));
             }
         };
 
@@ -1245,26 +1249,49 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_packet_commitment(
         &self,
-        request: QueryPacketCommitmentRequest,
+        req: QueryPacketCommitmentRequest,
         include_proof: IncludeProof,
+        // TODO(erwan): we can improve the api here.
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
-        let res = self.rpc_query(
-            CommitmentsPath {
-                port_id: request.port_id,
-                channel_id: request.channel_id,
-                sequence: request.sequence,
-            },
-            request.height,
-            matches!(include_proof, IncludeProof::Yes),
-        )?;
+        crate::telemetry!(query, self.id(), "query_packet_commitment");
+        let mut client = self.ibc_channel_grpc_client.clone();
+
+        let height = match req.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+        let proto_request: RawQueryPacketCommitmentRequest = req.into();
+
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height.parse().unwrap());
+
+        let response = self
+            .rt
+            .block_on(client.packet_commitment(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_commitment".to_owned()))?
+            .into_inner();
+
+        let packet_commitment = response.commitment;
+        let raw_proof_bytes = response.proof;
 
         match include_proof {
+            IncludeProof::No => Ok((packet_commitment, None)),
             IncludeProof::Yes => {
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
+                }
 
-                Ok((res.value, Some(proof)))
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                Ok((packet_commitment, Some(proof)))
             }
-            IncludeProof::No => Ok((res.value, None)),
         }
     }
 
@@ -1298,26 +1325,70 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_packet_receipt(
         &self,
-        request: QueryPacketReceiptRequest,
+        req: QueryPacketReceiptRequest,
         include_proof: IncludeProof,
+        // TODO(erwan): This API is very wrong. But I will only fix it later.
+        // We are querying for a packet receipt, this should be:ƒ
+        // -> Result<Option<MerkleProof>, Error>
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
-        let res = self.rpc_query(
-            ReceiptsPath {
-                port_id: request.port_id,
-                channel_id: request.channel_id,
-                sequence: request.sequence,
-            },
-            request.height,
-            matches!(include_proof, IncludeProof::Yes),
-        )?;
+        crate::telemetry!(query, self.id(), "query_packet_receipt");
+        let mut client = self.ibc_channel_grpc_client.clone();
+        let height = match req.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+        let port_id = req.port_id.clone();
+        let channel_id = req.channel_id.clone();
+        let sequence = req.sequence;
+
+        let proto_request: RawQueryPacketReceiptRequest = req.into();
+
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height.parse().expect("valid ascii"));
+
+        let response = self
+            .rt
+            .block_on(client.packet_receipt(request))
+            .map_err(|e| {
+                if e.code() == tonic::Code::NotFound {
+                    Error::other_with_string(format!(
+                        "packet receipt not found for port_id: {}, channel_id: {}, sequence: {}",
+                        port_id, channel_id, sequence
+                    ))
+                } else {
+                    Error::grpc_status(e, "query_packet_receipt".to_owned())
+                }
+            })?
+            .into_inner();
+
+        let raw_proof_bytes = response.proof;
+        if !response.received {
+            // TODO(erwan): not completely clear this should be an error, but this match
+            // the behavior based on the current implementation where the tonic 404 is treated as an error.
+            return Err(Error::other_with_string(format!(
+                "packet receipt not found for port_id: {}, channel_id: {}, sequence: {}",
+                port_id, channel_id, sequence
+            )));
+        }
 
         match include_proof {
+            IncludeProof::No => Ok((vec![], None)),
             IncludeProof::Yes => {
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
+                }
 
-                Ok((res.value, Some(proof)))
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                Ok((vec![], Some(proof)))
             }
-            IncludeProof::No => Ok((res.value, None)),
         }
     }
 
@@ -1345,26 +1416,48 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_packet_acknowledgement(
         &self,
-        request: QueryPacketAcknowledgementRequest,
+        req: QueryPacketAcknowledgementRequest,
         include_proof: IncludeProof,
+        // TODO(erwan): This API should change. Why are we thrashing raw bytes around?
     ) -> Result<(Vec<u8>, Option<MerkleProof>), Error> {
-        let res = self.rpc_query(
-            AcksPath {
-                port_id: request.port_id,
-                channel_id: request.channel_id,
-                sequence: request.sequence,
-            },
-            request.height,
-            matches!(include_proof, IncludeProof::Yes),
-        )?;
+        crate::telemetry!(query, self.id(), "query_packet_acknowledgement");
+        let mut client = self.ibc_channel_grpc_client.clone();
 
+        let height = match req.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+
+        let proto_request: RawQueryPacketAcknowledgementRequest = req.into();
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height.parse().unwrap());
+
+        let response = self
+            .rt
+            .block_on(client.packet_acknowledgement(request))
+            .map_err(|e| Error::grpc_status(e, "query_packet_acknowledgement".to_owned()))?
+            .into_inner();
+
+        let raw_ack = response.acknowledgement;
+        let raw_proof_bytes = response.proof;
         match include_proof {
+            IncludeProof::No => Ok((raw_ack, None)),
             IncludeProof::Yes => {
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
+                }
 
-                Ok((res.value, Some(proof)))
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                Ok((raw_ack, Some(proof)))
             }
-            IncludeProof::No => Ok((res.value, None)),
         }
     }
 
