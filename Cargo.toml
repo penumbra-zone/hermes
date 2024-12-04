@@ -74,6 +74,7 @@ bitcoin = "0.31.1"
 bs58 = "0.5.0"
 byte-unit = { version = "4.0.19", default-features = false }
 bytes = "1.4.0"
+camino = "1" # camino for satisfying penumbra path types
 clap = "3.2"
 clap_complete = "3.2"
 color-eyre = "0.6"

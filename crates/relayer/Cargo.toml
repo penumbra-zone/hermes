@@ -34,6 +34,7 @@ bitcoin = { workspace = true, features = ["serde"] }
 bs58 = { workspace = true }
 byte-unit = { workspace = true, features = ["serde"] }
 bytes = { workspace = true }
+camino = { workspace = true }
 crossbeam-channel = { workspace = true }
 digest = { workspace = true }
 dirs-next = { workspace = true }
