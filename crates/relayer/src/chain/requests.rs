@@ -17,6 +17,7 @@ use ibc_proto::{
             QueryClientStateRequest as RawQueryClientStateRequest,
             QueryClientStatesRequest as RawQueryClientStatesRequest,
             QueryConsensusStateHeightsRequest as RawQueryConsensusStateHeightsRequest,
+            QueryConsensusStateRequest as RawQueryConsensusStateRequest,
             QueryConsensusStatesRequest as RawQueryConsensusStatesRequest,
         },
         connection::v1::{
@@ -174,6 +175,28 @@ pub struct QueryConsensusStateRequest {
     pub query_height: QueryHeight,
 }
 
+impl From<QueryConsensusStateRequest> for RawQueryConsensusStateRequest {
+    fn from(request: QueryConsensusStateRequest) -> Self {
+        // We extract the revision number and revision height, unless we are
+        // querying at the latest height.
+        if let QueryHeight::Specific(height) = request.query_height {
+            Self {
+                client_id: request.client_id.to_string(),
+                revision_number: height.revision_number(),
+                revision_height: height.revision_height(),
+                latest_height: false,
+            }
+        } else {
+            Self {
+                client_id: request.client_id.to_string(),
+                revision_number: 0,
+                revision_height: 0,
+                latest_height: true,
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct QueryUpgradedClientStateRequest {
     /// Height at which the chain is scheduled to halt for upgrade
@@ -296,7 +319,7 @@ pub struct QueryChannelClientStateRequest {
 
 impl From<QueryChannelClientStateRequest> for RawQueryChannelClientStateRequest {
     fn from(request: QueryChannelClientStateRequest) -> Self {
-        RawQueryChannelClientStateRequest {
+        Self {
             port_id: request.port_id.to_string(),
             channel_id: request.channel_id.to_string(),
         }
