@@ -14,6 +14,7 @@ use ibc_proto::{
             QueryUnreceivedPacketsRequest as RawQueryUnreceivedPacketsRequest,
         },
         client::v1::{
+            QueryClientStateRequest as RawQueryClientStateRequest,
             QueryClientStatesRequest as RawQueryClientStatesRequest,
             QueryConsensusStateHeightsRequest as RawQueryConsensusStateHeightsRequest,
             QueryConsensusStatesRequest as RawQueryConsensusStatesRequest,
@@ -142,6 +143,14 @@ impl From<PageRequest> for RawPageRequest {
 pub struct QueryClientStateRequest {
     pub client_id: ClientId,
     pub height: QueryHeight,
+}
+
+impl From<QueryClientStateRequest> for RawQueryClientStateRequest {
+    fn from(request: QueryClientStateRequest) -> Self {
+        Self {
+            client_id: request.client_id.to_string(),
+        }
+    }
 }
 
 /// gRPC query to fetch all client states associated with the chain.
