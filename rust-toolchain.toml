@@ -1,0 +1,4 @@
+[toolchain]
+# Pin Rust 1.79 to avoid API breakage in `time` crate.
+channel = "1.79"
+components = [ "rustfmt", "rust-analyzer" ]
