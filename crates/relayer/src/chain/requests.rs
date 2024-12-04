@@ -177,22 +177,13 @@ pub struct QueryConsensusStateRequest {
 
 impl From<QueryConsensusStateRequest> for RawQueryConsensusStateRequest {
     fn from(request: QueryConsensusStateRequest) -> Self {
-        // We extract the revision number and revision height, unless we are
-        // querying at the latest height.
-        if let QueryHeight::Specific(height) = request.query_height {
-            Self {
-                client_id: request.client_id.to_string(),
-                revision_number: height.revision_number(),
-                revision_height: height.revision_height(),
-                latest_height: false,
-            }
-        } else {
-            Self {
-                client_id: request.client_id.to_string(),
-                revision_number: 0,
-                revision_height: 0,
-                latest_height: true,
-            }
+        Self {
+            client_id: request.client_id.to_string(),
+            // TODO(erwan): not a fan of having two different height representations in the same
+            // struct. We should probably refactor this.
+            revision_number: request.consensus_height.revision_number(),
+            revision_height: request.consensus_height.revision_height(),
+            latest_height: matches!(request.query_height, QueryHeight::Latest),
         }
     }
 }

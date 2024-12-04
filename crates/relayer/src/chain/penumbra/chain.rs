@@ -926,16 +926,21 @@ impl ChainEndpoint for PenumbraChain {
         crate::telemetry!(query, self.id(), "query_consensus_state");
         let mut client = self.ibc_client_grpc_client.clone();
 
-        let height_str: String = match req.query_height {
+        let height: String = match req.query_height {
             QueryHeight::Latest => 0.to_string(),
             QueryHeight::Specific(h) => h.to_string(),
         };
 
-        let proto_request: RawQueryConsensusStatesRequest = req.into();
+        let mut proto_request: RawQueryConsensusStatesRequest = req.into();
+        // TODO(erwan): the connection handshake fails when we request the latest height.
+        // This is ostensibly a bug in hermes, in particular when we build the handshake message.
+        // However, for now, we can work around this by always overriding the flag to `false`.
+        proto_request.latest_height = false;
+
         let mut request = proto_request.into_request();
         request
             .metadata_mut()
-            .insert("height", height_str.parse().expect("valid ascii string"));
+            .insert("height", height.parse().unwrap());
         let response = self
             .rt
             .block_on(client.consensus_state(request))
@@ -951,7 +956,6 @@ impl ChainEndpoint for PenumbraChain {
             .try_into()
             .map_err(|e| Error::other(Box::new(e)))?;
 
-        // Sanity check that we received a tendermint consensus state.
         if !matches!(consensus_state, AnyConsensusState::Tendermint(_)) {
             return Err(Error::consensus_state_type_mismatch(
                 ClientType::Tendermint,
