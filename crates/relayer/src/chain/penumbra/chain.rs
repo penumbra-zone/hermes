@@ -863,13 +863,22 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_client_state(
         &self,
-        request: QueryClientStateRequest,
+        req: QueryClientStateRequest,
         include_proof: IncludeProof,
     ) -> Result<(AnyClientState, Option<MerkleProof>), Error> {
         crate::telemetry!(query, self.id(), "query_client_state");
         let mut client = self.ibc_client_grpc_client.clone();
 
-        let request: RawQueryClientStateRequest = request.into();
+        let height = match req.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+
+        let proto_request: RawQueryClientStateRequest = req.into();
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height.parse().expect("valid height"));
 
         // TODO(erwan): for now, playing a bit fast-and-loose with the error handling.
         let response = self
@@ -911,13 +920,22 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_consensus_state(
         &self,
-        request: QueryConsensusStateRequest,
+        req: QueryConsensusStateRequest,
         include_proof: IncludeProof,
     ) -> Result<(AnyConsensusState, Option<MerkleProof>), Error> {
         crate::telemetry!(query, self.id(), "query_consensus_state");
         let mut client = self.ibc_client_grpc_client.clone();
 
-        let request: RawQueryConsensusStatesRequest = request.into();
+        let height_str: String = match req.query_height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+
+        let proto_request: RawQueryConsensusStatesRequest = req.into();
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height_str.parse().expect("valid ascii string"));
         let response = self
             .rt
             .block_on(client.consensus_state(request))
