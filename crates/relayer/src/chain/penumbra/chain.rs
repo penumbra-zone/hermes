@@ -3,16 +3,20 @@ use bytes::{Buf, Bytes};
 use futures::{FutureExt, StreamExt, TryStreamExt};
 use http::Uri;
 use ibc_proto::ics23;
+
+use ibc_proto::ibc::core::client::v1::QueryClientStateRequest as RawQueryClientStateRequest;
+use ibc_proto::ibc::core::client::v1::QueryConsensusStateRequest as RawQueryConsensusStatesRequest;
+
 use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
 use ibc_relayer_types::core::ics24_host::path::{
-    AcksPath, ChannelEndsPath, ClientConsensusStatePath, ClientStatePath, CommitmentsPath,
-    ReceiptsPath, SeqRecvsPath,
+    AcksPath, ChannelEndsPath, CommitmentsPath, ReceiptsPath, SeqRecvsPath,
 };
 use ibc_relayer_types::core::ics24_host::Path;
 use once_cell::sync::Lazy;
 use penumbra_proto::core::app::v1::AppParametersRequest;
 use penumbra_proto::core::component::ibc::v1::IbcRelay as ProtoIbcRelay;
 use penumbra_proto::DomainType as _;
+use prost::Message;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
@@ -863,17 +867,42 @@ impl ChainEndpoint for PenumbraChain {
         include_proof: IncludeProof,
     ) -> Result<(AnyClientState, Option<MerkleProof>), Error> {
         crate::telemetry!(query, self.id(), "query_client_state");
+        let mut client = self.ibc_client_grpc_client.clone();
 
-        let res = self.rpc_query(
-            ClientStatePath(request.client_id.clone()),
-            request.height,
-            matches!(include_proof, IncludeProof::Yes),
-        )?;
-        let client_state = AnyClientState::decode_vec(&res.value).map_err(Error::decode)?;
+        let request: RawQueryClientStateRequest = request.into();
+
+        // TODO(erwan): for now, playing a bit fast-and-loose with the error handling.
+        let response = self
+            .rt
+            .block_on(client.client_state(request))
+            .map_err(|e| Error::other(Box::new(e)))?
+            .into_inner();
+
+        let raw_client_state = response
+            .client_state
+            .ok_or_else(Error::empty_response_value)?;
+        let raw_proof_bytes = response.proof;
+        // let maybe_proof_height = response.proof_height;
+
+        let client_state: AnyClientState = raw_client_state
+            .try_into()
+            .map_err(|e| Error::other(Box::new(e)))?;
 
         match include_proof {
             IncludeProof::Yes => {
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                // First, check that the raw proof is not empty.
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
+                }
+
+                // Only then, attempt to deserialize the proof.
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
                 Ok((client_state, Some(proof)))
             }
             IncludeProof::No => Ok((client_state, None)),
@@ -886,19 +915,25 @@ impl ChainEndpoint for PenumbraChain {
         include_proof: IncludeProof,
     ) -> Result<(AnyConsensusState, Option<MerkleProof>), Error> {
         crate::telemetry!(query, self.id(), "query_consensus_state");
+        let mut client = self.ibc_client_grpc_client.clone();
 
-        let res = self.rpc_query(
-            ClientConsensusStatePath {
-                client_id: request.client_id.clone(),
-                epoch: request.consensus_height.revision_number(),
-                height: request.consensus_height.revision_height(),
-            },
-            request.query_height,
-            matches!(include_proof, IncludeProof::Yes),
-        )?;
+        let request: RawQueryConsensusStatesRequest = request.into();
+        let response = self
+            .rt
+            .block_on(client.consensus_state(request))
+            .map_err(|e| Error::other(Box::new(e)))?
+            .into_inner();
 
-        let consensus_state = AnyConsensusState::decode_vec(&res.value).map_err(Error::decode)?;
+        let raw_consensus_state = response
+            .consensus_state
+            .ok_or_else(Error::empty_response_value)?;
+        let raw_proof_bytes = response.proof;
 
+        let consensus_state: AnyConsensusState = raw_consensus_state
+            .try_into()
+            .map_err(|e| Error::other(Box::new(e)))?;
+
+        // Sanity check that we received a tendermint consensus state.
         if !matches!(consensus_state, AnyConsensusState::Tendermint(_)) {
             return Err(Error::consensus_state_type_mismatch(
                 ClientType::Tendermint,
@@ -907,11 +942,21 @@ impl ChainEndpoint for PenumbraChain {
         }
 
         match include_proof {
+            IncludeProof::No => Ok((consensus_state, None)),
             IncludeProof::Yes => {
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
+                }
+
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
                 Ok((consensus_state, Some(proof)))
             }
-            IncludeProof::No => Ok((consensus_state, None)),
         }
     }
 
