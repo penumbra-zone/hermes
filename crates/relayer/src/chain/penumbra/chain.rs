@@ -1,9 +1,11 @@
 use anyhow::Context;
-use bytes::{Buf, Bytes};
+use bytes::Bytes;
 use futures::{FutureExt, StreamExt, TryStreamExt};
 use http::Uri;
 use ibc_proto::ics23;
 
+use ibc_proto::ibc::core::channel::v1::QueryChannelRequest as RawQueryChannelRequest;
+use ibc_proto::ibc::core::channel::v1::QueryNextSequenceReceiveRequest as RawQueryNextSequenceReceiveRequest;
 use ibc_proto::ibc::core::channel::v1::QueryPacketAcknowledgementRequest as RawQueryPacketAcknowledgementRequest;
 use ibc_proto::ibc::core::channel::v1::QueryPacketCommitmentRequest as RawQueryPacketCommitmentRequest;
 use ibc_proto::ibc::core::channel::v1::QueryPacketReceiptRequest as RawQueryPacketReceiptRequest;
@@ -12,8 +14,6 @@ use ibc_proto::ibc::core::client::v1::QueryConsensusStateRequest as RawQueryCons
 use ibc_proto::ibc::core::connection::v1::QueryConnectionRequest as RawQueryConnectionRequest;
 
 use ibc_relayer_types::core::ics23_commitment::commitment::CommitmentProofBytes;
-use ibc_relayer_types::core::ics24_host::path::{ChannelEndsPath, SeqRecvsPath};
-use ibc_relayer_types::core::ics24_host::Path;
 use once_cell::sync::Lazy;
 use penumbra_proto::core::app::v1::AppParametersRequest;
 use penumbra_proto::core::component::ibc::v1::IbcRelay as ProtoIbcRelay;
@@ -23,11 +23,10 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use tendermint_proto::Protobuf;
 use tracing::info;
 
 use crate::chain::client::ClientSettings;
-use crate::chain::cosmos::query::{abci_query, fetch_version_specs, QueryResponse};
+use crate::chain::cosmos::query::fetch_version_specs;
 use crate::chain::endpoint::ChainStatus;
 use crate::chain::requests::*;
 use crate::chain::tracking::TrackedMsgs;
