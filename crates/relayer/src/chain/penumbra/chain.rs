@@ -1203,27 +1203,52 @@ impl ChainEndpoint for PenumbraChain {
         Ok(channels)
     }
 
+    /// identifier. A proof can optionally be returned along with the result.
     fn query_channel(
         &self,
-        request: QueryChannelRequest,
+        req: QueryChannelRequest,
         include_proof: IncludeProof,
     ) -> Result<(ChannelEnd, Option<MerkleProof>), Error> {
-        crate::telemetry!(query, self.id(), "query_channel");
+        let mut client = self.ibc_channel_grpc_client.clone();
 
-        let res = self.rpc_query(
-            ChannelEndsPath(request.port_id, request.channel_id),
-            request.height,
-            matches!(include_proof, IncludeProof::Yes),
-        )?;
+        let height = match req.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
 
-        let channel_end = ChannelEnd::decode_vec(&res.value).map_err(Error::decode)?;
+        let proto_request: RawQueryChannelRequest = req.into();
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height.parse().unwrap());
+
+        let response = self
+            .rt
+            .block_on(client.channel(request))
+            .map_err(|e| Error::grpc_status(e, "query_channel".to_owned()))?
+            .into_inner();
+
+        let channel = response.channel.ok_or_else(Error::empty_response_value)?;
+        let channel_end: ChannelEnd = channel.try_into().map_err(|e| Error::other(Box::new(e)))?;
+
+        let raw_proof_bytes = response.proof;
 
         match include_proof {
+            IncludeProof::No => Ok((channel_end, None)),
             IncludeProof::Yes => {
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
+                }
+
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
                 Ok((channel_end, Some(proof)))
             }
-            IncludeProof::No => Ok((channel_end, None)),
         }
     }
 
@@ -1511,7 +1536,7 @@ impl ChainEndpoint for PenumbraChain {
 
     fn query_next_sequence_receive(
         &self,
-        request: QueryNextSequenceReceiveRequest,
+        req: QueryNextSequenceReceiveRequest,
         include_proof: IncludeProof,
     ) -> Result<(Sequence, Option<MerkleProof>), Error> {
         crate::time!(
@@ -1521,38 +1546,52 @@ impl ChainEndpoint for PenumbraChain {
             }
         );
         crate::telemetry!(query, self.id(), "query_next_sequence_receive");
+        let mut client = self.ibc_channel_grpc_client.clone();
+
+        let height = match req.height {
+            QueryHeight::Latest => 0.to_string(),
+            QueryHeight::Specific(h) => h.to_string(),
+        };
+
+        let proto_request: RawQueryNextSequenceReceiveRequest = req.into();
+        let mut request = proto_request.into_request();
+        request
+            .metadata_mut()
+            .insert("height", height.parse().unwrap());
+
+        let response = self
+            .rt
+            .block_on(client.next_sequence_receive(request))
+            .map_err(|e| Error::grpc_status(e, "query_next_sequence_receive".to_owned()))?
+            .into_inner();
+
+        // TODO(erwan): previously, there was a comment explaining that we expect
+        // a u64 encoded in big-endian in the ABCI query branch. Now that we use
+        // gRPC for this query, we shouldn't have to worry about that (this also match previous behavior
+        // when a proof is *not* requested). Nevertheless. I will keep the comment here for now:
+        // ```
+        // Note: We expect the return to be a u64 encoded in big-endian. Refer to ibc-go:
+        // https://github.com/cosmos/ibc-go/blob/25767f6bdb5bab2c2a116b41d92d753c93e18121/modules/core/04-channel/client/utils/utils.go#L191
+        // ```
+        let next_seq: Sequence = response.next_sequence_receive.into();
+        let raw_proof_bytes = response.proof;
 
         match include_proof {
             IncludeProof::Yes => {
-                let res = self.rpc_query(
-                    SeqRecvsPath(request.port_id, request.channel_id),
-                    request.height,
-                    true,
-                )?;
-
-                // Note: We expect the return to be a u64 encoded in big-endian. Refer to ibc-go:
-                // https://github.com/cosmos/ibc-go/blob/25767f6bdb5bab2c2a116b41d92d753c93e18121/modules/core/04-channel/client/utils/utils.go#L191
-                if res.value.len() != 8 {
-                    return Err(Error::query("next_sequence_receive".into()));
+                if raw_proof_bytes.is_empty() {
+                    return Err(Error::empty_response_proof());
                 }
-                let seq: Sequence = Bytes::from(res.value).get_u64().into();
 
-                let proof = res.proof.ok_or_else(Error::empty_response_proof)?;
+                let raw_proof = RawMerkleProof::decode::<Bytes>(raw_proof_bytes.into())
+                    .map_err(|e| Error::other(Box::new(e)))?;
 
-                Ok((seq, Some(proof)))
+                let proof = raw_proof
+                    .try_into()
+                    .map_err(|e| Error::other(Box::new(e)))?;
+
+                Ok((next_seq, Some(proof)))
             }
-            IncludeProof::No => {
-                let mut client = self.ibc_channel_grpc_client.clone();
-                let request = tonic::Request::new(request.into());
-
-                let response = self
-                    .rt
-                    .block_on(client.next_sequence_receive(request))
-                    .map_err(|e| Error::grpc_status(e, "query_next_sequence_receive".to_owned()))?
-                    .into_inner();
-
-                Ok((response.next_sequence_receive.into(), None))
-            }
+            IncludeProof::No => Ok((next_seq, None)),
         }
     }
 
