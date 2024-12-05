@@ -5,6 +5,7 @@ use ibc_proto::{
     ibc::core::{
         channel::v1::{
             QueryChannelClientStateRequest as RawQueryChannelClientStateRequest,
+            QueryChannelRequest as RawQueryChannelRequest,
             QueryChannelsRequest as RawQueryChannelsRequest,
             QueryConnectionChannelsRequest as RawQueryConnectionChannelsRequest,
             QueryNextSequenceReceiveRequest as RawQueryNextSequenceReceiveRequest,
@@ -311,6 +312,15 @@ pub struct QueryChannelRequest {
     pub port_id: PortId,
     pub channel_id: ChannelId,
     pub height: QueryHeight,
+}
+
+impl From<QueryChannelRequest> for RawQueryChannelRequest {
+    fn from(request: QueryChannelRequest) -> Self {
+        Self {
+            port_id: request.port_id.to_string(),
+            channel_id: request.channel_id.to_string(),
+        }
+    }
 }
 
 /// gRPC request to fetch the client state associated with a specified channel.
