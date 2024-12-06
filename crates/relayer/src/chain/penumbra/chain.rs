@@ -109,7 +109,7 @@ pub struct PenumbraChain {
     ibc_connection_grpc_client: IbcConnectionQueryClient<tonic::transport::Channel>,
     ibc_channel_grpc_client: IbcChannelQueryClient<tonic::transport::Channel>,
 
-    tendermint_rpc_client: HttpClient,
+    pub tendermint_rpc_client: HttpClient,
     tendermint_light_client: TmLightClient,
 
     tx_monitor_cmd: Option<TxEventSourceCmd>,
