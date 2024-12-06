@@ -2803,7 +2803,6 @@ dependencies = [
  "bs58",
  "byte-unit",
  "bytes",
- "camino",
  "crossbeam-channel 0.5.13",
  "digest 0.10.7",
  "dirs-next",

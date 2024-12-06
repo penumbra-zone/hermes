@@ -523,7 +523,7 @@ impl ChainEndpoint for PenumbraChain {
         };
 
         // No support for custom registry.json files in Hermes yet.
-        let registry_path: Option<camino::Utf8PathBuf> = None;
+        let registry_path: Option<String> = None;
         let svc = rt
             .block_on(ViewServer::load_or_initialize(
                 view_file,
