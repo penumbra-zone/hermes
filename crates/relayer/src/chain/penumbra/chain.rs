@@ -118,27 +118,6 @@ pub struct PenumbraChain {
 }
 
 impl PenumbraChain {
-    // unfortunately, for some queries, we need to use ABCI queries, since the gRPC query interface
-    // does not support specifying the height.
-    fn rpc_query(
-        &self,
-        data: impl Into<Path>,
-        height_query: QueryHeight,
-        prove: bool,
-    ) -> Result<QueryResponse, Error> {
-        let data_prefixed = format!("ibc-data/{}", data.into());
-
-        let response = self.rt.block_on(abci_query(
-            &self.tendermint_rpc_client,
-            &self.config.rpc_addr,
-            "state/key".to_string(),
-            data_prefixed,
-            height_query.into(),
-            prove,
-        ))?;
-
-        Ok(response)
-    }
     fn init_event_source(&mut self) -> Result<TxEventSourceCmd, Error> {
         crate::time!(
             "init_event_source",
