@@ -974,6 +974,7 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
     ///
     /// Return the messages and the app height the destination chain must reach
     /// before we send the messages.
+    #[tracing::instrument(skip(self), err)]
     pub fn build_conn_try(&self) -> Result<(Vec<Any>, Height), ConnectionError> {
         let src_connection_id = self
             .src_connection_id()
@@ -1025,6 +1026,11 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
             .src_chain()
             .query_latest_height()
             .map_err(|e| ConnectionError::chain_query(self.src_chain().id(), e))?;
+
+        tracing::warn!(
+            ?query_height,
+            "asking for connection proofs at this specific query height"
+        );
 
         let (client_state, proofs) = self
             .src_chain()
@@ -1086,6 +1092,7 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
         Ok((msgs, src_client_target_height))
     }
 
+    #[tracing::instrument(skip(self), err)]
     pub fn build_conn_try_and_send(&self) -> Result<IbcEvent, ConnectionError> {
         let (dst_msgs, src_client_target_height) = self.build_conn_try()?;
 
@@ -1168,6 +1175,11 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
             .query_latest_height()
             .map_err(|e| ConnectionError::chain_query(self.src_chain().id(), e))?;
 
+        tracing::warn!(
+            ?query_height,
+            "asking for connection proofs at this specific query height"
+        );
+
         let (client_state, proofs) = self
             .src_chain()
             .build_connection_proofs_and_client_state(
@@ -1201,6 +1213,7 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
         Ok((msgs, src_client_target_height))
     }
 
+    #[tracing::instrument(skip(self), err)]
     pub fn build_conn_ack_and_send(&self) -> Result<IbcEvent, ConnectionError> {
         let (dst_msgs, src_client_target_height) = self.build_conn_ack()?;
 
@@ -1251,6 +1264,11 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
             .query_latest_height()
             .map_err(|e| ConnectionError::chain_query(self.src_chain().id(), e))?;
 
+        tracing::warn!(
+            ?query_height,
+            "asking for connection proofs at this specific query height"
+        );
+
         let (_src_connection, _) = self
             .src_chain()
             .query_connection(
@@ -1293,6 +1311,7 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> Connection<ChainA, ChainB> {
         Ok(msgs)
     }
 
+    #[tracing::instrument(skip(self), err)]
     pub fn build_conn_confirm_and_send(&self) -> Result<IbcEvent, ConnectionError> {
         let dst_msgs = self.build_conn_confirm()?;
 
