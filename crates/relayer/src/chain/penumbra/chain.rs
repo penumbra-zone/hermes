@@ -527,10 +527,13 @@ impl ChainEndpoint for PenumbraChain {
             }
         };
 
+        // No support for custom registry.json files in Hermes yet.
+        let registry_path: Option<String> = None;
         let svc = rt
             .block_on(ViewServer::load_or_initialize(
                 view_file,
-                fvk,
+                registry_path,
+                &fvk,
                 config.grpc_addr.clone().into(),
             ))
             .map_err(|e| Error::temp_penumbra_error(e.to_string()))?;
