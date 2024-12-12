@@ -1370,17 +1370,9 @@ impl ChainEndpoint for PenumbraChain {
             .into_inner();
 
         let raw_proof_bytes = response.proof;
-        if !response.received {
-            // TODO(erwan): not completely clear this should be an error, but this match
-            // the behavior based on the current implementation where the tonic 404 is treated as an error.
-            return Err(Error::other_with_string(format!(
-                "packet receipt not found for port_id: {}, channel_id: {}, sequence: {}",
-                port_id, channel_id, sequence
-            )));
-        }
 
         match include_proof {
-            IncludeProof::No => Ok((vec![], None)),
+            IncludeProof::No => Ok((vec![response.received.into()], None)),
             IncludeProof::Yes => {
                 if raw_proof_bytes.is_empty() {
                     return Err(Error::empty_response_proof());
@@ -1393,7 +1385,7 @@ impl ChainEndpoint for PenumbraChain {
                     .try_into()
                     .map_err(|e| Error::other(Box::new(e)))?;
 
-                Ok((vec![], Some(proof)))
+                Ok((vec![response.received.into()], Some(proof)))
             }
         }
     }
