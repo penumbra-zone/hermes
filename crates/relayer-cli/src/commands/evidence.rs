@@ -9,9 +9,11 @@ use std::{
 use ibc_relayer::{
     chain::{
         cosmos::CosmosSdkChain,
-        endpoint::ChainEndpoint,
+        endpoint::{ChainEndpoint, ChainEndpointWrap},
         handle::{BaseChainHandle, ChainHandle},
+        penumbra::chain::PenumbraChain,
         requests::{IncludeProof, PageRequest, QueryHeight},
+        runtime::ChainRuntime,
         tracking::TrackedMsgs,
     },
     config::{ChainConfig, Config},
@@ -100,11 +102,12 @@ impl Runnable for EvidenceCmd {
             ChainConfig::Astria(_) => {
                 todo!("AstriaEndpoint::bootstrap");
             }
-            ChainConfig::CosmosSdk(ref _cfg) => {
-                CosmosSdkChain::bootstrap(chain_config, rt.clone()).unwrap()
-            }
-            // TODO: Will need to rewrite this function to work with non-cosmosSDK chains
-            ChainConfig::Penumbra(_) => todo!("current implementation expects a cosmosSDK chain"),
+            ChainConfig::CosmosSdk(ref _cfg) => ChainEndpointWrap::Cosmos(
+                ChainRuntime::<CosmosSdkChain>::bootstrap(chain_config, rt.clone()).unwrap(),
+            ),
+            ChainConfig::Penumbra(_) => ChainEndpointWrap::Penumbra(
+                ChainRuntime::<PenumbraChain>::bootstrap(chain_config, rt.clone()).unwrap(),
+            ),
         };
 
         let res = monitor_misbehaviours(
@@ -125,23 +128,40 @@ impl Runnable for EvidenceCmd {
 fn monitor_misbehaviours(
     rt: Arc<TokioRuntime>,
     config: &Config,
-    mut chain: CosmosSdkChain,
+    mut chain: ChainEndpointWrap,
+    // mut chain: CosmosSdkChain,
     key_name: Option<&String>,
     check_past_blocks: u64,
 ) -> eyre::Result<()> {
-    let subscription = chain.subscribe()?;
+    let subscription = match chain {
+        ChainEndpointWrap::Cosmos(ref mut chain) => chain.subscribe()?,
+        ChainEndpointWrap::Penumbra(ref mut chain) => chain.subscribe()?,
+        ChainEndpointWrap::Astria(ref mut chain) => chain.subscribe()?,
+    };
+
+    let rpc_client = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.rpc_client.clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.tendermint_rpc_client.clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
+
+    let chain_id = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
 
     // Check previous blocks for equivocation that may have been missed
     let tm_latest_height = rt
-        .block_on(chain.rpc_client.status())?
+        .block_on(rpc_client.status())?
         .sync_info
         .latest_block_height;
 
-    let latest_height = Height::new(chain.id().version(), tm_latest_height.value()).unwrap();
+    let latest_height = Height::new(chain_id.version(), tm_latest_height.value()).unwrap();
     let target_height = {
         let target = tm_latest_height.value().saturating_sub(check_past_blocks);
         let height = std::cmp::max(1, target);
-        Height::new(chain.id().version(), height).unwrap()
+        Height::new(chain_id.version(), height).unwrap()
     };
 
     info!(
@@ -207,12 +227,18 @@ fn monitor_misbehaviours(
 fn check_misbehaviour_at(
     rt: Arc<TokioRuntime>,
     config: &Config,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     key_name: Option<&String>,
     height: Height,
 ) -> eyre::Result<()> {
+    let rpc_client = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.rpc_client.clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.tendermint_rpc_client.clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
+
     let block = rt
-        .block_on(chain.rpc_client.block(TendermintHeight::from(height)))?
+        .block_on(rpc_client.block(TendermintHeight::from(height)))?
         .block;
 
     for evidence in block.evidence.into_vec() {
@@ -266,7 +292,7 @@ fn spawn_runtime(
 fn handle_duplicate_vote(
     rt: Arc<TokioRuntime>,
     config: &Config,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     key_name: Option<&String>,
     evidence: DuplicateVoteEvidence,
 ) -> eyre::Result<()> {
@@ -320,7 +346,7 @@ fn handle_duplicate_vote(
 
 fn submit_duplicate_vote_evidence(
     rt: &TokioRuntime,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     counterparty_chain_handle: &BaseChainHandle,
     counterparty_chain_id: &ChainId,
     counterparty_client_id: &ClientId,
@@ -341,11 +367,21 @@ fn submit_duplicate_vote_evidence(
     // ie. retrieve the consensus state at the highest height smaller than the infraction height.
     //
     // Note: The consensus state heights are sorted in increasing order.
-    let consensus_state_heights =
-        chain.query_consensus_state_heights(QueryConsensusStateHeightsRequest {
-            client_id: counterparty_client_id.clone(),
-            pagination: Some(PageRequest::all()),
-        })?;
+    let consensus_state_heights = match chain {
+        ChainEndpointWrap::Cosmos(chain) => {
+            chain.query_consensus_state_heights(QueryConsensusStateHeightsRequest {
+                client_id: counterparty_client_id.clone(),
+                pagination: Some(PageRequest::all()),
+            })?
+        }
+        ChainEndpointWrap::Penumbra(chain) => {
+            chain.query_consensus_state_heights(QueryConsensusStateHeightsRequest {
+                client_id: counterparty_client_id.clone(),
+                pagination: Some(PageRequest::all()),
+            })?
+        }
+        ChainEndpointWrap::Astria(_) => todo!(),
+    };
 
     // Retrieve the consensus state at the highest height smaller than the infraction height.
     let consensus_state_height_before_infraction_height = consensus_state_heights
@@ -396,27 +432,33 @@ fn submit_duplicate_vote_evidence(
 
 fn fetch_infraction_block_header(
     rt: &TokioRuntime,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     infraction_height: TendermintHeight,
     trusted_height: Height,
 ) -> Result<TendermintHeader, eyre::Error> {
+    let rpc_client = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.rpc_client.clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.tendermint_rpc_client.clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
+
     let signed_header = rt
-        .block_on(chain.rpc_client.commit(infraction_height))?
+        .block_on(rpc_client.commit(infraction_height))?
         .signed_header;
 
     let validators = rt
-        .block_on(chain.rpc_client.validators(infraction_height, Paging::All))?
+        .block_on(rpc_client.validators(infraction_height, Paging::All))?
         .validators;
 
     let validator_set =
         validator::Set::with_proposer(validators, signed_header.header.proposer_address)?;
 
     let trusted_header = rt
-        .block_on(chain.rpc_client.commit(trusted_height))?
+        .block_on(rpc_client.commit(trusted_height))?
         .signed_header;
 
     let trusted_validators = rt
-        .block_on(chain.rpc_client.validators(trusted_height, Paging::All))?
+        .block_on(rpc_client.validators(trusted_height, Paging::All))?
         .validators;
 
     let trusted_validator_set =
@@ -433,7 +475,7 @@ fn fetch_infraction_block_header(
 fn handle_light_client_attack(
     rt: Arc<TokioRuntime>,
     config: &Config,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     key_name: Option<&String>,
     evidence: LightClientAttackEvidence,
 ) -> eyre::Result<()> {
@@ -446,11 +488,17 @@ fn handle_light_client_attack(
     // Cache for the chain handles
     let mut chains = HashMap::new();
 
-    let chain_handle = spawn_runtime(rt.clone(), config, &mut chains, chain.id(), key_name)
+    let chain_id = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
+
+    let chain_handle = spawn_runtime(rt.clone(), config, &mut chains, &chain_id, key_name)
         .map_err(|e| {
             eyre::eyre!(
                 "failed to spawn chain runtime for chain `{chain_id}`: {e}",
-                chain_id = chain.id()
+                chain_id = chain_id
             )
         })?;
 
@@ -506,7 +554,7 @@ fn handle_light_client_attack(
 
 fn submit_light_client_attack_evidence(
     evidence: &LightClientAttackEvidence,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     counterparty_client: ForeignClient<BaseChainHandle, BaseChainHandle>,
     counterparty_client_id: ClientId,
     counterparty: &BaseChainHandle,
@@ -534,8 +582,14 @@ fn submit_light_client_attack_evidence(
         return Ok(());
     }
 
+    let chain_id = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
+
     let signer = counterparty.get_signer()?;
-    let common_height = Height::from_tm(evidence.common_height, chain.id());
+    let common_height = Height::from_tm(evidence.common_height, &chain_id);
 
     let counterparty_has_common_consensus_state =
         has_consensus_state(counterparty, &counterparty_client_id, common_height);
@@ -679,20 +733,38 @@ fn has_consensus_state(
 /// Otherwise, check if the misbehaving chain is a consumer of the counterparty chain,
 /// which is then definitely a provider.
 fn is_counterparty_provider(
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     counterparty_chain_handle: &BaseChainHandle,
     counterparty_client_id: &ClientId,
 ) -> bool {
-    if chain.config().ccv_consumer_chain {
-        let consumer_chains = counterparty_chain_handle
-            .query_consumer_chains()
-            .unwrap_or_default(); // If the query fails, use an empty list of consumers
+    let config = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => ChainConfig::CosmosSdk(chain.config().clone()),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.config(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
 
-        consumer_chains.iter().any(|(chain_id, client_id)| {
-            chain_id == chain.id() && client_id == counterparty_client_id
-        })
-    } else {
-        false
+    match config {
+        ChainConfig::CosmosSdk(config) => {
+            if config.ccv_consumer_chain {
+                let consumer_chains = counterparty_chain_handle
+                    .query_consumer_chains()
+                    .unwrap_or_default(); // If the query fails, use an empty list of consumers
+
+                let this_chain_id = match chain {
+                    ChainEndpointWrap::Cosmos(ref chain) => chain.id().clone(),
+                    ChainEndpointWrap::Penumbra(ref chain) => chain.id().clone(),
+                    ChainEndpointWrap::Astria(ref _chain) => todo!(),
+                };
+                consumer_chains.iter().any(|(chain_id, client_id)| {
+                    *chain_id == this_chain_id && client_id == counterparty_client_id
+                })
+            } else {
+                false
+            }
+        }
+        ChainConfig::Astria(_) => todo!(),
+        // No CCV consumer config for Penumbra -- TODO: do we need this?
+        ChainConfig::Penumbra(_) => false,
     }
 }
 
@@ -706,13 +778,19 @@ fn is_counterparty_provider(
 /// 4. Return a list of all counterparty chains and counterparty clients.
 fn fetch_all_counterparty_clients(
     config: &Config,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
 ) -> eyre::Result<Vec<(ChainId, ClientId)>> {
     use ibc_relayer::chain::requests::{QueryClientStateRequest, QueryConnectionsRequest};
 
-    let connections = chain.query_connections(QueryConnectionsRequest {
-        pagination: Some(PageRequest::all()),
-    })?;
+    let connections = match chain {
+        ChainEndpointWrap::Cosmos(chain) => chain.query_connections(QueryConnectionsRequest {
+            pagination: Some(PageRequest::all()),
+        })?,
+        ChainEndpointWrap::Penumbra(chain) => chain.query_connections(QueryConnectionsRequest {
+            pagination: Some(PageRequest::all()),
+        })?,
+        ChainEndpointWrap::Astria(_) => todo!(),
+    };
 
     debug!("found {} connections", connections.len());
 
@@ -732,13 +810,23 @@ fn fetch_all_counterparty_clients(
             connection.connection_id
         );
 
-        let client_state = chain.query_client_state(
-            QueryClientStateRequest {
-                client_id: client_id.clone(),
-                height: QueryHeight::Latest,
-            },
-            IncludeProof::No,
-        );
+        let client_state = match chain {
+            ChainEndpointWrap::Cosmos(chain) => chain.query_client_state(
+                QueryClientStateRequest {
+                    client_id: client_id.clone(),
+                    height: QueryHeight::Latest,
+                },
+                IncludeProof::No,
+            ),
+            ChainEndpointWrap::Penumbra(chain) => chain.query_client_state(
+                QueryClientStateRequest {
+                    client_id: client_id.clone(),
+                    height: QueryHeight::Latest,
+                },
+                IncludeProof::No,
+            ),
+            ChainEndpointWrap::Astria(_) => todo!(),
+        };
 
         let client_state = match client_state {
             Ok((client_state, _)) => client_state,
@@ -774,7 +862,7 @@ fn fetch_all_counterparty_clients(
 /// Build the two headers to submit as part of the `MsgSubmitMisbehaviour` message.
 fn build_evidence_headers(
     rt: Arc<TokioRuntime>,
-    chain: &CosmosSdkChain,
+    chain: &ChainEndpointWrap,
     lc: LightClientAttackEvidence,
 ) -> eyre::Result<(TendermintHeader, TendermintHeader)> {
     if lc.conflicting_block.signed_header.header.height == lc.common_height {
@@ -787,12 +875,17 @@ fn build_evidence_headers(
 
     let trusted_height = lc.common_height;
 
+    let rpc_client = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.rpc_client.clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.tendermint_rpc_client.clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
     let trusted_validators = rt
-        .block_on(chain.rpc_client.validators(trusted_height, Paging::All))?
+        .block_on(rpc_client.validators(trusted_height, Paging::All))?
         .validators;
 
     let trusted_header = rt
-        .block_on(chain.rpc_client.commit(trusted_height))?
+        .block_on(rpc_client.commit(trusted_height))?
         .signed_header;
 
     let trusted_proposer = trusted_header.header.proposer_address;
@@ -800,7 +893,12 @@ fn build_evidence_headers(
     let trusted_validator_set =
         validator::Set::with_proposer(trusted_validators, trusted_proposer)?;
 
-    let trusted_height = Height::from_tm(trusted_height, chain.id());
+    let chain_id = match chain {
+        ChainEndpointWrap::Cosmos(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Penumbra(ref chain) => chain.id().clone(),
+        ChainEndpointWrap::Astria(ref _chain) => todo!(),
+    };
+    let trusted_height = Height::from_tm(trusted_height, &chain_id);
 
     let header1 = {
         TendermintHeader {
@@ -813,15 +911,11 @@ fn build_evidence_headers(
 
     let header2 = {
         let signed_header = rt
-            .block_on(chain.rpc_client.commit(header1.signed_header.header.height))?
+            .block_on(rpc_client.commit(header1.signed_header.header.height))?
             .signed_header;
 
         let validators = rt
-            .block_on(
-                chain
-                    .rpc_client
-                    .validators(header1.signed_header.header.height, Paging::All),
-            )?
+            .block_on(rpc_client.validators(header1.signed_header.header.height, Paging::All))?
             .validators;
 
         let validator_set =
