@@ -1,5 +1,5 @@
 use core::fmt::{Display, Error as FmtError, Formatter};
-use std::collections::BTreeMap;
+use std::{borrow::Borrow as _, collections::BTreeMap};
 
 use ibc_relayer_types::core::{
     ics03_connection::connection::{IdentifiedConnectionEnd, State as ConnectionState},
@@ -27,7 +27,7 @@ use crate::{
     },
     client_state::IdentifiedAnyClientState,
     config::{
-        filter::{ChannelFilters, ChannelPolicy},
+        filter::{ChannelFilters, ChannelPolicy, ClientFilters, ClientPolicy},
         ChainConfig, Config,
     },
     error::Error as RelayerError,
@@ -320,18 +320,21 @@ impl<'a, Chain: ChainHandle> ChainScanner<'a, Chain> {
 
         let mut scan = ChainScan::new(chain_config.id().clone());
 
-        match self.use_allow_list(chain_config) {
+        // TODO: hack to avoid complicating the code for now
+        let client_filters = self.use_client_allow_list(chain_config);
+
+        match self.use_channel_allow_list(chain_config) {
             Some(spec) if self.scan_mode == ScanMode::Auto => {
                 info!(
                     "chain uses an allow list (without wildcards), skipping scan for fast startup"
                 );
                 info!("allowed ports/channels: {}", spec);
 
-                self.query_allowed_channels(&chain, spec, &mut scan)?;
+                self.query_allowed_channels(&chain, spec, client_filters, &mut scan)?;
             }
             _ => {
-                info!("scanning chain for all clients, connections and channels");
-                self.scan_all_clients(&chain, &mut scan)?;
+                info!("scanning chain for all clients, and channels");
+                self.scan_all_clients(&chain, &mut scan, client_filters)?;
             }
         };
 
@@ -341,12 +344,13 @@ impl<'a, Chain: ChainHandle> ChainScanner<'a, Chain> {
     pub fn query_allowed_channels(
         &mut self,
         chain: &Chain,
-        filters: &ChannelFilters,
+        channel_filters: &ChannelFilters,
+        client_filters: Option<&ClientFilters>,
         scan: &mut ChainScan,
     ) -> Result<(), Error> {
         info!("querying allowed channels...");
 
-        for (port_id, channel_id) in filters.iter_exact() {
+        for (port_id, channel_id) in channel_filters.iter_exact() {
             let result = scan_allowed_channel(self.registry, chain, port_id, channel_id);
 
             match result {
@@ -357,6 +361,17 @@ impl<'a, Chain: ChainHandle> ChainScanner<'a, Chain> {
                     counterparty_connection_state,
                     client,
                 }) => {
+                    if let Some(client_filters) = client_filters {
+                        let allowed_client_ids = client_filters.iter_exact().collect_vec();
+                        if !allowed_client_ids.contains(&&client.client_id) {
+                            warn!(
+                                client = %client.client_id,
+                                "skipping client, reason: client is not allowed"
+                            );
+                            continue;
+                        }
+                    }
+
                     let counterparty_chain_id = client.client_state.chain_id();
                     if let Some(counterparty_channel) = &counterparty_channel {
                         init_telemetry(
@@ -395,12 +410,28 @@ impl<'a, Chain: ChainHandle> ChainScanner<'a, Chain> {
         Ok(())
     }
 
-    pub fn scan_all_clients(&mut self, chain: &Chain, scan: &mut ChainScan) -> Result<(), Error> {
-        info!("scanning all clients...");
+    pub fn scan_all_clients(
+        &mut self,
+        chain: &Chain,
+        scan: &mut ChainScan,
+        client_filters: Option<&ClientFilters>,
+    ) -> Result<(), Error> {
+        info!(?client_filters, "scanning filtered clients...");
 
         let clients = query_all_clients(chain)?;
 
         for client in clients {
+            if let Some(client_filters) = client_filters {
+                let exact_client_filters = client_filters.iter_exact().collect_vec();
+                if !exact_client_filters.contains(&&client.client_id) {
+                    warn!(
+                        client = %client.client_id,
+                        "skipping client, reason: client is not allowed"
+                    );
+                    continue;
+                }
+            }
+
             if let Some(client_scan) = self.scan_client(chain, client)? {
                 if self.config.telemetry.enabled {
                     // discovery phase : query every chain, connections and channels
@@ -581,13 +612,31 @@ impl<'a, Chain: ChainHandle> ChainScanner<'a, Chain> {
         true
     }
 
-    fn use_allow_list<'b>(&self, chain_config: &'b ChainConfig) -> Option<&'b ChannelFilters> {
+    fn use_channel_allow_list<'b>(
+        &self,
+        chain_config: &'b ChainConfig,
+    ) -> Option<&'b ChannelFilters> {
         if !self.filtering_enabled() {
             return None;
         }
 
         match chain_config.packet_filter().channel_policy {
             ChannelPolicy::Allow(ref filters) if filters.is_exact() => Some(filters),
+            _ => None,
+        }
+    }
+
+    fn use_client_allow_list<'b>(
+        &self,
+        chain_config: &'b ChainConfig,
+    ) -> Option<&'b ClientFilters> {
+        if !self.filtering_enabled() {
+            return None;
+        }
+
+        let policy = &chain_config.client_filter().client_policy;
+        match policy {
+            ClientPolicy::Allow(ref filters) if filters.is_exact() => Some(filters),
             _ => None,
         }
     }

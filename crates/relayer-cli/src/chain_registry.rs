@@ -22,7 +22,7 @@ use ibc_relayer::{
     config::{
         default,
         dynamic_gas::DynamicGasPrice,
-        filter::{FilterPattern, PacketFilter},
+        filter::{ClientFilter, FilterPattern, PacketFilter},
         gas_multiplier::GasMultiplier,
         types::{MaxMsgNum, MaxTxSize, Memo, TrustThreshold},
         AddressType, ChainConfig, EventSourceMode, GasPrice,
@@ -36,34 +36,40 @@ use tracing::{error, trace};
 
 const MAX_HEALTHY_QUERY_RETRIES: u8 = 5;
 
-/// Generate packet filters from Vec<IBCPath> and load them in a Map(chain_name -> filter).
-fn construct_packet_filters(ibc_paths: Vec<IBCPath>) -> HashMap<String, PacketFilter> {
-    let mut packet_filters: HashMap<_, Vec<_>> = HashMap::new();
+/// Generate packet and client filters from Vec<IBCPath> and load them in a Map(chain_name -> (packet_filters, client_filters)).
+fn construct_filters(ibc_paths: Vec<IBCPath>) -> HashMap<String, (PacketFilter, ClientFilter)> {
+    let mut filters: HashMap<_, (Vec<_>, Vec<_>)> = HashMap::new();
 
     for path in ibc_paths {
         for channel in path.channels {
             let chain_1 = path.chain_1.chain_name.to_owned();
             let chain_2 = path.chain_2.chain_name.to_owned();
 
-            let filters_1 = packet_filters.entry(chain_1).or_default();
+            let filters_1 = filters.entry(chain_1).or_default();
 
-            filters_1.push((
+            filters_1.0.push((
                 FilterPattern::Exact(channel.chain_1.port_id.clone()),
                 FilterPattern::Exact(channel.chain_1.channel_id.clone()),
             ));
+            filters_1
+                .1
+                .push(FilterPattern::Exact(path.chain_1.client_id.clone()));
 
-            let filters_2 = packet_filters.entry(chain_2).or_default();
+            let filters_2 = filters.entry(chain_2).or_default();
 
-            filters_2.push((
+            filters_2.0.push((
                 FilterPattern::Exact(channel.chain_2.port_id.clone()),
                 FilterPattern::Exact(channel.chain_2.channel_id.clone()),
             ));
+            filters_2
+                .1
+                .push(FilterPattern::Exact(path.chain_2.client_id.clone()));
         }
     }
 
-    packet_filters
+    filters
         .into_iter()
-        .map(|(k, v)| (k, PacketFilter::allow(v)))
+        .map(|(k, v)| (k, (PacketFilter::allow(v.0), ClientFilter::allow(v.1))))
         .collect()
 }
 
@@ -72,6 +78,7 @@ async fn hermes_config<GrpcQuerier, RpcQuerier, GrpcFormatter>(
     chain_data: ChainData,
     assets: AssetList,
     packet_filter: Option<PacketFilter>,
+    client_filter: Option<ClientFilter>,
 ) -> Result<ChainConfig, RegistryError>
 where
     GrpcQuerier:
@@ -171,6 +178,7 @@ where
             denom: asset.base.to_owned(),
         },
         packet_filter: packet_filter.unwrap_or_default(),
+        client_filter: client_filter.unwrap_or_default(),
         address_type: AddressType::default(),
         sequential_batch_tx: false,
         extension_options: Vec::new(),
@@ -341,19 +349,24 @@ pub async fn get_configs(
         })
         .collect();
 
-    let mut packet_filters = construct_packet_filters(path_data);
+    let mut filters = construct_filters(path_data);
 
     // Construct ChainConfig
     let config_handles: Vec<_> = chain_data_array
         .into_iter()
         .zip(asset_lists.into_iter())
         .map(|((chain_name, chain_data), (_, assets))| {
-            let packet_filter = packet_filters.remove(&chain_name);
+            let (packet_filter, client_filter) = match filters.remove(&chain_name) {
+                Some(filters) => (Some(filters.0), Some(filters.1)),
+                None => (None, None),
+            };
             let handle = tokio::spawn(hermes_config::<
                 GrpcHealthCheckQuerier,
                 SimpleHermesRpcQuerier,
                 SimpleGrpcFormatter,
-            >(chain_data, assets, packet_filter));
+            >(
+                chain_data, assets, packet_filter, client_filter
+            ));
 
             (chain_name, handle)
         })

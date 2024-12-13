@@ -194,6 +194,7 @@ impl FullNode {
             trust_threshold: Default::default(),
             gas_price,
             packet_filter: Default::default(),
+            client_filter: Default::default(),
             address_type: chain_type.address_type(),
             memo_prefix: Default::default(),
             memo_overwrite: None,
