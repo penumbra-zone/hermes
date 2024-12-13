@@ -6,7 +6,7 @@ use std::{collections::HashMap, hash::Hash};
 use ibc_relayer_types::{
     applications::transfer::RawCoin,
     bigint::U256,
-    core::ics24_host::identifier::{ChannelId, PortId},
+    core::ics24_host::identifier::{ChannelId, ClientId, PortId},
     events::IbcEventType,
 };
 use itertools::Itertools;
@@ -42,11 +42,37 @@ impl PacketFilter {
         }
     }
 
-    pub fn allow(filters: Vec<(PortFilterMatch, ChannelFilterMatch)>) -> PacketFilter {
+    pub fn allow(channel_filters: Vec<(PortFilterMatch, ChannelFilterMatch)>) -> PacketFilter {
         PacketFilter::new(
-            ChannelPolicy::Allow(ChannelFilters::new(filters)),
+            ChannelPolicy::Allow(ChannelFilters::new(channel_filters)),
             HashMap::new(),
         )
+    }
+}
+
+/// Represents all the filtering policies for clients.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ClientFilter {
+    #[serde(flatten)]
+    pub client_policy: ClientPolicy,
+}
+
+impl Default for ClientFilter {
+    /// By default, allows all clients.
+    fn default() -> Self {
+        Self {
+            client_policy: ClientPolicy::default(),
+        }
+    }
+}
+
+impl ClientFilter {
+    pub fn new(client_policy: ClientPolicy) -> Self {
+        Self { client_policy }
+    }
+
+    pub fn allow(client_filters: Vec<ClientFilterMatch>) -> ClientFilter {
+        ClientFilter::new(ClientPolicy::Allow(ClientFilters::new(client_filters)))
     }
 }
 
@@ -231,6 +257,119 @@ impl Serialize for ChannelFilters {
     }
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClientFilters(Vec<ClientFilterMatch>);
+
+impl ClientFilters {
+    /// Create a new filter from the given list of client filters.
+    pub fn new(filters: Vec<ClientFilterMatch>) -> Self {
+        Self(filters)
+    }
+
+    /// Returns the number of filters.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns true if there are no filters, false otherwise.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Indicates whether a match for the given [`ClientId`]
+    /// exists in the filter policy.
+    pub fn matches(&self, client: &ClientId) -> bool {
+        self.0
+            .iter()
+            .any(|client_filter| client_filter.matches(client))
+    }
+
+    /// Indicates whether this filter policy contains only exact patterns.
+    #[inline]
+    pub fn is_exact(&self) -> bool {
+        self.0.iter().all(|client_filter| client_filter.is_exact())
+    }
+
+    /// An iterator over the [`ClientId`]s that don't contain wildcards.
+    pub fn iter_exact(&self) -> impl Iterator<Item = &ClientId> {
+        self.0.iter().filter_map(|client_filter| {
+            if let FilterPattern::Exact(ref client_id) = client_filter {
+                Some(client_id)
+            } else {
+                None
+            }
+        })
+    }
+}
+
+impl fmt::Display for ClientFilters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.0
+                .iter()
+                .map(|client_id| format!("{client_id}"))
+                .join(", ")
+        )
+    }
+}
+
+impl Serialize for ClientFilters {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::SerializeSeq;
+
+        struct Item<'a> {
+            a: &'a FilterPattern<ClientId>,
+        }
+
+        impl<'a> Serialize for Item<'a> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                let mut seq = serializer.serialize_seq(Some(1))?;
+                seq.serialize_element(self.a)?;
+                seq.end()
+            }
+        }
+
+        let mut outer_seq = serializer.serialize_seq(Some(self.0.len()))?;
+
+        for client in &self.0 {
+            outer_seq.serialize_element(&Item { a: client })?;
+        }
+
+        outer_seq.end()
+    }
+}
+
+/// Represents the ways in which clients can be filtered.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    rename_all = "lowercase",
+    tag = "policy",
+    content = "list",
+    deny_unknown_fields
+)]
+pub enum ClientPolicy {
+    /// Only scan the specified clients.
+    Allow(ClientFilters),
+    /// Scan all available clients.
+    AllowAll,
+}
+
+impl Default for ClientPolicy {
+    /// By default, allows all clients.
+    fn default() -> Self {
+        Self::AllowAll
+    }
+}
+
 /// Newtype wrapper for expressing wildcard patterns compiled to a [`regex::Regex`].
 #[derive(Clone, Debug)]
 pub struct Wildcard {
@@ -288,12 +427,13 @@ impl Hash for Wildcard {
     }
 }
 
-/// Represents a single channel to be filtered in a [`ChannelFilters`] list.
+/// Represents either a single channel to be filtered in a [`ChannelFilters`] list or
+/// a single client to be filtered in a [`ClientFilters`] list.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum FilterPattern<T> {
-    /// A channel specified exactly with its [`PortId`] & [`ChannelId`].
+    /// A channel specified exactly with its [`PortId`] & [`ChannelId`] or a client with its [`ClientId`].
     Exact(T),
-    /// A glob of channel(s) specified with a wildcard in either or both [`PortId`] & [`ChannelId`].
+    /// A glob of channel(s) specified with a wildcard in either or both [`PortId`] & [`ChannelId`], or a wildcard channel.
     Wildcard(Wildcard),
 }
 
@@ -358,6 +498,8 @@ where
 pub type PortFilterMatch = FilterPattern<PortId>;
 /// Type alias for a [`FilterPattern`] containing a [`ChannelId`].
 pub type ChannelFilterMatch = FilterPattern<ChannelId>;
+/// Type alias for a [`FilterPattern`] containing a [`ClientId`].
+pub type ClientFilterMatch = FilterPattern<ClientId>;
 
 impl<'de> Deserialize<'de> for PortFilterMatch {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<PortFilterMatch, D::Error> {
@@ -368,6 +510,12 @@ impl<'de> Deserialize<'de> for PortFilterMatch {
 impl<'de> Deserialize<'de> for ChannelFilterMatch {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<ChannelFilterMatch, D::Error> {
         deserializer.deserialize_string(channel::ChannelFilterMatchVisitor)
+    }
+}
+
+impl<'de> Deserialize<'de> for ClientFilterMatch {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<ClientFilterMatch, D::Error> {
+        deserializer.deserialize_string(client::ClientFilterMatchVisitor)
     }
 }
 
@@ -398,6 +546,33 @@ pub(crate) mod port {
     }
 }
 
+pub(crate) mod client {
+    use super::*;
+
+    pub struct ClientFilterMatchVisitor;
+
+    impl<'de> de::Visitor<'de> for ClientFilterMatchVisitor {
+        type Value = ClientFilterMatch;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str("valid ClientId or wildcard")
+        }
+
+        fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
+            tracing::info!("ClientFilterMatchVisitor: visit_str: {}", v);
+            if let Ok(client_id) = ClientId::from_str(v) {
+                Ok(ClientFilterMatch::Exact(client_id))
+            } else {
+                let wildcard = v.parse().map_err(E::custom)?;
+                Ok(ClientFilterMatch::Wildcard(wildcard))
+            }
+        }
+
+        fn visit_string<E: de::Error>(self, v: String) -> Result<Self::Value, E> {
+            self.visit_str(&v)
+        }
+    }
+}
 pub(crate) mod channel {
     use super::*;
 

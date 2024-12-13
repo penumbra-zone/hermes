@@ -198,14 +198,14 @@ impl TestOverrides for IcaFilterTestDeny {
         for chain in &mut config.chains {
             match chain {
                 ChainConfig::CosmosSdk(chain_config) => {
-                    chain_config.packet_filter.channel_policy =
+                    chain_config.packet_filter.cpolicy =
                         ChannelPolicy::Deny(ChannelFilters::new(vec![(
                             FilterPattern::Wildcard("ica*".parse().unwrap()),
                             FilterPattern::Wildcard("*".parse().unwrap()),
                         )]));
                 }
                 ChainConfig::Penumbra(chain_config) => {
-                    chain_config.packet_filter.channel_policy =
+                    chain_config.packet_filter.policy =
                         ChannelPolicy::Deny(ChannelFilters::new(vec![(
                             FilterPattern::Wildcard("ica*".parse().unwrap()),
                             FilterPattern::Wildcard("*".parse().unwrap()),

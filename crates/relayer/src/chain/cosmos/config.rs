@@ -18,6 +18,7 @@ use crate::{
         compat_mode::CompatMode,
         default,
         dynamic_gas::DynamicGasPrice,
+        filter::ClientFilter,
         gas_multiplier::GasMultiplier,
         types::{MaxMsgNum, MaxTxSize, Memo, TrustThreshold},
         AddressType, EventSourceMode, ExtensionOption, GasPrice, GenesisRestart, PacketFilter,
@@ -143,6 +144,9 @@ pub struct CosmosSdkConfig {
 
     #[serde(default)]
     pub packet_filter: PacketFilter,
+
+    #[serde(default)]
+    pub client_filter: ClientFilter,
 
     #[serde(default)]
     pub dynamic_gas_price: DynamicGasPrice,

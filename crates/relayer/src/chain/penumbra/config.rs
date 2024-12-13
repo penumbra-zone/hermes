@@ -6,8 +6,8 @@ use serde_derive::{Deserialize, Serialize};
 use tendermint_rpc::Url;
 
 use crate::config::{
-    compat_mode::CompatMode, default, types::TrustThreshold, EventSourceMode, GenesisRestart,
-    PacketFilter, RefreshRate,
+    compat_mode::CompatMode, default, filter::ClientFilter, types::TrustThreshold, EventSourceMode,
+    GenesisRestart, PacketFilter, RefreshRate,
 };
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -42,6 +42,9 @@ pub struct PenumbraConfig {
     /// Controls which packets will be relayed.
     #[serde(default)]
     pub packet_filter: PacketFilter,
+    /// Controls which connections will be scanned.
+    #[serde(default)]
+    pub client_filter: ClientFilter,
     pub clear_interval: Option<u64>,
     /// How many packets to fetch at once from the chain when clearing packets
     #[serde(default = "default::query_packets_chunk_size")]

@@ -16,6 +16,7 @@ use core::{
     str::FromStr,
     time::Duration,
 };
+use filter::ClientFilter;
 use std::{
     borrow::Cow,
     fs::{self, File},
@@ -42,7 +43,10 @@ use tendermint_rpc::{Url, WebSocketClientUrl};
 
 pub use crate::config::Error as ConfigError;
 use crate::{
-    chain::{cosmos::config::CosmosSdkConfig, penumbra::config::PenumbraConfig},
+    chain::{
+        cosmos::config::{self, CosmosSdkConfig},
+        penumbra::config::PenumbraConfig,
+    },
     config::types::{ics20_field_size_limit::Ics20FieldSizeLimit, TrustThreshold},
     error::Error as RelayerError,
     extension_options::ExtensionOptionDynamicFeeTx,
@@ -674,6 +678,14 @@ impl ChainConfig {
             Self::CosmosSdk(config) => &config.rpc_addr,
             Self::Astria(config) => &config.rpc_addr,
             Self::Penumbra(config) => &config.rpc_addr,
+        }
+    }
+
+    pub fn client_filter(&self) -> &ClientFilter {
+        match self {
+            Self::CosmosSdk(config) => &config.client_filter,
+            Self::Astria(config) => &config.client_filter,
+            Self::Penumbra(config) => &config.client_filter,
         }
     }
 
